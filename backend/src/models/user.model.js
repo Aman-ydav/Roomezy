@@ -1,7 +1,7 @@
 import mongoose, {Schema} from "mongoose";
 import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
-import { type } from "os";
+import crypto from "crypto";
 
 
 const userSchema = new Schema({
@@ -92,12 +92,19 @@ userSchema.methods.generateRefreshToken = function(){
 }
 
 userSchema.methods.generatePasswordResetToken = function () {
+  // Generate token
   const resetToken = crypto.randomBytes(20).toString("hex");
+
+  // Hash and save it in DB (so DB never stores raw token)
   this.resetPasswordToken = crypto
     .createHash("sha256")
     .update(resetToken)
     .digest("hex");
-  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000; // 15 minutes expiry
+
+  //Add expiry (15 minutes)
+  this.resetPasswordExpire = Date.now() + 15 * 60 * 1000;
+
+  //  Return the original token (only for sending via email)
   return resetToken;
 };
 

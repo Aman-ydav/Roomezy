@@ -1,25 +1,33 @@
 import { Router } from "express";
-import { registerUser,loginUser, logoutUser, refreshAccessToken,forgotPassword,updateAccountDetails,updateUserAvatar,getCurrentUser,changeCurrentPassword,
+import { registerUser,loginUser, 
+  logoutUser, refreshAccessToken,
+  forgotPassword,
+  updateAccountDetails,
+  updateUserAvatar,
+  getCurrentUser,
+  changeCurrentPassword,
   resetPassword,
   getUserProfileById,
   updatePreferences,
-  deleteAccount} from "../Controllers/user.controller.js"; 
+  deleteAccount} from "../controllers/user.controller.js"; 
 import { upload } from "../middlewares/multer.middleware.js";
 import {verifyJWT}  from '../middlewares/auth.middleware.js';
 
 const router = Router();
 
+// routes declaration
+
 router.route("/register").post(
     upload.single("avatar"),
     registerUser
 );
-
 router.route("/login").post(loginUser);
 
 // secure route
 router.route("/logout").post(verifyJWT, logoutUser);
 
-router.route("/refresh-token").post(refreshAccessToken);
+router.route("/refresh-token").post(verifyJWT,refreshAccessToken);
+
 
 router.route("/update-avatar").patch(
     verifyJWT,
@@ -36,11 +44,12 @@ router.route("/update-account-details").patch(verifyJWT, updateAccountDetails);
 
 
 
-router.post("/forgot-password", forgotPassword);
-router.post("/reset-password/:token", resetPassword);
+router.route("/forgot-password").post(verifyJWT,forgotPassword);
+router.route("/reset-password").put(verifyJWT,resetPassword);
 
-router.get("/profile/:id", verifyJWT, getUserProfileById);
+
+router.route("/get-user-profile/:id").get(verifyJWT, getUserProfileById);
 router.put("/preferences", verifyJWT, updatePreferences);
-router.delete("/delete", verifyJWT, deleteAccount);
+router.route("/delete-account").delete(verifyJWT, deleteAccount);
 
 export default router;

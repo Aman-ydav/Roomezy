@@ -7,11 +7,12 @@ import {
   togglePostStatus,
   toggleSavePost,
   getSavedPosts,
-} from "../Controllers/post.controller.js";
+} from "../controllers/post.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
+import { Router } from "express";
 
-const router = express.Router();
+const router = Router();
 
 // Upload fields setup (main image required, media optional)
 const postUploads = upload.fields([
@@ -26,11 +27,8 @@ router.put("/:id", verifyJWT, postUploads, updatePost);
 router.delete("/:id", verifyJWT, archivePost);
 router.patch("/:id/toggle-status", verifyJWT, togglePostStatus);
 
-router.route("/saved")
-    .get(verifyJWT, getSavedPosts);
+router.route("/saved").get(verifyJWT, getSavedPosts);
 
-router.route("/save/:id")
-    .patch(verifyJWT, toggleSavePost);
-
+router.route("/save/:id").patch(verifyJWT, toggleSavePost);
 
 export default router;

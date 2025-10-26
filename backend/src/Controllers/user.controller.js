@@ -7,6 +7,7 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import {v2 as cloudinary} from "cloudinary";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import sendEmail  from "../utils/sendEmail.js";
 
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -233,45 +234,50 @@ const changeCurrentPassword = asyncHandler(async (req, res, next) => {
 
 });
 
-
+// forgot password functionality
 const forgotPassword = asyncHandler(async (req, res) => {
   const { email } = req.body;
-  const user = await User.findOne({ email });
 
+  // Find user by email
+  const user = await User.findOne({ email });
   if (!user) throw new ApiError(404, "User not found");
 
+  // Generate a reset token (from Mongoose method)
   const resetToken = user.generatePasswordResetToken();
+
+  // Save user with new token + expiry (hashed in DB)
   await user.save({ validateBeforeSave: false });
 
+  //  Prepare password reset URL
   const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
 
-  const message = `You requested a password reset.\n\nClick the link to reset your password:\n${resetUrl}\n\nIf you didn’t request this, ignore this email.`;
+  // Email message content
+  const message = `
+    You requested a password reset.
+    Click the link to reset your password:
+    ${resetUrl}
+    If you didn’t request this, ignore this email.
+  `;
 
-  try {
-    await sendEmail({
-      email: user.email,
-      subject: "Password Reset Request",
-      message,
-    });
+  // Send the email
+  await sendEmail({
+    email: user.email,
+    subject: "Password Reset Request",
+    message,
+  });
 
-    res
-      .status(200)
-      .json(new ApiResponse(200, {}, "Password reset link sent successfully"));
-  } catch (error) {
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
-    await user.save({ validateBeforeSave: false });
-    throw new ApiError(500, "Email could not be sent");
-  }
+  // Respond success
+  res.status(200).json(new ApiResponse(200, {}, "Reset link sent!"));
 });
 
-
 const resetPassword = asyncHandler(async (req, res) => {
+  //  Hash token (same way we stored it)
   const resetPasswordToken = crypto
     .createHash("sha256")
     .update(req.params.token)
     .digest("hex");
 
+  //  Find user with matching token & not expired
   const user = await User.findOne({
     resetPasswordToken,
     resetPasswordExpire: { $gt: Date.now() },
@@ -279,17 +285,18 @@ const resetPassword = asyncHandler(async (req, res) => {
 
   if (!user) throw new ApiError(400, "Invalid or expired token");
 
+  // Update password
   user.password = req.body.password;
+
+  // Clear reset fields
   user.resetPasswordToken = undefined;
   user.resetPasswordExpire = undefined;
 
+  // Save user
   await user.save();
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, {}, "Password reset successfully"));
+  res.status(200).json(new ApiResponse(200, {}, "Password reset successful"));
 });
-
 
 const getCurrentUser = asyncHandler(async (req, res, next) => {
     
@@ -320,16 +327,12 @@ const updateAccountDetails = asyncHandler(async (req, res, next) => {
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
   const avatarLocalPath = req.file?.path;
-
   // If no file was uploaded
   if (!avatarLocalPath) {
     throw new ApiError(400, "Avatar file is required");
   }
-
   // Upload new avatar to Cloudinary
   const avatar = await uploadOnCloudinary(avatarLocalPath);
-
-  
 
   if (!avatar) {
     throw new ApiError(500, "Error uploading avatar to Cloudinary");
