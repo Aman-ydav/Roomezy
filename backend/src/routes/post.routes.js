@@ -20,12 +20,12 @@ const postUploads = upload.fields([
   { name: "media_files", maxCount: 3 },
 ]);
 
-router.post("/", verifyJWT, postUploads, createPost);
-router.get("/", getAllPosts);
-router.get("/:id", getPostById);
-router.put("/:id", verifyJWT, postUploads, updatePost);
-router.delete("/:id", verifyJWT, archivePost);
-router.patch("/:id/toggle-status", verifyJWT, togglePostStatus);
+router.route("/create-post").post(verifyJWT, postUploads, createPost);
+router.route("/").get(getAllPosts);
+router.route("/:id").get(getPostById);
+router.route("/:id").put(verifyJWT, postUploads, updatePost);
+router.route("/:id").delete(verifyJWT, archivePost);
+router.route("/:id/toggle-status").patch(verifyJWT, togglePostStatus);
 
 router.route("/saved").get(verifyJWT, getSavedPosts);
 

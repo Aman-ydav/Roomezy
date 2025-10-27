@@ -57,7 +57,7 @@ const registerUser = asyncHandler(async (req, res, next) => {
     // if avatar is there then 
     let avatarUrl = "";
     if (req.file && req.file.path) {
-        avatarUrl = req.file.path; // multer-storage-cloudinary gives direct URL
+        avatarUrl = req.file.path; 
     }
 
     const avatar = await uploadOnCloudinary(avatarUrl);

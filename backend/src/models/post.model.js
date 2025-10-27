@@ -102,6 +102,12 @@ const postSchema = new Schema({
       type: Boolean,
       default: false,
     },
+    savedBy: [
+      {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "User",
+      },
+    ],
 
     // Rating moved here
     rating: {
