@@ -58,7 +58,7 @@ export const createPost = asyncHandler(async (req, res) => {
     location,
     rent,
     room_type,
-    badge_type: post_role === "owner" ? "empty_room" : "roommate_shareable",
+    badge_type,
     main_image: mainImageUpload.url,
     media_urls: mediaUploads,
     non_smoker,
@@ -67,7 +67,6 @@ export const createPost = asyncHandler(async (req, res) => {
     badge_type,
     has_dog,
     allow_pets,
-    expiration_date: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // auto expire after 30 days
   });
 
   return res
@@ -129,7 +128,6 @@ export const togglePostStatus = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, post, "Post status toggled"));
 });
 
-// Get User's Saved Posts
 export const getSavedPosts = asyncHandler(async (req, res) => {
     const posts = await Post.find({ savedBy : req.user._id })
         .populate("user_id", "userName avatar rating")
@@ -138,7 +136,6 @@ export const getSavedPosts = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, posts, "Saved posts fetched"));
 });
 
-// Save / Unsave Post
 export const toggleSavePost = asyncHandler(async (req, res) => {
     const post = await Post.findById(req.params.id);
     if (!post) throw new ApiError(404, "Post not found");

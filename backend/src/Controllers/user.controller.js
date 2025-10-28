@@ -42,16 +42,16 @@ const registerUser = asyncHandler(async (req, res, next) => {
     
     
     // validate required fields
-    if ([userName, email, password, phone,age].some(f => !f?.trim())) {
+    if ([userName, email, password,age].some(f => !f?.trim())) {
         cleanupLocalFiles(req.files);
-        throw new ApiError(400, "Required fields missing: userName, email, password, phone, age");
+        throw new ApiError(400, "Required fields missing: userName, email, password, age");
     }
 
     // Check if user already exists
-    const existedUser = await User.findOne({ $or: [{ email }, { phone }] });
+    const existedUser = await User.findOne({ $or: [{ email }] });
     if (existedUser) {
         cleanupLocalFiles(req.files);
-        throw new ApiError(409, "User already exists with this email or pone number");
+        throw new ApiError(409, "User already exists with this email");
     }
 
     // if avatar is there then 

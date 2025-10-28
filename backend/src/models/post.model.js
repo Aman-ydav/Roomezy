@@ -34,6 +34,7 @@ const postSchema = new Schema({
       type: String,
       required: true,
       trim: true,
+      index: true,
     },
     rent: {
       type: Number,
@@ -67,18 +68,10 @@ const postSchema = new Schema({
       default: "active",
     },
 
-    // Auto & Expiration
+    // Archived post
     archived: {
       type: Boolean,
       default: false,
-    },
-    auto_closed_at: {
-      type: Date,
-      default: null,
-    },
-    expiration_date: {
-      type: Date,
-      default: null,
     },
 
     // Preferences (checkboxes)
@@ -109,7 +102,6 @@ const postSchema = new Schema({
       },
     ],
 
-    // Rating moved here
     rating: {
       type: Number,
       default: 0,
