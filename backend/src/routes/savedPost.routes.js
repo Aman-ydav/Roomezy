@@ -5,7 +5,7 @@ import { verifyJWT } from "../middlewares/auth.middleware.js";
 const router = express.Router();
 
 
-router.post("/:id/toggle", verifyJWT, toggleSavePost);
+router.post("/:id/saved-post", verifyJWT, toggleSavePost);
 
 router.get("/", verifyJWT, getSavedPosts);
 

@@ -17,6 +17,7 @@ export const toggleSavePost = asyncHandler(async (req, res) => {
   if (existing) {
     // Unsave
     await existing.deleteOne();
+    
     return res
       .status(200)
       .json(new ApiResponse(200, null, "Post unsaved successfully"));
