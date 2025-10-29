@@ -104,18 +104,14 @@ export const updatePost = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, updatedPost, "Post updated successfully"));
 });
 
-export const archivePost = asyncHandler(async (req, res) => {
-  const post = await Post.findById(req.params.id);
+export const toggleArchivePost = asyncHandler(async (req, res) => {
+   const post = await Post.findById(req.params.id);
   if (!post) throw new ApiError(404, "Post not found");
 
-  if (String(post.user) !== String(req.user._id)) {
-    throw new ApiError(403, "Unauthorized");
-  }
-
-  post.archived = true;
+  post.archived = !post.archived; 
   await post.save();
 
-  return res.status(200).json(new ApiResponse(200, {}, "Post archived successfully"));
+  return res.status(200).json(new ApiResponse(200, post, "Post archive toggled"));
 });
 
 export const togglePostStatus = asyncHandler(async (req, res) => {
@@ -126,29 +122,6 @@ export const togglePostStatus = asyncHandler(async (req, res) => {
   await post.save();
 
   return res.status(200).json(new ApiResponse(200, post, "Post status toggled"));
-});
-
-export const getSavedPosts = asyncHandler(async (req, res) => {
-    const posts = await Post.find({ savedBy : req.user._id })
-        .populate("user_id", "userName avatar rating")
-        .sort({ createdAt: -1 });
-
-    res.status(200).json(new ApiResponse(200, posts, "Saved posts fetched"));
-});
-
-export const toggleSavePost = asyncHandler(async (req, res) => {
-    const post = await Post.findById(req.params.id);
-    if (!post) throw new ApiError(404, "Post not found");
-
-    const idx = post.savedBy.indexOf(req.user._id);
-    if (idx > -1) {
-        post.savedBy.splice(idx, 1); // unsave
-    } else {
-        post.savedBy.push(req.user._id); // save
-    }
-
-    await post.save();
-    res.status(200).json(new ApiResponse(200, post, "Post save toggled"));
 });
 
 

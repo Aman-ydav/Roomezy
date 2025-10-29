@@ -18,11 +18,14 @@ app.use(cookieParser());
 // routes import
 import userRoutes from "./routes/user.routes.js";
 import postRoutes from "./routes/post.routes.js";
+import savedPostRoutes from "./routes/savedPost.routes.js";
 
 
 // route declaration
 app.use("/api/v1/users",userRoutes)
 app.use("/api/v1/posts",postRoutes)
+app.use("/api/v1/saved-posts", savedPostRoutes);
+
 
 
 
