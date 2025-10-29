@@ -5,6 +5,7 @@ import {
   updatePost,
   toggleArchivePost,
   togglePostStatus,
+  ratePost,
 } from "../controllers/post.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -24,6 +25,7 @@ router.route("/:id").get(getPostById);
 router.route("/:id").put(verifyJWT, postUploads, updatePost);
 router.route("/:id/archive").patch(verifyJWT, toggleArchivePost);
 router.route("/:id/status").patch(verifyJWT, togglePostStatus);
+router.route("/:id/rate").patch(verifyJWT, ratePost);
 
 
 export default router;
