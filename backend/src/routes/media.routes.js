@@ -5,6 +5,7 @@ import {
   getAllMediaPosts,
   toggleLikeMedia,
   addComment,
+  getAllCommentsForMedia,
 } from "../controllers/media.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 const router = Router();
@@ -20,12 +21,11 @@ router.route("/").post(verifyJWT,
   );
 
 
-router
-  .route("/:mediaId/like")
-  .post(verifyJWT, toggleLikeMedia);
+router.route("/:mediaId/like").post(verifyJWT, toggleLikeMedia);
 
-router
-  .route("/:mediaId/comment")
-  .post(verifyJWT, addComment);
+router.route("/:mediaId/comment").post(verifyJWT, addComment);
+
+router.route("/:mediaId/comment").get(verifyJWT, getAllCommentsForMedia);
+
 
 export default router;
