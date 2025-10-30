@@ -8,6 +8,8 @@ import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { cleanupLocalFiles } from "../utils/fileCleanUp.js";
 import mongoose from "mongoose";
 import {ObjectId} from "mongodb";
+import { deleteFromCloudinary } from "../utils/cloudinary.js";
+
 
 export const createMediaPost = asyncHandler(async (req, res) => {
     const { description } = req.body;
@@ -281,5 +283,52 @@ export const getAllMediaPosts = asyncHandler(async (req, res) => {
   return res
     .status(200)
     .json(new ApiResponse(200, posts, "Feed loaded successfully"));
+});
+
+export const deleteMediaPost = asyncHandler(async (req, res) => {
+  const { mediaId } = req.params;
+  const userId = req.user._id;
+
+  // Validate ID
+  if (!mongoose.Types.ObjectId.isValid(mediaId)) {
+    throw new ApiError(400, "Invalid media ID");
+  }
+
+  // Find the media post
+  const media = await Media.findById(mediaId);
+  if (!media) throw new ApiError(404, "Media post not found");
+
+  // Check ownership
+  if (String(media.user) !== String(userId)) {
+    throw new ApiError(403, "Unauthorized to delete this media post");
+  }
+
+  // Delete associated likes and comments
+  await Promise.all([
+    MediaLike.deleteMany({ media: mediaId }),
+    MediaComment.deleteMany({ media: mediaId }),
+  ]);
+
+  // Delete media files from Cloudinary
+  try {
+    if (Array.isArray(media.images) && media.images.length > 0) {
+      for (const imageUrl of media.images) {
+        await deleteFromCloudinary(imageUrl);
+      }
+    }
+
+    if (media.video) {
+      await deleteFromCloudinary(media.video);
+    }
+  } catch (err) {
+    console.error("⚠️ Cloudinary deletion failed:", err.message);
+  }
+
+  // Delete the media document
+  await Media.findByIdAndDelete(mediaId);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Media post deleted successfully"));
 });
 

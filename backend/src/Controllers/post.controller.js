@@ -4,6 +4,8 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { Post } from "../models/post.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { cleanupLocalFiles } from "../utils/fileCleanUp.js";
+import { deleteFromCloudinary } from "../utils/cloudinary.js";
+import mongoose from "mongoose";
 
 export const createPost = asyncHandler(async (req, res) => {
   const {
@@ -204,6 +206,46 @@ export const ratePost = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, post, "Rating submitted successfully"));
 });
 
+export const deletePost = asyncHandler(async (req, res) => {
+  const { id } = req.params;
 
+  // Validate ObjectId
+  if (!mongoose.Types.ObjectId.isValid(id)) {
+    throw new ApiError(400, "Invalid post ID");
+  }
+
+  // Find post
+  const post = await Post.findById(id);
+  if (!post) throw new ApiError(404, "Post not found");
+
+  // Authorization check
+  if (String(post.user) !== String(req.user._id)) {
+    throw new ApiError(403, "Unauthorized to delete this post");
+  }
+
+  // Delete files from Cloudinary
+  try {
+    // main image
+    if (post.main_image) {
+      await deleteFromCloudinary(post.main_image);
+    }
+
+    // multiple media files
+    if (Array.isArray(post.media_urls) && post.media_urls.length > 0) {
+      for (const url of post.media_urls) {
+        await deleteFromCloudinary(url);
+      }
+    }
+  } catch (err) {
+    console.error("Cloudinary deletion error:", err.message);
+  }
+
+  // Delete the post document
+  await Post.findByIdAndDelete(id);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Post deleted successfully"));
+});
 
 

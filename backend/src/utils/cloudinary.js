@@ -38,4 +38,31 @@ const uploadOnCloudinary = async (localFilePath) => {
     }
 }
 
-export {uploadOnCloudinary};
+const deleteFromCloudinary = async (fileUrl) => {
+  try {
+    if (!fileUrl) return null;
+
+    
+    const urlParts = fileUrl.split("/upload/")[1];
+    if (!urlParts) throw new Error("Invalid Cloudinary URL");
+
+   
+    const cleaned = urlParts.replace(/v\d+\//, ""); 
+
+   
+    const publicId = cleaned.substring(0, cleaned.lastIndexOf(".")); 
+
+    // Call Cloudinary API to delete
+    const result = await cloudinary.uploader.destroy(publicId);
+
+    if (result.result === "not found") {
+      console.warn(`Cloudinary file not found for public_id: ${publicId}`);
+    }
+    return result;
+  } catch (error) {
+    console.error("Cloudinary deletion error:", error.message);
+    return null;
+  }
+};
+
+export {uploadOnCloudinary, deleteFromCloudinary};
