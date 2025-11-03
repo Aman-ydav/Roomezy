@@ -1,14 +1,22 @@
 import { Toaster } from "sonner";
+import { useSelector } from "react-redux";
+import { useEffect, useState } from "react";
 
 export function SonnerToaster() {
-  let theme = "light";
+  const { mode } = useSelector((state) => state.theme); // get theme from Redux
+  const [theme, setTheme] = useState("light");
+
+  useEffect(() => {
+    setTheme(mode === "dark" ? "dark" : "light");
+  }, [mode]);
+
   return (
     <Toaster
       position="top-right"
       richColors
       expand
-      closeButton= {false}
-      theme={theme}
+      closeButton={false}
+      theme={theme} 
       duration={3000}
       toastOptions={{
         classNames: {

@@ -364,20 +364,6 @@ const getUserProfileById = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, user, "User profile fetched"));
 });
 
-const updatePreferences = asyncHandler(async (req, res) => {
-  const { budget, roommate_preferences, preferred_locations } = req.body;
-  const user = await User.findById(req.user._id);
-
-  if (!user) throw new ApiError(404, "User not found");
-
-  user.budget = budget ?? user.budget;
-  user.roommate_preferences = roommate_preferences ?? user.roommate_preferences;
-  user.preferred_locations = preferred_locations ?? user.preferred_locations;
-
-  await user.save();
-
-  res.status(200).json(new ApiResponse(200, user, "Preferences updated"));
-});
 
 const deleteAccount = asyncHandler(async (req, res) => {
   const user = await User.findById(req.user._id);
@@ -401,6 +387,5 @@ export {registerUser,
     forgotPassword,
     resetPassword,
     getUserProfileById,
-    updatePreferences,
     deleteAccount
 }; 

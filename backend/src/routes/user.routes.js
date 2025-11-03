@@ -8,7 +8,6 @@ import { registerUser,loginUser,
   changeCurrentPassword,
   resetPassword,
   getUserProfileById,
-  updatePreferences,
   deleteAccount} from "../controllers/user.controller.js"; 
 import { upload } from "../middlewares/multer.middleware.js";
 import {verifyJWT}  from '../middlewares/auth.middleware.js';
@@ -45,11 +44,11 @@ router.route("/update-account-details").patch(verifyJWT, updateAccountDetails);
 
 
 router.route("/forgot-password").post(verifyJWT,forgotPassword);
-router.route("/reset-password").put(verifyJWT,resetPassword);
 
+router.route("/reset-password/:token").post(resetPassword);
 
 router.route("/get-user-profile/:id").get(verifyJWT, getUserProfileById);
-router.put("/preferences", verifyJWT, updatePreferences);
+
 router.route("/delete-account").delete(verifyJWT, deleteAccount);
 
 export default router;

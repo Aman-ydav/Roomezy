@@ -45,7 +45,6 @@ export const loginUser = createAsyncThunk(
       localStorage.setItem("user", JSON.stringify(user));
       return user;
     } catch (error) {
-      toast.error(error.response?.data?.message || "Login failed");
       return thunkAPI.rejectWithValue(
         error.response?.data?.message || "Login failed"
       );
@@ -67,6 +66,33 @@ export const fetchCurrentUser = createAsyncThunk(
     }
   }
 );
+
+export const forgotPassword = createAsyncThunk(
+  "auth/forgotPassword",
+  async (email, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post("/users/forgot-password", { email });
+      return data;
+    } catch (err) {
+      return rejectWithValue(err.response?.data?.message || "Error occurred");
+    }
+  }
+);
+
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ token, password }, { rejectWithValue }) => {
+    try {
+      const response = await api.post(`/users/reset-password/${token}`, { password });
+      return response.data;
+    } catch (err) {
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to reset password"
+      );
+    }
+  }
+);
+
 
 //initial stage
 const savedUser = localStorage.getItem("user");
@@ -131,6 +157,26 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload;
         state.user = null;
+      })
+      // forgot password
+      .addCase(forgotPassword.pending, (state) => { state.loading = true; })
+      .addCase(forgotPassword.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(forgotPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
+      })
+      // reset password
+      .addCase(resetPassword.pending, (state) => { state.loading = true; })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload;
       });
   },
 });
