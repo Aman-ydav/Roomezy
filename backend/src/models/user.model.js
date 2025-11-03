@@ -17,7 +17,6 @@ const userSchema = new Schema({
     },
     phone: {
         type: String,  
-        unique: true 
     },
     age: {
         type: Number,
@@ -29,16 +28,6 @@ const userSchema = new Schema({
     password: {
         type: String,
         required: [true, "Password is required"],
-    },
-    preferred_locations: {
-        type: String,
-        index: true
-    },
-    budget: { 
-        type: Number 
-    },
-    roommate_preferences: {
-        type: String 
     },
     refreshToken: {
         type: String,

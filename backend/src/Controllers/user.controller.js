@@ -27,17 +27,12 @@ const generateAccessAndRefreshToken = async (userId) => {
 }
 
 const registerUser = asyncHandler(async (req, res, next) => {
-
-    
     const {
         userName,
         email,
         password,
         age,
         phone,
-        preferred_locations,
-        budget,
-        roommate_preferences
     } = req.body;
     
     
@@ -52,13 +47,6 @@ const registerUser = asyncHandler(async (req, res, next) => {
     if (existedUser) {
         cleanupLocalFiles(req.files);
         throw new ApiError(409, "User already exists with this email");
-    }
-
-    // Check if user already exists
-    const existedUserName = await User.findOne({ $or: [{ phone }] });
-    if (existedUserName) {
-        cleanupLocalFiles(req.files);
-        throw new ApiError(409, "User already exists with this phone number");
     }
 
     // if avatar is there then 
@@ -76,9 +64,6 @@ const registerUser = asyncHandler(async (req, res, next) => {
         password,
         age,
         phone,
-        preferred_locations: preferred_locations || "",
-        budget: budget || null,
-        roommate_preferences: roommate_preferences || "",
         avatar: avatar?.url,
     });
 
@@ -219,7 +204,6 @@ const refreshAccessToken = asyncHandler(async (req, res, next) => {
     }
     
 });
-
 
 const changeCurrentPassword = asyncHandler(async (req, res, next) => {
     const {oldPassword, newPassword} = req.body;

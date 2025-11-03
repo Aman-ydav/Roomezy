@@ -1,15 +1,21 @@
-import React from "react";
-import Navbar from "./components/shared/Navbar";
+import React,{useEffect} from "react";
 import AppRouter from "./routes/AppRouter";
+import { SonnerToaster } from './components/ui/sonner-toaster';
+import { useNavigate } from "react-router-dom";
+import { setNavigator } from "./utils/navigateHelper";
 
 function App() {
+
+  const navigate = useNavigate();
+  useEffect(() => {
+    setNavigator(navigate);
+  }, [navigate]);
+
   return (
-    <div className="min-h-screen bg-slate-50 text-gray-900">
-      <Navbar />
-      <div className="p-6">
-        <AppRouter />
-      </div>
-    </div>
+    <>
+      <SonnerToaster />
+      <AppRouter />
+    </>
   );
 }
 

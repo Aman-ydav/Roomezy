@@ -1,9 +1,11 @@
 import {app} from "./app.js";
 import connectDB from "./db/index.js";
 import "./config.js";
+import {User} from "./models/user.model.js"; 
 
 connectDB()
-.then(()=>{
+.then(async ()=>{
+        await User.syncIndexes();
         app.on("error", (err)=>{
             console.log("Error on App:", err);
             throw err;
