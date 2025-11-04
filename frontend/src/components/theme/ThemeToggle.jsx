@@ -1,7 +1,7 @@
-import { useDispatch, useSelector } from 'react-redux';
-import { toggleTheme } from '../../features/theme/themeSlice.js';
-import { Moon, Sun } from 'lucide-react';
-import { motion } from 'framer-motion';
+import { useDispatch, useSelector } from "react-redux";
+import { toggleTheme } from "@/features/theme/themeSlice.js";
+import { Moon, Sun } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 const ThemeToggle = () => {
   const dispatch = useDispatch();
@@ -9,15 +9,62 @@ const ThemeToggle = () => {
 
   return (
     <motion.button
-      whileTap={{ scale: 0.9 }}
+      whileTap={{ scale: 0.95 }}
       onClick={() => dispatch(toggleTheme())}
-      className="flex items-center justify-center w-10 h-10 rounded-full bg-zinc-800 dark:bg-zinc-200 transition-colors"
+      className={`
+        relative flex items-center w-11 h-6
+        rounded-full
+        border border-border
+        shadow-inner overflow-hidden
+        bg-card text-primary
+        transition-all duration-500
+      `}
     >
-      {mode === 'dark' ? (
-        <Sun className="text-yellow-400" size={20} />
-      ) : (
-        <Moon className="text-blue-600" size={20} />
-      )}
+      {/* Switch Track Glow */}
+      <motion.div
+        layout
+        className={`absolute inset-0 rounded-full transition-colors duration-500 ${
+          mode === "dark"
+            ? "bg-linear-to-r from-indigo-600/30 to-purple-600/30"
+            : "bg-linear-to-r from-yellow-300/20 to-orange-300/20"
+        }`}
+      />
+
+      {/* Sliding Knob */}
+      <motion.div
+        layout
+        transition={{ type: "spring", stiffness: 300, damping: 20 }}
+        className={`
+          absolute top-1 left-1 w-4 h-4 rounded-full 
+          shadow-lg flex items-center justify-center
+          ${mode === "dark" ? "translate-x-5 bg-accent" : "bg-primary"}
+          transition-all duration-500
+        `}
+      >
+        <AnimatePresence mode="wait" initial={false}>
+          {mode === "dark" ? (
+            <motion.div
+              key="sun"
+              initial={{ opacity: 0, rotate: -90 }}
+              animate={{ opacity: 1, rotate: 0 }}
+              exit={{ opacity: 0, rotate: 90 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Sun className={`w-3 h-3 text--primary-background`} />
+            </motion.div>
+          ) : (
+            <motion.div
+              key="moon"
+              initial={{ opacity: 0, rotate: 90 }}
+              animate={{ opacity: 1, rotate: 0 }}
+              exit={{ opacity: 0, rotate: -90 }}
+              transition={{ duration: 0.3 }}
+            >
+              <Moon className={`w-3 h-3 text-primary-background`} />
+            </motion.div>
+          )}
+        </AnimatePresence>
+      </motion.div>
     </motion.button>
   );
 };
