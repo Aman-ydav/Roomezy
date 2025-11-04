@@ -43,7 +43,7 @@ router.route("/update-account-details").patch(verifyJWT, updateAccountDetails);
 
 
 
-router.route("/forgot-password").post(verifyJWT,forgotPassword);
+router.route("/forgot-password").post(forgotPassword);
 
 router.route("/reset-password/:token").post(resetPassword);
 

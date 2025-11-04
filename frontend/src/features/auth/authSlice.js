@@ -33,21 +33,21 @@ export const registerUser = createAsyncThunk(
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
-  async (data, thunkAPI) => {
+  async (data, { rejectWithValue }) => {
     try {
-      const res = await api.post("/users/login", data, {
-        withCredentials: true,
-      });
+      const res = await api.post("/users/login", data, { withCredentials: true });
 
       const user = res.data?.data?.user;
       if (!user) throw new Error("No user returned from backend");
 
       localStorage.setItem("user", JSON.stringify(user));
       return user;
-    } catch (error) {
-      return thunkAPI.rejectWithValue(
-        error.response?.data?.message || "Login failed"
-      );
+    } catch (err) {
+      const message =
+        err.response?.data?.message ||
+        err.message ||
+        "Something went wrong. Please try again.";
+      return rejectWithValue(message);
     }
   }
 );
@@ -72,8 +72,10 @@ export const forgotPassword = createAsyncThunk(
   async (email, { rejectWithValue }) => {
     try {
       const { data } = await api.post("/users/forgot-password", { email });
+      console.log(data);
       return data;
     } catch (err) {
+      console.log(err);
       return rejectWithValue(err.response?.data?.message || "Error occurred");
     }
   }
@@ -93,6 +95,18 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
+export const logoutUser = createAsyncThunk("auth/logoutUser", async (_, thunkAPI) => {
+  try {
+    // clear user data
+    localStorage.removeItem("user");
+    toast.success("Logout successfully!");
+    return null;
+  } catch (error) {
+    toast.error("Logout failed. Try again.");
+    return thunkAPI.rejectWithValue(error.message);
+  }
+});
+
 
 //initial stage
 const savedUser = localStorage.getItem("user");
@@ -101,19 +115,14 @@ const initialState = {
   user: savedUser ? JSON.parse(savedUser) : null,
   loading: false,
   error: null,
+  status: "idle",
 };
 
 // slice
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {
-    logout: (state) => {
-      state.user = null;
-      localStorage.removeItem("user");
-      toast.success("Logged out successfully");
-    },
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
       // Register
@@ -141,6 +150,19 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      })
+
+      // logout 
+      .addCase(logoutUser.pending, (state) => {
+        state.status = "loading";
+      })
+      .addCase(logoutUser.fulfilled, (state) => {
+        state.status = "succeeded";
+        state.user = null;
+      })
+      .addCase(logoutUser.rejected, (state, action) => {
+        state.status = "failed";
         state.error = action.payload;
       })
 

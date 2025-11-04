@@ -17,7 +17,6 @@ import { Mail, Lock, ArrowLeft } from "lucide-react";
 import MotionWrapper from "@/components/motion/MotionWrapper";
 import ForgotPasswordModal from "./ForgotPasswordModal";
 
-
 const LoginModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -61,7 +60,17 @@ const LoginModal = ({ isOpen, onClose }) => {
         navigate("/");
       })
       .catch((err) => {
-        toast.error("Invalid credentials, please try again!");
+        console.error("Login Error:", err);
+
+        if (err.toLowerCase().includes("invalid")) {
+          toast.error("Invalid email or password. Please try again!");
+        } else if (err.toLowerCase().includes("network")) {
+          toast.error("Network error! Please check your connection.");
+        } else if (err.toLowerCase().includes("not found")) {
+          toast.error("No user found with this email address.");
+        } else {
+          toast.error(err);
+        }
       });
   };
 
@@ -167,15 +176,28 @@ const LoginModal = ({ isOpen, onClose }) => {
                 w-full mt-2 py-2 font-semibold text-white 
                 bg-linear-to-r from-purple-600 to-fuchsia-600 
                 hover:from-purple-700 hover:to-fuchsia-700 
-                transition-all duration-300 rounded-lg
+                transition-all duration-300 rounded-lg cursor-pointer
               "
             >
               {loading ? "Signing in..." : "Sign In"}
             </Button>
           </form>
+          <div className="text-center space-y-3">
+            <Button
+              type="button"
+              variant="link"
+              className="text-sm text-gray-600 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-300"
+              onClick={() => setForgotOpen(true)}
+            >
+              Forgot your password?
+            </Button>
 
-          <div className="text-center text-sm sm:text-base text-zinc-500 dark:text-zinc-400 mt-1 space-y-1">
-            <p>
+            <ForgotPasswordModal
+              isOpen={forgotOpen}
+              onClose={() => setForgotOpen(false)}
+            />
+
+            <p className="text-sm sm:text-base text-zinc-500 dark:text-zinc-400">
               Don’t have an account?{" "}
               <Link
                 to="/register"
@@ -184,21 +206,16 @@ const LoginModal = ({ isOpen, onClose }) => {
                 Create one
               </Link>
             </p>
-            <div className="text-center">
-              <Button
-                type="button"
-                variant="link"
-                className="text-sm text-purple-600 dark:text-purple-400 hover:text-purple-700 dark:hover:text-purple-300"
-                onClick={() => setForgotOpen(true)}
-              >
-                Forgot your password?
-              </Button>
-            </div>
 
-            <ForgotPasswordModal
-              isOpen={forgotOpen}
-              onClose={() => setForgotOpen(false)}
-            />
+            <p>
+              <Link
+                to="/"
+                className="inline-flex items-center gap-2 text-sm text-purple-500 hover:text-fuchsia-500 transition-colors duration-300"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span>Back to Home</span>
+              </Link>
+            </p>
           </div>
         </DialogContent>
       </Dialog>

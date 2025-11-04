@@ -17,16 +17,16 @@ export function SonnerToaster() {
       expand
       closeButton={false}
       theme={theme} 
-      duration={3000}
+      duration={2000}
       toastOptions={{
         classNames: {
           toast:
             "rounded-xl shadow-lg border border-border bg-background text-foreground transition-all duration-300 hover:scale-[1.02]",
-          title: "font-semibold text-base",
-          description: "text-sm opacity-90",
+          title: "text-xs text-base",
+          description: "text-[2px] opacity-90",
           closeButton:
             "ml-2 text-muted-foreground hover:text-foreground focus:outline-none",
-          icon: "text-lg",
+          icon: "text-sm",
         },
       }}
     />

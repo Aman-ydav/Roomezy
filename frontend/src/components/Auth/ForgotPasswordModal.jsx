@@ -22,7 +22,14 @@ const ForgotPasswordModal = ({ isOpen, onClose }) => {
         toast.success("Reset link sent to your email!");
         onClose();
       })
-      .catch((err) => toast.error(err || "Error sending email"));
+      .catch((err) => {
+          if (err === "User not found") {
+            // Still show a neutral success-like message
+            toast.success("If this email is registered, a reset link has been sent.");
+            } else {
+            toast.error(err || "Something went wrong. Please try again.");
+            }
+        });
   };
 
   return (

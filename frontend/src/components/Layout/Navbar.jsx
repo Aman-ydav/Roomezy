@@ -1,9 +1,8 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
 import { useDispatch } from "react-redux";
-import { logout } from "../../features/auth/authSlice";
+import { logoutUser } from "../../features/auth/authSlice";
 import { useAuth } from "../../hooks/useAuth";
-import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { LogOut, Menu, X } from "lucide-react";
 import ThemeToggle from "../theme/ThemeToggle";
@@ -14,15 +13,13 @@ export default function Navbar() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   const handleLogout = () => {
-    dispatch(logout());
-    toast.success("You have logged out successfully");
+    dispatch(logoutUser());
     setIsMenuOpen(false);
   };
 
   return (
     <nav className="sticky top-0 z-50 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800 bg-white/80 dark:bg-zinc-900/80">
       <div className="max-w-7xl mx-auto flex justify-between items-center px-4 py-3 md:px-8">
-       
         <Link
           to="/"
           className="text-2xl font-bold bg-linear-to-r from-purple-600 to-pink-500 bg-clip-text text-transparent"
@@ -30,7 +27,6 @@ export default function Navbar() {
           Roomezy
         </Link>
 
-       
         <div className="hidden md:flex items-center gap-6">
           <ThemeToggle />
 
