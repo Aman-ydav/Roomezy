@@ -68,7 +68,7 @@ export default function Navbar() {
           <span
             className="
                    text-2xl font-extrabold 
-                   bg-primary
+                   bg-primary dark:bg-forground
                    bg-clip-text text-transparent 
                    tracking-tight"
           >
@@ -247,7 +247,6 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Popup Search Bar (Mobile) */}
       {showSearch && (
         <div className="md:hidden px-4 py-3 bg-card border-t border-border backdrop-blur-md animate-in fade-in slide-in-from-top-2">
           <form

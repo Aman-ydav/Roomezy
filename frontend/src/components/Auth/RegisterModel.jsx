@@ -30,7 +30,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, loading } = useSelector((state) => state.auth);
-
+  const [formError, setFormError] = useState("");
   const [formData, setFormData] = useState({
     userName: "",
     email: "",
@@ -44,6 +44,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
 
   // handle input
   const handleChange = (e) => {
+    if (formError) setFormError("");
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -78,6 +79,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
   // submit form
   const handleSubmit = async (e) => {
     e.preventDefault();
+    setFormError("");
     if (!validateForm()) return;
 
     const { userName, email, password, age, phone, avatar } = formData;
@@ -91,7 +93,8 @@ const RegisterModal = ({ isOpen, onClose }) => {
         navigate("/");
       })
       .catch((err) => {
-        toast.error(err || "Registration failed. Try again!");
+        let message = "An unexpected error occurred. Please try again.";
+        setFormError(err || message);
       });
   };
 
@@ -108,6 +111,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
     });
     setPreviewAvatar(null);
     setErrors({});
+    setFormError("");
     navigate("/");
   };
 
@@ -186,7 +190,9 @@ const RegisterModal = ({ isOpen, onClose }) => {
             <div className="space-y-3">
               {/* Full Name */}
               <div>
-                <Label htmlFor="userName" className="mb-2">Full Name</Label>
+                <Label htmlFor="userName" className="mb-2">
+                  Full Name
+                </Label>
                 <div className="relative">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
@@ -205,7 +211,9 @@ const RegisterModal = ({ isOpen, onClose }) => {
 
               {/* Email */}
               <div>
-                <Label htmlFor="email" className="mb-2">Email</Label>
+                <Label htmlFor="email" className="mb-2">
+                  Email
+                </Label>
                 <div className="relative">
                   <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
@@ -225,7 +233,9 @@ const RegisterModal = ({ isOpen, onClose }) => {
 
               {/* Password */}
               <div>
-                <Label htmlFor="password" className="mb-2">Password</Label>
+                <Label htmlFor="password" className="mb-2">
+                  Password
+                </Label>
                 <div className="relative">
                   <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                   <Input
@@ -246,7 +256,9 @@ const RegisterModal = ({ isOpen, onClose }) => {
               {/* Age + Phone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
-                  <Label htmlFor="age" className="mb-2">Age</Label>
+                  <Label htmlFor="age" className="mb-2">
+                    Age
+                  </Label>
                   <div className="relative">
                     <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
@@ -268,7 +280,9 @@ const RegisterModal = ({ isOpen, onClose }) => {
                 </div>
 
                 <div>
-                  <Label htmlFor="phone" className="mb-2">Phone (optional)</Label>
+                  <Label htmlFor="phone" className="mb-2">
+                    Phone (optional)
+                  </Label>
                   <div className="relative">
                     <Phone className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
                     <Input
@@ -290,7 +304,16 @@ const RegisterModal = ({ isOpen, onClose }) => {
                 </div>
               </div>
             </div>
-
+            {formError && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="w-11/12 text-center text-sm font-medium text-destructive"
+              >
+                {formError}
+              </motion.div>
+            )}
             {/* Submit Button */}
             <Button
               type="submit"
@@ -306,7 +329,11 @@ const RegisterModal = ({ isOpen, onClose }) => {
                 <>
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 0.6, ease: 'linear' }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 0.6,
+                      ease: "linear",
+                    }}
                     className="mr-2"
                   >
                     <Loader2 className="w-5 h-5 text-primary-foreground" />

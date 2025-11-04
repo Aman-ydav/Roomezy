@@ -23,7 +23,6 @@ export const registerUser = createAsyncThunk(
 
       return res.data?.data;
     } catch (error) {
-      toast.error(error.response?.data?.message || "Registration failed");
       return thunkAPI.rejectWithValue(
         error.response?.data?.message || "Registration failed"
       );

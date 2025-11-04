@@ -25,7 +25,7 @@ const ThemeToggle = () => {
         layout
         className={`absolute inset-0 rounded-full transition-colors duration-500 ${
           mode === "dark"
-            ? "bg-linear-to-r from-indigo-600/30 to-purple-600/30"
+            ? "bg-linear-to-r from-red-600/30 to-red-300/50"
             : "bg-linear-to-r from-yellow-300/20 to-orange-300/20"
         }`}
       />

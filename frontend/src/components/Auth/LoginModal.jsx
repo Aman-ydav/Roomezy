@@ -23,12 +23,13 @@ const LoginModal = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { user, loading } = useSelector((state) => state.auth);
   const [forgotOpen, setForgotOpen] = useState(false);
-
+  const [formError, setFormError] = useState("");
   const [formData, setFormData] = useState({ email: "", password: "" });
   const [errors, setErrors] = useState({});
 
   // input handling
   const handleChange = (e) => {
+    if (formError) setFormError("");
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
@@ -48,6 +49,9 @@ const LoginModal = ({ isOpen, onClose }) => {
   // submit
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    setFormError("");
+
     if (!validateForm()) return;
 
     dispatch(loginUser(formData))
@@ -58,15 +62,17 @@ const LoginModal = ({ isOpen, onClose }) => {
         navigate("/");
       })
       .catch((err) => {
+        let message = "An unexpected error occurred. Please try again.";
+
         if (err.toLowerCase().includes("invalid")) {
-          toast.error("Invalid email or password. Please try again!");
+          message = "Invalid email or password. Please try again!";
         } else if (err.toLowerCase().includes("network")) {
-          toast.error("Network error! Please check your connection.");
+          message = "Network error! Please check your internet connection.";
         } else if (err.toLowerCase().includes("not found")) {
-          toast.error("No user found with this email address.");
-        } else {
-          toast.error(err);
+          message = "No user found with this email address.";
         }
+
+        setFormError(message);
       });
   };
 
@@ -75,6 +81,7 @@ const LoginModal = ({ isOpen, onClose }) => {
     onClose();
     setFormData({ email: "", password: "" });
     setErrors({});
+    setFormError("");
     navigate("/");
   };
 
@@ -169,6 +176,18 @@ const LoginModal = ({ isOpen, onClose }) => {
               )}
             </div>
 
+            {formError && (
+              <motion.div
+                initial={{ opacity: 0, y: -5 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.3 }}
+                className="w-11/12 text-center text-sm font-medium text-destructive"
+              >
+                {formError}
+              </motion.div>
+            )}
+
+
             {/* Submit button */}
             <Button
               type="submit"
@@ -184,7 +203,11 @@ const LoginModal = ({ isOpen, onClose }) => {
                 <>
                   <motion.div
                     animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 0.6, ease: "linear" }}
+                    transition={{
+                      repeat: Infinity,
+                      duration: 0.6,
+                      ease: "linear",
+                    }}
                     className="mr-2"
                   >
                     <Loader2 className="w-5 h-5 text-primary-foreground" />
@@ -195,6 +218,7 @@ const LoginModal = ({ isOpen, onClose }) => {
                 "Sign In"
               )}
             </Button>
+            
           </form>
 
           {/* Footer Links */}

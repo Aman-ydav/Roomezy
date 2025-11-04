@@ -15,19 +15,39 @@ const ResetPassword = () => {
   const navigate = useNavigate();
   const { loading } = useSelector((state) => state.auth);
 
+  
+  const [error, setError] = useState("");
   const [password, setPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!password.trim()) return toast.error("Password cannot be empty");
 
-    dispatch(resetPassword({ token, password }))
-      .unwrap()
-      .then(() => {
-        toast.success("Password reset successfully!");
-        navigate("/login");
-      })
-      .catch((err) => toast.error(err || "Failed to reset password"));
+    setError("");
+    if (!password.trim() || !confirmPassword.trim()) {
+      return setError("Password fields cannot be empty");
+    }
+
+    if (password !== confirmPassword) {
+      return setError("Passwords do not match");
+    }
+
+    if(password.length < 6){
+      return setError("Password must be at least 6 characters");
+    }
+
+    try {
+      await dispatch(resetPassword({ token, password })).unwrap();
+      toast.success("Password reset successfully!");
+      navigate("/login");
+    } catch (err) {
+      
+      if (err=="Invalid or expired token") {
+        setError("Link expired, generate a new link");
+        return;
+      }
+      setError(err || "Something went wrong. Please try again.");
+    }
   };
 
   return (
@@ -67,7 +87,10 @@ const ResetPassword = () => {
               type="password"
               placeholder="New Password"
               value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              onChange={(e) => {
+                setPassword(e.target.value)
+                setError('')
+              }}
               className="
                 pl-9 border border-input 
                 focus:ring-2 focus:ring-primary
@@ -76,6 +99,35 @@ const ResetPassword = () => {
             />
           </div>
 
+       
+          <div className="relative mt-4">
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              type="password"
+              placeholder="Confirm Password"
+              value={confirmPassword}
+              onChange={(e) => {
+                setConfirmPassword(e.target.value)
+                setError('')
+              }}
+              className="
+                pl-9 border border-input 
+                focus:ring-2 focus:ring-primary
+                bg-background text-foreground
+              "
+            />
+          </div>
+          {error && (
+            <motion.p
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="text-red-500 text-center text-sm font-medium"
+            >
+              {error}
+            </motion.p>
+          )}
+
+        
           <Button
             type="submit"
             disabled={loading}
@@ -89,7 +141,11 @@ const ResetPassword = () => {
             {loading ? (
               <motion.div
                 animate={{ rotate: 360 }}
-                transition={{ repeat: Infinity, duration: 0.6, ease: 'linear' }}
+                transition={{
+                  repeat: Infinity,
+                  duration: 0.6,
+                  ease: "linear",
+                }}
                 className="mr-2"
               >
                 <Lock className="w-5 h-5 text-primary-foreground" />
@@ -99,6 +155,7 @@ const ResetPassword = () => {
             )}
           </Button>
 
+         
           <p className="text-center text-sm text-muted-foreground">
             Remembered your password?{" "}
             <span
