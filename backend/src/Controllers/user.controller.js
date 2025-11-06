@@ -3,7 +3,7 @@ import { ApiError } from "../utils/apiError.js";
 import { User } from "../models/user.model.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { cleanupLocalFiles } from "../utils/fileCleanUp.js";
-import { uploadOnCloudinary } from "../utils/cloudinary.js";
+import { uploadOnCloudinary ,deleteFromCloudinary } from "../utils/cloudinary.js";
 import {v2 as cloudinary} from "cloudinary";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
@@ -33,11 +33,13 @@ const registerUser = asyncHandler(async (req, res, next) => {
         password,
         age,
         phone,
+        gender, 
+        preferredLocations
     } = req.body;
     
     
     // validate required fields
-    if ([userName, email, password,age].some(f => !f?.trim())) {
+    if ([userName, email, password,age,gender].some(f => !f?.trim())) {
         cleanupLocalFiles(req.files);
         throw new ApiError(400, "Required fields missing: userName, email, password, age");
     }
@@ -65,6 +67,8 @@ const registerUser = asyncHandler(async (req, res, next) => {
         age,
         phone,
         avatar: avatar?.url,
+        gender,
+        preferredLocations: preferredLocations ? preferredLocations : [],
     });
 
     // Fetch user without sensitive fields
@@ -296,67 +300,58 @@ const getCurrentUser = asyncHandler(async (req, res, next) => {
 });
 
 
-const updateAccountDetails = asyncHandler(async (req, res, next) => { 
+const updateAccountDetails = asyncHandler(async (req, res, next) => {
+  const { userName, age, gender, preferredLocations } = req.body;
 
-    const { userName, age } = req.body;
-   if (!userName || !age) {
-        throw new ApiError(400, "Fileds name is required");
+  // Ensure at least one field is provided
+  if (
+    !userName &&
+    !age &&
+    !gender &&
+    (!preferredLocations || preferredLocations.length === 0)
+  ) {
+    throw new ApiError(
+      400,
+      "At least one field (name, age, gender, or preferred locations) is required"
+    );
+  }
+
+  // Build dynamic update object
+  const updateFields = {};
+
+  if (userName?.trim()) updateFields.userName = userName.trim();
+  if (age) updateFields.age = age;
+  if (gender) updateFields.gender = gender;
+
+  // preferredLocations can be string or array
+  if (preferredLocations) {
+    if (typeof preferredLocations === "string") {
+      // Single value sent as string
+      updateFields.preferredLocations = [preferredLocations];
+    } else if (Array.isArray(preferredLocations)) {
+      updateFields.preferredLocations = preferredLocations.filter(
+        (loc) => typeof loc === "string" && loc.trim().length > 0
+      );
     }
-
-    const updatedUser = await User.findByIdAndUpdate(
-        req.user._id,
-        {
-            $set: { userName: userName?.trim(), age: age },
-        },
-        { new: true }
-    ).select("-password");
-
-    return res.status(200).json(
-            new ApiResponse(200,updatedUser,"Account details updated successfully")
-        );
-});
-
-const updateUserAvatar = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.file?.path;
-  // If no file was uploaded
-  if (!avatarLocalPath) {
-    throw new ApiError(400, "Avatar file is required");
-  }
-  // Upload new avatar to Cloudinary
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
-
-  if (!avatar) {
-    throw new ApiError(500, "Error uploading avatar to Cloudinary");
   }
 
-  const userId = req.user?._id;
-  const user = await User.findById(userId);
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: updateFields },
+    { new: true }
+  ).select("-password -refreshToken");
 
-  if (!user) {
+  if (!updatedUser) {
     throw new ApiError(404, "User not found");
   }
 
-  const oldAvatarUrl = user.avatar;
-
-  // Update user with new avatar
-  user.avatar = avatar.url;
-  await user.save();
-
-  // Delete old avatar if it exists
-  if (oldAvatarUrl) {
-    const oldPublicId = oldAvatarUrl.split("/").pop().split(".")[0];
-    cloudinary.uploader.destroy(oldPublicId, (err, result) => {
-      if (err) console.error("Error deleting old avatar:", err);
-    });
-  }
-
-  // Send response without password
-  const updatedUser = await User.findById(userId).select("-password");
-
   return res
     .status(200)
-    .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
+    .json(
+      new ApiResponse(200, updatedUser, "Account details updated successfully")
+    );
 });
+
 
 const getUserProfileById = asyncHandler(async (req, res) => {
   const user = await User.findById(req.params.id).select("-password -refreshToken");
@@ -364,13 +359,64 @@ const getUserProfileById = asyncHandler(async (req, res) => {
   res.status(200).json(new ApiResponse(200, user, "User profile fetched"));
 });
 
+const updateUserAvatar = asyncHandler(async (req, res) => {
+  const avatarLocalPath = req.file?.path;
+  if (!avatarLocalPath) throw new ApiError(400, "Avatar file is required");
 
-const deleteAccount = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
+  // Upload new avatar to Cloudinary
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+  if (!avatar) throw new ApiError(500, "Error uploading avatar to Cloudinary");
+
+  const userId = req.user?._id;
+  const user = await User.findById(userId);
   if (!user) throw new ApiError(404, "User not found");
 
-  await User.findByIdAndDelete(req.user._id);
-  res.status(200).json(new ApiResponse(200, {}, "Account deleted successfully"));
+  const oldAvatarUrl = user.avatar;
+
+  // Update user avatar
+  user.avatar = avatar.url;
+  await user.save();
+
+  // Delete old avatar from Cloudinary if exists
+  if (oldAvatarUrl) {
+    const result = await deleteFromCloudinary(oldAvatarUrl);
+    if (result?.result === "ok") {
+      console.log("Old avatar deleted from Cloudinary");
+    } else {
+      console.warn("Old avatar not found or already deleted.");
+    }
+  }
+
+  const updatedUser = await User.findById(userId).select("-password");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
+});
+
+// Delete Account Controller (with Cloudinary cleanup)
+const deleteAccount = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  const user = await User.findById(userId);
+
+  if (!user) throw new ApiError(404, "User not found");
+
+  // Delete user's Cloudinary avatar (if exists)
+  if (user.avatar) {
+    const result = await deleteFromCloudinary(user.avatar);
+    if (result?.result === "ok") {
+      console.log("User avatar deleted from Cloudinary");
+    } else {
+      console.warn("Avatar not found or already deleted in Cloudinary.");
+    }
+  }
+
+  // Delete the user account from DB
+  await User.findByIdAndDelete(userId);
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, {}, "Account deleted successfully"));
 });
 
 

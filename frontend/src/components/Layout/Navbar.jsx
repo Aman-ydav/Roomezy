@@ -131,7 +131,7 @@ export default function Navbar() {
                   <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
-                  <Settings className="mr-2 h-4 w-4" /> Profile Settings
+                  <Settings className="mr-2 h-4 w-4" /> Personal Profile
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>

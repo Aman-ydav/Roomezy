@@ -22,14 +22,19 @@ import {
   Phone,
   Calendar,
   Loader2,
+  MapPin,
+  Venus,
 } from "lucide-react";
 import { motion } from "framer-motion";
 import MotionWrapper from "@/components/motion/MotionWrapper";
+import { useRef } from "react";
+import { ChevronDown } from "lucide-react";
 
 const RegisterModal = ({ isOpen, onClose }) => {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { user, loading } = useSelector((state) => state.auth);
+
   const [formError, setFormError] = useState("");
   const [formData, setFormData] = useState({
     userName: "",
@@ -37,12 +42,15 @@ const RegisterModal = ({ isOpen, onClose }) => {
     password: "",
     age: "",
     phone: "",
+    gender: "",
+    preferredLocations: [],
+    newLocation: "",
     avatar: null,
   });
   const [previewAvatar, setPreviewAvatar] = useState(null);
   const [errors, setErrors] = useState({});
 
-  // handle input
+  // Handle input change
   const handleChange = (e) => {
     if (formError) setFormError("");
     const { name, value } = e.target;
@@ -50,7 +58,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: "" }));
   };
 
-  // avatar preview
+  // Avatar preview handler
   const handleAvatarChange = (e) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -59,7 +67,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
     }
   };
 
-  // form validation
+  // Form validation
   const validateForm = () => {
     const newErrors = {};
     if (!formData.userName.trim()) newErrors.userName = "Full name is required";
@@ -70,20 +78,106 @@ const RegisterModal = ({ isOpen, onClose }) => {
     else if (formData.password.length < 6)
       newErrors.password = "Password must be at least 6 characters";
     if (!formData.age) newErrors.age = "Age is required";
+    if (!formData.gender) newErrors.gender = "Gender is required";
     if (formData.phone && !/^\d{10}$/.test(formData.phone))
       newErrors.phone = "Phone number must be 10 digits";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // submit form
+  const [openGender, setOpenGender] = useState(false);
+  const [focusedGenderIndex, setFocusedGenderIndex] = useState(-1);
+  const genderBtnRef = useRef(null);
+  const genderListRef = useRef(null);
+
+  // close on outside click
+  useEffect(() => {
+    function onDocClick(e) {
+      if (
+        genderListRef.current &&
+        !genderListRef.current.contains(e.target) &&
+        genderBtnRef.current &&
+        !genderBtnRef.current.contains(e.target)
+      ) {
+        setOpenGender(false);
+        setFocusedGenderIndex(-1);
+      }
+    }
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
+  }, []);
+
+  // helper to select
+  const selectGender = (val) => {
+    setFormData((p) => ({ ...p, gender: val }));
+    setOpenGender(false);
+    setFocusedGenderIndex(-1);
+    genderBtnRef.current?.focus();
+  };
+
+  // keyboard when focus is on button
+  const handleGenderKeyDown = (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setOpenGender(true);
+      setFocusedGenderIndex(0);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setOpenGender(true);
+      setFocusedGenderIndex(2);
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setOpenGender((s) => !s);
+    }
+  };
+
+  // keyboard inside list
+  const handleGenderListKeyDown = (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setFocusedGenderIndex((i) => Math.min(i + 1, 2));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setFocusedGenderIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const opts = ["Male", "Female", "Other"];
+      if (focusedGenderIndex >= 0) selectGender(opts[focusedGenderIndex]);
+    } else if (e.key === "Escape") {
+      setOpenGender(false);
+      setFocusedGenderIndex(-1);
+      genderBtnRef.current?.focus();
+    }
+  };
+
+  // Form submission
   const handleSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
+
     if (!validateForm()) return;
 
-    const { userName, email, password, age, phone, avatar } = formData;
-    const data = { userName, email, password, age, phone, avatar };
+    const {
+      userName,
+      email,
+      password,
+      age,
+      phone,
+      gender,
+      preferredLocations,
+      avatar,
+    } = formData;
+
+    const data = {
+      userName,
+      email,
+      password,
+      age,
+      phone,
+      gender,
+      preferredLocations,
+      avatar,
+    };
 
     dispatch(registerUser(data))
       .unwrap()
@@ -93,12 +187,11 @@ const RegisterModal = ({ isOpen, onClose }) => {
         navigate("/");
       })
       .catch((err) => {
-        let message = "An unexpected error occurred. Please try again.";
-        setFormError(err || message);
+        setFormError(err || "An unexpected error occurred. Please try again.");
       });
   };
 
-  // reset and close
+  // Reset and close modal
   const handleClose = () => {
     onClose();
     setFormData({
@@ -107,6 +200,9 @@ const RegisterModal = ({ isOpen, onClose }) => {
       password: "",
       age: "",
       phone: "",
+      gender: "",
+      preferredLocations: [],
+      newLocation: "",
       avatar: null,
     });
     setPreviewAvatar(null);
@@ -116,9 +212,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
   };
 
   useEffect(() => {
-    if (user && !loading) {
-      navigate("/");
-    }
+    if (user && !loading) navigate("/");
   }, [user, loading, navigate]);
 
   return (
@@ -126,10 +220,10 @@ const RegisterModal = ({ isOpen, onClose }) => {
       <Dialog open={isOpen} onOpenChange={handleClose}>
         <DialogContent
           className="
-            sm:max-w-2xl w-[95%] max-h-[90vh] overflow-y-auto rounded-2xl border 
-            border-border bg-card text-foreground 
-            shadow-xl sm:shadow-2xl transition-all duration-300
-          "
+              sm:max-w-2xl w-[95%] max-h-[90vh] overflow-y-auto 
+              scrollbar-hide rounded-2xl border border-border bg-card text-foreground 
+              shadow-xl sm:shadow-2xl transition-all duration-300
+            "
         >
           <DialogHeader>
             <DialogTitle
@@ -180,13 +274,8 @@ const RegisterModal = ({ isOpen, onClose }) => {
                 />
               </div>
             </div>
-            {errors.avatar && (
-              <p className="text-sm text-destructive text-center">
-                {errors.avatar}
-              </p>
-            )}
 
-            {/* Inputs */}
+            {/* Input fields */}
             <div className="space-y-3">
               {/* Full Name */}
               <div>
@@ -253,6 +342,105 @@ const RegisterModal = ({ isOpen, onClose }) => {
                 )}
               </div>
 
+              {/* Gender */}
+              <div>
+                <Label
+                  htmlFor="gender"
+                  className="text-sm font-normal text-foreground mb-2 block"
+                >
+                  Gender
+                </Label>
+
+                <div className="relative w-full">
+                  {/* Venus Icon */}
+                  <Venus
+                    className="
+                        absolute left-3 top-1/2 -translate-y-1/2 
+                        text-muted-foreground h-4 w-4 z-10
+                        pointer-events-none
+                      "
+                  />
+
+                  {/* Dropdown Button */}
+                  <button
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={openGender ? "true" : "false"}
+                    onClick={() => setOpenGender((s) => !s)}
+                    onKeyDown={handleGenderKeyDown}
+                    ref={genderBtnRef}
+                    className="
+                          w-full pl-9 pr-8 h-10 text-sm font-normal text-foreground
+                          bg-background border border-input rounded-md
+                          flex items-center justify-between gap-2
+                          focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary
+                          transition-all duration-200
+                          relative z-0
+                           "
+                  >
+                    <span className="truncate">
+                      {formData.gender || "Select gender"}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+                  </button>
+
+                  {/* Options Dropdown */}
+                  {openGender && (
+                    <ul
+                      role="listbox"
+                      aria-labelledby="gender"
+                      ref={genderListRef}
+                      className="
+                                absolute z-50 mt-2 w-full bg-card border border-border rounded-md shadow-lg
+                                max-h-44 overflow-auto py-1
+                              "
+                      onKeyDown={handleGenderListKeyDown}
+                    >
+                      {["Male", "Female", "Other"].map((opt, idx) => {
+                        const isSelected = formData.gender === opt;
+                        const isFocused = focusedGenderIndex === idx;
+                        return (
+                          <li
+                            key={opt}
+                            role="option"
+                            aria-selected={isSelected}
+                            tabIndex={-1}
+                            onMouseEnter={() => setFocusedGenderIndex(idx)}
+                            onClick={() => selectGender(opt)}
+                            className={`
+                                    cursor-pointer select-none px-3 py-2 text-sm flex items-center justify-between
+                                    transition-colors duration-150
+                                    ${
+                                      isSelected
+                                        ? "bg-primary text-primary-foreground"
+                                        : "text-foreground"
+                                    }
+                                    ${
+                                      !isSelected
+                                        ? "hover:bg-primary hover:text-primary-foreground"
+                                        : ""
+                                    }
+                                    ${isFocused && !isSelected ? "ring-1 ring-primary/30" : ""}
+                                  `}
+                          >
+                            <span className="truncate">{opt}</span>
+                            {isSelected && (
+                              <span className="text-xs opacity-90">✓</span>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+
+                {errors.gender && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.gender}
+                  </p>
+                )}
+              </div>
+
               {/* Age + Phone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -268,10 +456,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
                       placeholder="Enter your age"
                       value={formData.age}
                       onChange={handleChange}
-                      className="pl-9 border border-input focus:ring-2 focus:ring-primary
-                      [appearance:textfield] 
-                                [&::-webkit-inner-spin-button]:appearance-none 
-                                [&::-webkit-outer-spin-button]:appearance-none"
+                      className="pl-9 border border-input focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                   </div>
                   {errors.age && (
@@ -292,10 +477,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
                       placeholder="Enter your phone number"
                       value={formData.phone}
                       onChange={handleChange}
-                      className="pl-9 border border-input focus:ring-2 focus:ring-primary
-                                [appearance:textfield] 
-                                [&::-webkit-inner-spin-button]:appearance-none 
-                                [&::-webkit-outer-spin-button]:appearance-none"
+                      className="pl-9 border border-input focus:ring-2 focus:ring-primary [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                     />
                   </div>
                   {errors.phone && (
@@ -303,27 +485,110 @@ const RegisterModal = ({ isOpen, onClose }) => {
                   )}
                 </div>
               </div>
+
+              {/* Preferred Locations */}
+              <div>
+                <Label htmlFor="preferredLocations" className="mb-2">
+                  Preferred Locations
+                </Label>
+                <div className="space-y-2">
+                  <div
+                    className="
+                      flex flex-wrap gap-2 border border-input rounded-md p-2 
+                      focus-within:ring-2 focus-within:ring-primary transition-all duration-300
+                    "
+                  >
+                    {formData.preferredLocations.length > 0 &&
+                      formData.preferredLocations.map((loc, index) => (
+                        <div
+                          key={index}
+                          className="
+                            flex items-center gap-2 bg-accent text-accent-foreground
+                            px-3 py-1 rounded-full text-sm shadow-sm
+                          "
+                        >
+                          <span>{loc}</span>
+                          <button
+                            type="button"
+                            onClick={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                preferredLocations:
+                                  prev.preferredLocations.filter(
+                                    (_, i) => i !== index
+                                  ),
+                              }))
+                            }
+                            className="hover:text-destructive transition-colors"
+                          >
+                            ✕
+                          </button>
+                        </div>
+                      ))}
+
+                    <input
+                      id="preferredLocations"
+                      type="text"
+                      placeholder="Type a location & press Enter..."
+                      value={formData.newLocation}
+                      onChange={(e) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          newLocation: e.target.value,
+                        }))
+                      }
+                      onKeyDown={(e) => {
+                        if (
+                          e.key === "Enter" &&
+                          formData.newLocation.trim() !== ""
+                        ) {
+                          e.preventDefault();
+                          const newLoc = formData.newLocation.trim();
+                          if (
+                            !formData.preferredLocations.some(
+                              (loc) =>
+                                loc.toLowerCase() === newLoc.toLowerCase()
+                            )
+                          ) {
+                            setFormData((prev) => ({
+                              ...prev,
+                              preferredLocations: [
+                                ...prev.preferredLocations,
+                                newLoc,
+                              ],
+                              newLocation: "",
+                            }));
+                          } else {
+                            toast.error("Location already added!");
+                          }
+                        }
+                      }}
+                      className="
+                        flex-1 bg-transparent outline-none px-2 py-1 text-sm
+                        placeholder:text-muted-foreground font-medium
+                      "
+                    />
+                  </div>
+                  {formData.preferredLocations.length > 0 && (
+                    <p className="text-xs text-muted-foreground">
+                      Press ✕ to remove a location.
+                    </p>
+                  )}
+                </div>
+              </div>
             </div>
-            {formError && (
-              <motion.div
-                initial={{ opacity: 0, y: -5 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.3 }}
-                className="w-11/12 text-center text-sm font-medium text-destructive"
-              >
-                {formError}
-              </motion.div>
-            )}
-            {/* Submit Button */}
+
+            {/* Submit */}
             <Button
               type="submit"
               disabled={loading}
               className="
-                relative flex justify-center items-center w-full 
-                bg-primary hover:bg-accent 
-                text-primary-foreground font-semibold 
-                shadow-lg rounded-md py-2 transition-all duration-300
-              "
+                    relative flex justify-center items-center w-full 
+                    bg-primary hover:bg-accent 
+                    text-primary-foreground font-semibold 
+                    shadow-lg rounded-md py-2 transition-all duration-300
+                    disabled:opacity-80 disabled:cursor-not-allowed
+                  "
             >
               {loading ? (
                 <>
@@ -338,7 +603,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
                   >
                     <Loader2 className="w-5 h-5 text-primary-foreground" />
                   </motion.div>
-                  <span>Creating...</span>
+                  <span>Creating your account...</span>
                 </>
               ) : (
                 "Create Account"

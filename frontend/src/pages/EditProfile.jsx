@@ -12,6 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 import {
   ChevronDown,
   ChevronUp,
@@ -21,8 +22,21 @@ import {
   Image,
   Calendar,
   Mail,
-  Hash,
+  Phone,
+  Venus,
 } from "lucide-react";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
+import Loader from "@/components/ui/Loader";
 
 const Section = ({ title, icon: Icon, isOpen, toggle, children, variant }) => (
   <Card
@@ -44,11 +58,7 @@ const Section = ({ title, icon: Icon, isOpen, toggle, children, variant }) => (
         <Icon className="w-5 h-5" />
         {title}
       </span>
-      {isOpen ? (
-        <ChevronUp className="w-4 h-4" />
-      ) : (
-        <ChevronDown className="w-4 h-4" />
-      )}
+      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
     </button>
 
     <AnimatePresence initial={false}>
@@ -58,9 +68,7 @@ const Section = ({ title, icon: Icon, isOpen, toggle, children, variant }) => (
           animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className={`px-4 pb-6 ${
-            variant === "danger" ? "bg-destructive/5" : ""
-          }`}
+          className={`px-4 pb-6 ${variant === "danger" ? "bg-destructive/5" : ""}`}
         >
           {children}
         </motion.div>
@@ -72,15 +80,25 @@ const Section = ({ title, icon: Icon, isOpen, toggle, children, variant }) => (
 export default function EditProfile() {
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
+  const navigate = useNavigate();
 
   const [preview, setPreview] = useState(user?.avatar || "");
   const [selectedFile, setSelectedFile] = useState(null);
   const [formError, setFormError] = useState("");
   const [errors, setErrors] = useState({});
 
+  // ✅ Loader states
+  const [loadingAvatar, setLoadingAvatar] = useState(false);
+  const [loadingDetails, setLoadingDetails] = useState(false);
+  const [loadingPassword, setLoadingPassword] = useState(false);
+  const [loadingDelete, setLoadingDelete] = useState(false);
+
   const [formData, setFormData] = useState({
     userName: user?.userName || "",
     age: user?.age || "",
+    gender: user?.gender || "",
+    preferredLocations: user?.preferredLocations || [],
+    newLocation: "",
   });
 
   const [passwords, setPasswords] = useState({
@@ -92,6 +110,7 @@ export default function EditProfile() {
   const toggleSection = (section) =>
     setOpenSection(openSection === section ? null : section);
 
+  // Avatar Selection
   const handleAvatarSelect = (e) => {
     const file = e.target.files[0];
     if (file) {
@@ -101,6 +120,7 @@ export default function EditProfile() {
     }
   };
 
+  // ✅ Update Avatar
   const handleAvatarSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
@@ -109,45 +129,50 @@ export default function EditProfile() {
       return;
     }
 
+    setLoadingAvatar(true);
     try {
-      const updatedUser = await dispatch(
-        updateUserAvatar(selectedFile)
-      ).unwrap();
+      const updatedUser = await dispatch(updateUserAvatar(selectedFile)).unwrap();
       dispatch(updateUser(updatedUser));
       localStorage.setItem("user", JSON.stringify(updatedUser));
       toast.success("Avatar updated successfully.");
       setSelectedFile(null);
-    } catch (err) {
+    } catch {
       setFormError("Failed to update avatar. Please try again.");
+    } finally {
+      setLoadingAvatar(false);
     }
   };
 
+  // Validate Personal Info
   const validateDetails = () => {
     const newErrors = {};
-    if (!formData.userName.trim())
-      newErrors.userName = "Full name is required.";
+    if (!formData.userName.trim()) newErrors.userName = "Full name is required.";
     if (!formData.age) newErrors.age = "Age is required.";
+    if (!formData.gender) newErrors.gender = "Gender is required.";
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
+  // ✅ Update Account Details
   const handleDetailsSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
     if (!validateDetails()) return;
 
+    setLoadingDetails(true);
     try {
-      const updatedUser = await dispatch(
-        updateAccountDetails(formData)
-      ).unwrap();
+      const updatedUser = await dispatch(updateAccountDetails(formData)).unwrap();
       dispatch(updateUser(updatedUser));
       localStorage.setItem("user", JSON.stringify(updatedUser));
-      toast.success("Personal details updated successfully.");
+      toast.success("Profile details updated successfully.");
     } catch {
-      setFormError("Failed to update personal details. Please try again.");
+      setFormError("Failed to update details. Please try again.");
+    } finally {
+      setLoadingDetails(false);
     }
   };
 
+  // ✅ Change Password
   const validatePassword = () => {
     const newErrors = {};
     if (!passwords.oldPassword.trim())
@@ -163,27 +188,19 @@ export default function EditProfile() {
     setFormError("");
     if (!validatePassword()) return;
 
+    setLoadingPassword(true);
     try {
       await dispatch(changePassword(passwords)).unwrap();
       toast.success("Password changed successfully.");
       setPasswords({ oldPassword: "", newPassword: "" });
     } catch (e) {
       setFormError(e || "Failed to change password. Please try again.");
+    } finally {
+      setLoadingPassword(false);
     }
   };
 
-  const handleDelete = async () => {
-    setFormError("");
-    if (confirm("Are you sure you want to permanently delete your account?")) {
-      try {
-        await dispatch(deleteAccount()).unwrap();
-        toast.success("Account deleted permanently.");
-      } catch {
-        setFormError("Failed to delete account. Please try again.");
-      }
-    }
-  };
-
+  // Format Date
   const formatDate = (isoDate) => {
     if (!isoDate) return "Unknown";
     const d = new Date(isoDate);
@@ -198,40 +215,50 @@ export default function EditProfile() {
     <motion.div
       initial={{ opacity: 0, y: 25 }}
       animate={{ opacity: 1, y: 0 }}
-      className="min-h-screen bg-background flex items-center justify-center py-10 px-4"
+      className="min-h-screen bg-background flex items-center justify-center py-10 px-4 "
     >
       <div className="w-full max-w-3xl space-y-5">
-        <Card className="p-6 flex flex-col md:flex-row items-center md:items-start gap-6 border border-border bg-card shadow-md">
-          <motion.img
-            src={preview}
-            alt="Profile Avatar"
-            initial={{ scale: 0.9, opacity: 0 }}
-            animate={{ scale: 1, opacity: 1 }}
-            transition={{ duration: 0.4 }}
-            className="w-28 h-28 rounded-full object-cover border-4 border-accent shadow-md"
-          />
-          <div className="flex-1 space-y-2 text-center md:text-left">
-            <h2 className="text-2xl font-bold text-foreground">
-              {user?.userName}
-            </h2>
-            <p className="text-sm text-muted-foreground flex items-center justify-center md:justify-start gap-1">
+        {/* Header Card */}
+        <Card className="p-6 flex flex-col md:flex-row items-center gap-6 border border-border bg-card shadow-md">
+          {preview ? (
+            <motion.img
+              src={preview}
+              alt="Profile Avatar"
+              initial={{ scale: 0.9, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              transition={{ duration: 0.4 }}
+              className="w-28 h-28 rounded-full object-cover border-4 border-accent shadow-md"
+            />
+          ) : (
+            <div className="w-28 h-28 rounded-full border-4 border-accent bg-accent/10 flex items-center justify-center text-3xl font-bold text-accent shadow-md">
+              {user?.userName?.[0]?.toUpperCase() || "U"}
+            </div>
+          )}
+
+          <div className="flex-1 space-y-3 text-center md:text-left">
+            <h2 className="text-2xl font-bold text-foreground">{user?.userName}</h2>
+            <p className="text-sm text-muted-foreground flex items-center justify-center md:justify-start gap-2">
               <Mail className="w-4 h-4 text-accent" /> {user?.email}
             </p>
-            <div className="flex flex-wrap gap-4 mt-2 justify-center md:justify-start">
-              <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                <Hash className="w-4 h-4 text-accent" /> ID:{" "}
-                {user?._id?.slice(-6)}
-              </span>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
               {user?.age && (
-                <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <User className="w-4 h-4 text-accent" /> Age: {user.age}
-                </span>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground border border-border rounded-md px-3 py-2">
+                  <User className="w-4 h-4 text-accent" />
+                  <span>Age: {user.age}</span>
+                </div>
+              )}
+              {user?.gender && (
+                <div className="flex items-center gap-2 text-sm text-muted-foreground border border-border rounded-md px-3 py-2">
+                  <Venus className="w-4 h-4 text-accent" />
+                  <span>Gender: {user.gender}</span>
+                </div>
               )}
               {user?.createdAt && (
-                <span className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <Calendar className="w-4 h-4 text-accent" /> Joined:{" "}
-                  {formatDate(user.createdAt)}
-                </span>
+                <div className="flex items-center gap-2 text-sm text-muted-foreground border border-border rounded-md px-3 py-2">
+                  <Calendar className="w-4 h-4 text-accent" />
+                  <span>Joined: {formatDate(user.createdAt)}</span>
+                </div>
               )}
             </div>
           </div>
@@ -241,49 +268,32 @@ export default function EditProfile() {
           Profile Settings
         </h1>
 
+        {/* Avatar Update */}
         <Section
           title="Update Avatar"
           icon={Image}
           isOpen={openSection === "avatar"}
           toggle={() => toggleSection("avatar")}
         >
-          <form
-            onSubmit={handleAvatarSubmit}
-            className="flex flex-col items-center py-4 space-y-4"
-          >
-            <img
-              src={preview}
-              alt="Avatar Preview"
-              className="w-28 h-28 rounded-full object-cover border-4 border-accent"
-            />
-            <div className="flex flex-col items-center">
-              <label
-                htmlFor="avatar"
-                className="cursor-pointer text-sm font-medium text-primary hover:underline"
-              >
-                Choose New Avatar
-              </label>
-              <input
-                id="avatar"
-                type="file"
-                accept="image/*"
-                className="hidden"
-                onChange={handleAvatarSelect}
-              />
-            </div>
+          <form onSubmit={handleAvatarSubmit} className="flex flex-col items-center py-4 space-y-4">
+            {preview && (
+              <img src={preview} alt="Avatar" className="w-28 h-28 rounded-full object-cover border-4 border-accent" />
+            )}
+            <label htmlFor="avatar" className="cursor-pointer text-sm font-medium text-primary hover:underline">
+              Choose New Avatar
+            </label>
+            <input id="avatar" type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} />
+
             {selectedFile && (
-              <Button type="submit" className="w-full max-w-xs">
-                Update Avatar
+              <Button type="submit" className="w-full max-w-xs" disabled={loadingAvatar}>
+                {loadingAvatar ? <Loader text="Updating avatar..." /> : "Update Avatar"}
               </Button>
             )}
-            {formError && (
-              <p className="text-destructive text-sm font-medium text-center">
-                {formError}
-              </p>
-            )}
+            {formError && <p className="text-destructive text-sm font-medium text-center">{formError}</p>}
           </form>
         </Section>
 
+        {/* Personal Details */}
         <Section
           title="Personal Details"
           icon={User}
@@ -296,89 +306,38 @@ export default function EditProfile() {
               <Input
                 type="text"
                 value={formData.userName}
-                onChange={(e) =>
-                  setFormData({ ...formData, userName: e.target.value })
-                }
-                placeholder="Enter your name"
+                onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
               />
-              {errors.userName && (
-                <p className="text-sm text-destructive mt-1">
-                  {errors.userName}
-                </p>
-              )}
             </div>
             <div>
               <label className="text-sm font-medium">Age</label>
               <Input
                 type="number"
                 value={formData.age}
-                onChange={(e) =>
-                  setFormData({ ...formData, age: e.target.value })
-                }
-                placeholder="Enter your age"
+                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
               />
-              {errors.age && (
-                <p className="text-sm text-destructive mt-1">{errors.age}</p>
-              )}
+            </div>
+            <div>
+              <label className="text-sm font-medium">Gender</label>
+              <select
+                value={formData.gender}
+                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                className="w-full border border-input rounded-md px-3 py-2 bg-background text-foreground text-sm focus:ring-1 focus:ring-primary"
+              >
+                <option value="">Select gender</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
             </div>
 
-            {/* Email (Read-only) */}
-            <div className="relative group">
-              <label className="text-sm font-medium">Email</label>
-              <div
-                className="
-      relative
-      cursor-not-allowed
-      opacity-80
-      rounded-md
-      border border-input
-      bg-muted/40
-      transition-all duration-300
-      hover:border-destructive
-      hover:bg-destructive/5
-      hover:shadow-sm
-    "
-                style={{ pointerEvents: "auto" }} // ensures hover works on disabled input
-              >
-                <input
-                  type="email"
-                  value={user?.email || ""}
-                  readOnly
-                  disabled
-                  className="
-                            w-full
-                            bg-transparent
-                            text-muted-foreground
-                            px-3 py-2
-                            rounded-md
-                            cursor-not-allowed
-                            focus:outline-none
-                        "
-                  onMouseEnter={(e) => (e.target.style.cursor = "not-allowed")}
-                />
-              </div>
-              <p
-                className="
-                        text-xs text-muted-foreground mt-1
-                        transition-colors duration-300
-                        group-hover:text-destructive
-                        "
-              >
-                Email cannot be updated.
-              </p>
-            </div>
-
-            {formError && (
-              <p className="text-sm text-destructive text-center">
-                {formError}
-              </p>
-            )}
-            <Button type="submit" className="w-full">
-              Save Changes
+            <Button type="submit" className="w-full" disabled={loadingDetails}>
+              {loadingDetails ? <Loader text="Saving changes..." /> : "Save Changes"}
             </Button>
           </form>
         </Section>
 
+        {/* Password Change */}
         <Section
           title="Change Password"
           icon={Lock}
@@ -390,39 +349,21 @@ export default function EditProfile() {
               type="password"
               placeholder="Old Password"
               value={passwords.oldPassword}
-              onChange={(e) =>
-                setPasswords({ ...passwords, oldPassword: e.target.value })
-              }
+              onChange={(e) => setPasswords({ ...passwords, oldPassword: e.target.value })}
             />
-            {errors.oldPassword && (
-              <p className="text-sm text-destructive mt-1">
-                {errors.oldPassword}
-              </p>
-            )}
             <Input
               type="password"
               placeholder="New Password"
               value={passwords.newPassword}
-              onChange={(e) =>
-                setPasswords({ ...passwords, newPassword: e.target.value })
-              }
+              onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
             />
-            {errors.newPassword && (
-              <p className="text-sm text-destructive mt-1">
-                {errors.newPassword}
-              </p>
-            )}
-            {formError && (
-              <p className="text-sm text-destructive text-center">
-                {formError}
-              </p>
-            )}
-            <Button type="submit" className="w-full">
-              Update Password
+            <Button type="submit" className="w-full" disabled={loadingPassword}>
+              {loadingPassword ? <Loader text="Updating password..." /> : "Update Password"}
             </Button>
           </form>
         </Section>
 
+        {/* Delete Account */}
         <Section
           title="Danger Zone"
           icon={Trash2}
@@ -430,24 +371,46 @@ export default function EditProfile() {
           isOpen={openSection === "delete"}
           toggle={() => toggleSection("delete")}
         >
-          <div className="space-y-3 mt-3">
-            <p className="text-sm text-destructive font-medium">
-              Deleting your account is irreversible. All your data will be
-              permanently removed.
-            </p>
-            {formError && (
-              <p className="text-sm text-destructive text-center">
-                {formError}
-              </p>
-            )}
-            <Button
-              onClick={handleDelete}
-              variant="destructive"
-              className="w-full"
-            >
-              Delete Account Permanently
-            </Button>
-          </div>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" className="w-full" disabled={loadingDelete}>
+                {loadingDelete ? <Loader text="Deleting..." /> : "Delete Account Permanently"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent className="border border-border bg-card text-foreground">
+              <AlertDialogHeader>
+                <AlertDialogTitle className="text-destructive font-bold">
+                  Are you absolutely sure?
+                </AlertDialogTitle>
+                <AlertDialogDescription className="text-muted-foreground">
+                  This action <strong>cannot be undone.</strong> It will permanently delete your account and all your data.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction
+                  onClick={async () => {
+                    setFormError("");
+                    setLoadingDelete(true);
+                    try {
+                      await dispatch(deleteAccount()).unwrap();
+                      toast.success("Account deleted successfully.");
+                      localStorage.removeItem("user");
+                      dispatch(updateUser(null));
+                      navigate("/login");
+                    } catch {
+                      setFormError("Failed to delete account. Please try again.");
+                    } finally {
+                      setLoadingDelete(false);
+                    }
+                  }}
+                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                >
+                  {loadingDelete ? <Loader text="Deleting..." /> : "Yes, Delete"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
         </Section>
       </div>
     </motion.div>

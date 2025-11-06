@@ -122,27 +122,27 @@
 } */
 
 .dark {
-  --background: #010000; /* Deep wine background */
-  --foreground: #F8F5F3; /* Soft white text */
+  --background: #010000 ; 
+  --foreground: #F8F5F3; 
 
-  --card: #050203; /* Slightly lighter wine tone for cards */
+  --card: #070102;
   --card-foreground: #F8F5F3;
 
-  --primary: #C23B52; /* Vibrant wine red */
+  --primary: #C23B52; 
   --primary-foreground: #ffffff;
 
-  --secondary: #8E2F40; /* Muted rose tone */
+  --secondary: #8E2F40; 
   --secondary-foreground: #F8F5F3;
 
-  --accent: #E06B75; /* Highlighted pinkish-red accent */
+  --accent: #E06B75;
   --accent-foreground: #1A1A1A;
 
-  --muted: #3B151D; /* Deep muted tone */
-  --muted-foreground: #D9C4C4; /* Gentle desaturated pink text */
+  --muted: #3B151D; 
+  --muted-foreground: #D9C4C4;
 
-  --border: #5C1F2A; /* Soft border tone */
+  --border: #5C1F2A; 
   --input: #5C1F2A;
-  --ring: #C6A15B; /* Keep the gold ring for contrast */
+  --ring: #C6A15B; 
 
   --destructive: #D64545;
   --destructive-foreground: #ffffff;
@@ -152,10 +152,9 @@
 
   --trust: #2E8A8A;
 
-  /* Sidebar */
-  --sidebar: #240A10; /* Very deep wine tone */
+  --sidebar: #240A10; 
   --sidebar-foreground: #F8F5F3;
-  --sidebar-primary: #C23B52; /* Matches primary */
+  --sidebar-primary: #C23B52; 
   --sidebar-primary-foreground: #ffffff;
   --sidebar-accent: #8E2F40;
   --sidebar-accent-foreground: #F8F5F3;
@@ -175,3 +174,11 @@
   }
 }
 
+/* Hide scrollbar for all elements with class .scrollbar-hide */
+.scrollbar-hide::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-hide {
+  -ms-overflow-style: none; /* for Internet Explorer, Edge */
+  scrollbar-width: none; /* for Firefox */
+}
