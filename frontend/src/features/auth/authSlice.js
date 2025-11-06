@@ -97,14 +97,27 @@ export const resetPassword = createAsyncThunk(
 export const logoutUser = createAsyncThunk("auth/logoutUser", async (_, thunkAPI) => {
   try {
     // clear user data
+    const res = await api.post("/users/logout");
     localStorage.removeItem("user");
     toast.success("Logout successfully!");
-    return null;
+    return res.data;
   } catch (error) {
     toast.error("Logout failed. Try again.");
     return thunkAPI.rejectWithValue(error.message);
   }
 });
+
+export const updateUserData = (userData) => (dispatch) => {
+  dispatch({
+    type: "auth/updateUser",
+    payload: userData,
+  });
+  if (userData) {
+    localStorage.setItem("user", JSON.stringify(userData));
+  } else {
+    localStorage.removeItem("user");
+  }
+};
 
 
 //initial stage
@@ -121,7 +134,11 @@ const initialState = {
 const authSlice = createSlice({
   name: "auth",
   initialState,
-  reducers: {},
+  reducers: {
+    updateUser: (state, action) => {
+      state.user = action.payload;
+    },
+  },
   extraReducers: (builder) => {
     builder
       // Register
@@ -165,6 +182,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
+
       // Fetch current user
       .addCase(fetchCurrentUser.pending, (state) => {
         state.loading = true;
@@ -202,5 +220,6 @@ const authSlice = createSlice({
   },
 });
 
+export const { updateUser } = authSlice.actions;
 export const { logout } = authSlice.actions;
 export default authSlice.reducer;

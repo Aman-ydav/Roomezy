@@ -25,7 +25,7 @@ router.route("/login").post(loginUser);
 // secure route
 router.route("/logout").post(verifyJWT, logoutUser);
 
-router.route("/refresh-token").post(verifyJWT,refreshAccessToken);
+router.route("/refresh-token").post(refreshAccessToken);
 
 
 router.route("/update-avatar").patch(

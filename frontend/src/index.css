@@ -91,7 +91,7 @@
   --sidebar-border: #E0E0E0;
   --sidebar-ring: #C6A15B;
 }
-
+/* 
 .dark {
   --background: #1A1A1A;
   --foreground: #F8F5F3;
@@ -119,6 +119,48 @@
   --sidebar-foreground: #F8F5F3;
   --sidebar-primary: #722F37;
   --sidebar-primary-foreground: #ffffff;
+} */
+
+.dark {
+  --background: #010000; /* Deep wine background */
+  --foreground: #F8F5F3; /* Soft white text */
+
+  --card: #050203; /* Slightly lighter wine tone for cards */
+  --card-foreground: #F8F5F3;
+
+  --primary: #C23B52; /* Vibrant wine red */
+  --primary-foreground: #ffffff;
+
+  --secondary: #8E2F40; /* Muted rose tone */
+  --secondary-foreground: #F8F5F3;
+
+  --accent: #E06B75; /* Highlighted pinkish-red accent */
+  --accent-foreground: #1A1A1A;
+
+  --muted: #3B151D; /* Deep muted tone */
+  --muted-foreground: #D9C4C4; /* Gentle desaturated pink text */
+
+  --border: #5C1F2A; /* Soft border tone */
+  --input: #5C1F2A;
+  --ring: #C6A15B; /* Keep the gold ring for contrast */
+
+  --destructive: #D64545;
+  --destructive-foreground: #ffffff;
+
+  --success: #3BB273;
+  --success-foreground: #ffffff;
+
+  --trust: #2E8A8A;
+
+  /* Sidebar */
+  --sidebar: #240A10; /* Very deep wine tone */
+  --sidebar-foreground: #F8F5F3;
+  --sidebar-primary: #C23B52; /* Matches primary */
+  --sidebar-primary-foreground: #ffffff;
+  --sidebar-accent: #8E2F40;
+  --sidebar-accent-foreground: #F8F5F3;
+  --sidebar-border: #5C1F2A;
+  --sidebar-ring: #C6A15B;
 }
 
 

@@ -306,7 +306,7 @@ const updateAccountDetails = asyncHandler(async (req, res, next) => {
     const updatedUser = await User.findByIdAndUpdate(
         req.user._id,
         {
-            $set: { userName: userName?.trim(), age: age?.trim() },
+            $set: { userName: userName?.trim(), age: age },
         },
         { new: true }
     ).select("-password");

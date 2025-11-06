@@ -7,8 +7,10 @@ import NotFound from "../pages/NotFound";
 import Navbar from "@/components/Layout/Navbar";
 import ResetPassword from "@/pages/ResetPassword";
 import ProtectedRoute from "../components/Auth/ProtectedRoute";
+import EditProfile from "@/pages/EditProfile";
 
 export default function AppRouter() {
+
   return (
     <>
       <Navbar />
@@ -21,6 +23,7 @@ export default function AppRouter() {
 
         <Route element={<ProtectedRoute />}>
           <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/edit-profile" element={<EditProfile />} />
         </Route>
       </Routes>
     </>
