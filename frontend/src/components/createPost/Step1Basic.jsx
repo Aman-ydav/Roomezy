@@ -105,9 +105,14 @@ export default function Step1Basic({ data, setData }) {
         <textarea
           value={data.description}
           onChange={(e) => setData({ ...data, description: e.target.value })}
-          rows={4}
-          placeholder="Describe your room or what kind of room you’re looking for"
-          className="w-full border border-input bg-background rounded-md p-2 mt-1 resize-none"
+          rows={6}
+          placeholder="Describe your room or what kind of room you’re looking for e.g. 
+fully furnished
+air conditioned
+high-speed Wi-Fi
+lower backup
+ro water"
+          className="w-full border border-input bg-background rounded-md p-2 mt-1 resize-none text-sm"
         />
       </div>
 
