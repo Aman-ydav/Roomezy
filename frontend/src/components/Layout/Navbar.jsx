@@ -11,10 +11,8 @@ import {
   Search,
   Settings,
   LayoutDashboard,
-  Mail,
-  MessageSquareText,
   MessageCircle,
-  MessageSquare
+  MessagesSquare
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -101,7 +99,7 @@ export default function Navbar() {
               className="p-2 rounded-full hover:bg-muted transition-colors relative group"
               title="Chat Inbox (Coming Soon)"
             >
-              <MessageSquare className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+              <MessagesSquare  className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
 
               <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                 Inbox

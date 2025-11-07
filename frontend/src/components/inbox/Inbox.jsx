@@ -1,5 +1,5 @@
 import { motion } from "framer-motion";
-import { MessageSquare, Clock, Send } from "lucide-react";
+import { MessagesSquare , Clock, Send } from "lucide-react";
 
 export default function Inbox() {
   return (
@@ -40,7 +40,7 @@ export default function Inbox() {
           className="flex flex-col items-center"
         >
           <div className="bg-primary/10 p-6 rounded-full mb-5">
-            <MessageSquare className="w-10 h-10 text-primary" />
+            <MessagesSquare  className="w-10 h-10 text-primary" />
           </div>
           <h1 className="text-3xl font-semibold mb-2">
             Roomezy Chat App — Coming Soon 
