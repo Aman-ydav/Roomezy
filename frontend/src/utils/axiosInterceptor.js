@@ -1,25 +1,22 @@
+// src/utils/interceptor.js
 import api from "./api";
-import { logoutUser } from "@/features/auth/authSlice";
-import {store} from "@/app/store"; 
+import { store } from "@/app/store";
+import { forceLogout } from "@/features/auth/authSlice";
+import { toast } from "sonner";
 
-// Response Interceptor
+console.log("Interceptor file loaded!"); 
+
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const originalRequest = error.config;
+    console.log("Interceptor caught an error:", error.response?.data);
 
-    // If token expired (401) and not retried yet
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-      try {
-        // Call refresh-token route
-        await api.post("/users/refresh-token", {}, { withCredentials: true });
-        // Retry original request
-        return api(originalRequest);
-      } catch (refreshError) {
-        console.error("Session expired, please log in again.");
-        store.dispatch(logoutUser());
-      }
+    const message = error.response?.data?.message?.toLowerCase() || "";
+    const status = error.response?.status;
+
+    if (status === 401 && message.includes("invalid access token")) {
+      store.dispatch(forceLogout());
+      toast.error("Session expired. Please log in again.");
     }
 
     return Promise.reject(error);

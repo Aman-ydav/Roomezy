@@ -1,6 +1,7 @@
 // src/features/post/postSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
-import api from "@/utils/api";
+import api from "@/utils/axiosInterceptor";
+
 import { toast } from "sonner";
 
 /* ===========================

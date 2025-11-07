@@ -24,7 +24,7 @@ export default function HeroBanner() {
         <motion.h1
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
+          transition={{ duration: 0.2 }}
           className="text-3xl sm:text-4xl md:text-5xl font-extrabold leading-tight tracking-tight text-primary-foreground"
         >
           Finding Room/Roommate Made Easy with <br />
@@ -36,7 +36,7 @@ export default function HeroBanner() {
          <motion.p
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.2, duration: 0.6 }}
+          transition={{duration: 0.2 }}
           className="text-base md:text-lg text-primary-foreground/60 max-w-2xl leading-relaxed"
         >
           Free to list, search & connect.
@@ -46,7 +46,7 @@ export default function HeroBanner() {
         <motion.button
           initial={{ opacity: 0, y: 15 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4, duration: 0.6 }}
+          transition={{duration: 0.2 }}
           onClick={() => navigate("/create-post")}
           className="group relative inline-flex items-center justify-center gap-2 rounded-lg border border-background/30 bg-primary-foreground text-primary font-semibold px-4 sm:px-5 py-2 sm:py-3 text-base sm:text-lg hover:bg-transparent hover:text-primary-foreground transition-all duration-300 ease-out cursor-pointer shadow-sm hover:shadow-lg"
         >
