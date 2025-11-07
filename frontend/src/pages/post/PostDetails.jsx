@@ -352,6 +352,57 @@ export default function PostDetails() {
             </Card>
           </div>
 
+          {/* Posted By Section */}
+          <Card className="p-5 border border-border/50 bg-card/70 backdrop-blur-md rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+              {/* Left: Avatar + Info */}
+              <div className="flex items-center gap-4">
+                {/* Avatar with glow */}
+                <div className="relative">
+                  <img
+                    src={
+                      post?.user?.avatar ||
+                      "https://api.dicebear.com/8.x/initials/svg?seed=" +
+                        post?.user?.userName
+                    }
+                    alt={post?.user?.userName || "User"}
+                    className="w-14 h-14 rounded-full object-cover border border-border shadow-md transition-all hover:scale-105 hover:shadow-lg"
+                  />
+                  <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-card shadow-sm" />
+                </div>
+
+                {/* User Info */}
+                <div>
+                  <h3 className="text-base font-semibold text-foreground flex items-center gap-1">
+                    {post?.user?.userName || "Unknown User"}
+                    <Badge className="ml-1 text-[10px] px-1.5 bg-green-100 text-green-700 border border-green-300 font-medium">
+                      Verified Owner
+                    </Badge>
+                  </h3>
+                  <p className="text-xs text-muted-foreground">
+                    Joined{" "}
+                    {new Date(
+                      post?.user?.createdAt || Date.now()
+                    ).toLocaleDateString()}
+                  </p>
+                </div>
+              </div>
+
+              {/* Right: Action Button */}
+              <Button
+                variant="outline"
+                size="sm"
+                className="text-sm flex items-center gap-2"
+                title="Profile feature coming soon"
+                // onClick={() => navigate(`/user/${post?.user?._id}
+                //   `)}
+              >
+                <MessageCircle className="w-4 h-4" />
+                View Profile
+              </Button>
+            </div>
+          </Card>
+
           {/* Rating Section */}
           <Card className="p-5 border border-border bg-linear-to-br from-card/80 to-muted/50 rounded-2xl shadow-lg">
             <h3 className="font-semibold text-lg mb-3">Rate this Post</h3>
