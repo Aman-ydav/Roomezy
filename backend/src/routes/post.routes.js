@@ -2,11 +2,13 @@ import {
   createPost,
   getAllPosts,
   getPostById,
-  updatePost,
   toggleArchivePost,
   togglePostStatus,
   ratePost,
   deletePost,
+  updatePostBasic,
+  updatePostPreferences,
+  updatePostImages,
 } from "../controllers/post.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -23,10 +25,13 @@ const postUploads = upload.fields([
 router.route("/create-post").post(verifyJWT, postUploads, createPost);
 router.route("/").get(getAllPosts);
 router.route("/:id").get(getPostById);
-router.route("/:id").put(verifyJWT, postUploads, updatePost);
 router.route("/:id/archive").patch(verifyJWT, toggleArchivePost);
 router.route("/:id/status").patch(verifyJWT, togglePostStatus);
 router.route("/:id/rate").patch(verifyJWT, ratePost);
 router.route("/:id").delete(verifyJWT, deletePost);
+
+router.route("/:id/basic").patch(verifyJWT, updatePostBasic); 
+router.route("/:id/preferences").patch(verifyJWT, updatePostPreferences);  
+router.route("/:id/images").patch(verifyJWT, postUploads, updatePostImages); 
 
 export default router;

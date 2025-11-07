@@ -1,12 +1,8 @@
-// src/features/post/postSlice.js
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/utils/axiosInterceptor";
 
-import { toast } from "sonner";
 
-/* ===========================
-   🔹 CREATE POST
-=========================== */
+
 export const createPost = createAsyncThunk(
   "post/createPost",
   async (postData, { rejectWithValue }) => {
@@ -24,20 +20,15 @@ export const createPost = createAsyncThunk(
         headers: { "Content-Type": "multipart/form-data" },
       });
 
-      toast.success("Post created successfully!");
       return res.data.data;
     } catch (err) {
       const message =
         err.response?.data?.message || "Failed to create post.";
-      toast.error(message);
       return rejectWithValue(message);
     }
   }
 );
 
-/* ===========================
-   🔹 GET ALL POSTS
-=========================== */
 export const getAllPosts = createAsyncThunk(
   "post/getAllPosts",
   async (_, { rejectWithValue }) => {
@@ -46,15 +37,11 @@ export const getAllPosts = createAsyncThunk(
       return res.data.data;
     } catch (err) {
       const message = err.response?.data?.message || "Failed to fetch posts.";
-      toast.error(message);
       return rejectWithValue(message);
     }
   }
 );
 
-/* ===========================
-   🔹 GET POST BY ID
-=========================== */
 export const getPostById = createAsyncThunk(
   "post/getPostById",
   async (id, { rejectWithValue }) => {
@@ -63,17 +50,96 @@ export const getPostById = createAsyncThunk(
       return res.data.data;
     } catch (err) {
       const message = err.response?.data?.message || "Post not found.";
-      toast.error(message);
       return rejectWithValue(message);
     }
   }
 );
 
-/* ===========================
-   🔹 UPDATE POST
-=========================== */
-export const updatePost = createAsyncThunk(
-  "post/updatePost",
+
+export const toggleArchivePost = createAsyncThunk(
+  "post/toggleArchivePost",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await api.patch(`/posts/${id}/archive`);
+      return res.data.data;
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to archive post.";
+      return rejectWithValue(message);
+    }
+  }
+);
+
+
+export const togglePostStatus = createAsyncThunk(
+  "post/togglePostStatus",
+  async (id, { rejectWithValue }) => {
+    try {
+      const res = await api.patch(`/posts/${id}/status`);
+      return res.data.data;
+    } catch (err) {
+      const message =
+        err.response?.data?.message || "Failed to toggle post status.";
+      return rejectWithValue(message);
+    }
+  }
+);
+
+
+export const ratePost = createAsyncThunk(
+  "post/ratePost",
+  async ({ id, value }, { rejectWithValue }) => {
+    try {
+      const res = await api.patch(`/posts/${id}/rate`, { value });
+      return res.data.data;
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to rate post.";
+      return rejectWithValue(message);
+    }
+  }
+);
+
+
+export const deletePost = createAsyncThunk(
+  "post/deletePost",
+  async (id, { rejectWithValue }) => {
+    try {
+      await api.delete(`/posts/${id}`);
+      return id;
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to delete post.";
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const updatePostBasic = createAsyncThunk(
+  "post/updatePostBasic",
+  async ({ id, updatedData }, { rejectWithValue }) => {
+    try {
+      const res = await api.patch(`/posts/${id}/basic`, updatedData);
+      return res.data.data;
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to update basic information.";
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const updatePostPreferences = createAsyncThunk(
+  "post/updatePostPreferences",
+  async ({ id, updatedData }, { rejectWithValue }) => {
+    try {
+      const res = await api.patch(`/posts/${id}/preferences`, updatedData);
+      return res.data.data;
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to update preferences.";
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const updatePostImages = createAsyncThunk(
+  "post/updatePostImages",
   async ({ id, updatedData }, { rejectWithValue }) => {
     try {
       const formData = new FormData();
@@ -84,100 +150,18 @@ export const updatePost = createAsyncThunk(
           formData.append(key, updatedData[key]);
         }
       }
-
-      const res = await api.put(`/posts/${id}`, formData, {
+      const res = await api.patch(`/posts/${id}/images`, formData, {
         headers: { "Content-Type": "multipart/form-data" },
       });
-
-      toast.success("Post updated successfully!");
       return res.data.data;
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to update post.";
-      toast.error(message);
-      return rejectWithValue(message);
-    }
-  }
-);
-
-/* ===========================
-   🔹 TOGGLE ARCHIVE STATUS
-=========================== */
-export const toggleArchivePost = createAsyncThunk(
-  "post/toggleArchivePost",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await api.patch(`/posts/${id}/archive`);
-      toast.info("Post archive status updated.");
-      return res.data.data;
-    } catch (err) {
-      const message = err.response?.data?.message || "Failed to archive post.";
-      toast.error(message);
-      return rejectWithValue(message);
-    }
-  }
-);
-
-/* ===========================
-   🔹 TOGGLE ACTIVE / CLOSED STATUS
-=========================== */
-export const togglePostStatus = createAsyncThunk(
-  "post/togglePostStatus",
-  async (id, { rejectWithValue }) => {
-    try {
-      const res = await api.patch(`/posts/${id}/status`);
-      toast.success("Post status updated!");
-      return res.data.data;
-    } catch (err) {
-      const message =
-        err.response?.data?.message || "Failed to toggle post status.";
-      toast.error(message);
-      return rejectWithValue(message);
-    }
-  }
-);
-
-/* ===========================
-   🔹 RATE POST
-=========================== */
-export const ratePost = createAsyncThunk(
-  "post/ratePost",
-  async ({ id, value }, { rejectWithValue }) => {
-    try {
-      const res = await api.patch(`/posts/${id}/rate`, { value });
-      toast.success("Thanks for rating!");
-      return res.data.data;
-    } catch (err) {
-      const message = err.response?.data?.message || "Failed to rate post.";
-      toast.error(message);
-      return rejectWithValue(message);
-    }
-  }
-);
-
-/* ===========================
-   🔹 DELETE POST
-=========================== */
-export const deletePost = createAsyncThunk(
-  "post/deletePost",
-  async (id, { rejectWithValue }) => {
-    try {
-      await api.delete(`/posts/${id}`);
-      toast.success("Post deleted successfully!");
-      return id;
-    } catch (err) {
-      const message = err.response?.data?.message || "Failed to delete post.";
-      toast.error(message);
+      const message = err.response?.data?.message || "Failed to update images.";
       return rejectWithValue(message);
     }
   }
 );
 
 
-
-
-/* ===========================
-   ⚙️ SLICE
-=========================== */
 const postSlice = createSlice({
   name: "post",
   initialState: {
@@ -186,6 +170,9 @@ const postSlice = createSlice({
     loading: false,
     creating: false,
     updating: false,
+    updatingBasic: false, 
+    updatingPreferences: false,
+    updatingImages: false, 
     error: null,
   },
   reducers: {
@@ -226,24 +213,6 @@ const postSlice = createSlice({
         state.selectedPost = action.payload;
       })
 
-      /* --- UPDATE --- */
-      .addCase(updatePost.pending, (state) => {
-        state.updating = true;
-      })
-      .addCase(updatePost.fulfilled, (state, action) => {
-        state.updating = false;
-        state.posts = state.posts.map((p) =>
-          p._id === action.payload._id ? action.payload : p
-        );
-        if (state.selectedPost?._id === action.payload._id) {
-          state.selectedPost = action.payload;
-        }
-      })
-      .addCase(updatePost.rejected, (state, action) => {
-        state.updating = false;
-        state.error = action.payload;
-      })
-
       /* --- ARCHIVE --- */
       .addCase(toggleArchivePost.fulfilled, (state, action) => {
         const updated = action.payload;
@@ -271,9 +240,67 @@ const postSlice = createSlice({
       /* --- DELETE --- */
       .addCase(deletePost.fulfilled, (state, action) => {
         state.posts = state.posts.filter((p) => p._id !== action.payload);
+      })
+
+      /* --- UPDATE BASIC --- */
+
+      .addCase(updatePostBasic.pending, (state) => {
+        state.updatingBasic = true;
+      })
+      .addCase(updatePostBasic.fulfilled, (state, action) => {
+        state.updatingBasic = false;
+        state.posts = state.posts.map((p) =>
+          p._id === action.payload._id ? action.payload : p
+        );
+        if (state.selectedPost?._id === action.payload._id) {
+          state.selectedPost = action.payload;
+        }
+      })
+      .addCase(updatePostBasic.rejected, (state, action) => {
+        state.updatingBasic = false;
+        state.error = action.payload;
+      })
+
+      /* --- UPDATE PREFERENCES --- */
+      .addCase(updatePostPreferences.pending, (state) => {
+        state.updatingPreferences = true;
+      })
+      .addCase(updatePostPreferences.fulfilled, (state, action) => {
+        state.updatingPreferences = false;
+        state.posts = state.posts.map((p) =>
+          p._id === action.payload._id ? action.payload : p
+        );
+        if (state.selectedPost?._id === action.payload._id) {
+          state.selectedPost = action.payload;
+        }
+      })
+      .addCase(updatePostPreferences.rejected, (state, action) => {
+        state.updatingPreferences = false;
+        state.error = action.payload;
+      })
+
+      /* --- UPDATE IMAGES --- */
+      .addCase(updatePostImages.pending, (state) => {
+        state.updatingImages = true;
+      })
+      .addCase(updatePostImages.fulfilled, (state, action) => {
+        state.updatingImages = false;
+        state.posts = state.posts.map((p) =>
+          p._id === action.payload._id ? action.payload : p
+        );
+        if (state.selectedPost?._id === action.payload._id) {
+          state.selectedPost = action.payload;
+        }
+      })
+      .addCase(updatePostImages.rejected, (state, action) => {
+        state.updatingImages = false;
+        state.error = action.payload;
       });
+
+      
   },
 });
 
 export const { clearSelectedPost } = postSlice.actions;
 export default postSlice.reducer;
+

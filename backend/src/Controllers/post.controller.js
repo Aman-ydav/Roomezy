@@ -91,57 +91,6 @@ export const getPostById = asyncHandler(async (req, res) => {
   return res.status(200).json(new ApiResponse(200, post, "Post details fetched"));
 });
 
-export const updatePost = asyncHandler(async (req, res) => {
-  const updates = req.body;
-  const post = await Post.findById(req.params.id);
-
-  if (!post) throw new ApiError(404, "Post not found");
-  if (String(post.user) !== String(req.user._id)) {
-    cleanupLocalFiles(req.files);
-    throw new ApiError(403, "Unauthorized to edit this post");
-  }
-
-  try {
-    // optional: update main image if provided
-    if (req.files && req.files.main_image) {
-      const mainImageUpload = await uploadOnCloudinary(req.files.main_image[0].path);
-
-      if (!mainImageUpload?.url) {
-        cleanupLocalFiles(req.files);
-        throw new ApiError(500, "Failed to upload main image");
-      }
-
-      updates.main_image = mainImageUpload.url;
-    }
-
-    // optional: update media files if provided
-    if (req.files && req.files.media_files) {
-      const mediaUploads = [];
-      for (let file of req.files.media_files.slice(0, 3)) {
-        const uploaded = await uploadOnCloudinary(file.path);
-        if (uploaded?.url) mediaUploads.push(uploaded.url);
-      }
-      if (mediaUploads.length > 0) {
-        updates.media_urls = mediaUploads;
-      }
-    }
-
-    const updatedPost = await Post.findByIdAndUpdate(
-      post._id,
-      { $set: updates },
-      { new: true }
-    );
-
-    cleanupLocalFiles(req.files); // cleanup after upload succeeds
-    return res
-      .status(200)
-      .json(new ApiResponse(200, updatedPost, "Post updated successfully"));
-  } catch (error) {
-    cleanupLocalFiles(req.files); // cleanup on any error
-    throw error;
-  }
-});
-
 export const toggleArchivePost = asyncHandler(async (req, res) => {
    const post = await Post.findById(req.params.id);
   if (!post) throw new ApiError(404, "Post not found");
@@ -252,4 +201,102 @@ export const deletePost = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, null, "Post deleted successfully"));
 });
 
+export const updatePostBasic = asyncHandler(async (req, res) => {
+  const { title, description, location, rent, room_type } = req.body;
+  const post = await Post.findById(req.params.id);
 
+  if (!post) throw new ApiError(404, "Post not found");
+  if (String(post.user) !== String(req.user._id)) {
+    throw new ApiError(403, "Unauthorized to edit this post");
+  }
+
+  const updates = { title, description, location, rent, room_type };
+  const updatedPost = await Post.findByIdAndUpdate(
+    post._id,
+    { $set: updates },
+    { new: true }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedPost, "Basic information updated successfully"));
+});
+
+export const updatePostPreferences = asyncHandler(async (req, res) => {
+  const { non_smoker, lgbtq_friendly, has_cat, has_dog, allow_pets } = req.body;
+  const post = await Post.findById(req.params.id);
+
+  if (!post) throw new ApiError(404, "Post not found");
+  if (String(post.user) !== String(req.user._id)) {
+    throw new ApiError(403, "Unauthorized to edit this post");
+  }
+
+  const updates = { non_smoker, lgbtq_friendly, has_cat, has_dog, allow_pets };
+  const updatedPost = await Post.findByIdAndUpdate(
+    post._id,
+    { $set: updates },
+    { new: true }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedPost, "Preferences updated successfully"));
+});
+
+export const updatePostImages = asyncHandler(async (req, res) => {
+  const post = await Post.findById(req.params.id);
+
+  if (!post) throw new ApiError(404, "Post not found");
+  if (String(post.user) !== String(req.user._id)) {
+    cleanupLocalFiles(req.files);
+    throw new ApiError(403, "Unauthorized to edit this post");
+  }
+
+  try {
+    const updates = {};
+
+    // Delete old main image from Cloudinary if a new one is provided
+    if (req.files && req.files.main_image) {
+      if (post.main_image) {
+        await deleteFromCloudinary(post.main_image);
+      }
+      const mainImageUpload = await uploadOnCloudinary(req.files.main_image[0].path);
+      if (!mainImageUpload?.url) {
+        cleanupLocalFiles(req.files);
+        throw new ApiError(500, "Failed to upload main image");
+      }
+      updates.main_image = mainImageUpload.url;
+    }
+
+    // Delete old additional images from Cloudinary if new ones are provided
+    if (req.files && req.files.media_files) {
+      if (Array.isArray(post.additional_images) && post.additional_images.length > 0) {
+        for (const url of post.additional_images) {
+          await deleteFromCloudinary(url);
+        }
+      }
+      const mediaUploads = [];
+      for (let file of req.files.media_files.slice(0, 3)) {
+        const uploaded = await uploadOnCloudinary(file.path);
+        if (uploaded?.url) mediaUploads.push(uploaded.url);
+      }
+      if (mediaUploads.length > 0) {
+        updates.additional_images = mediaUploads;
+      }
+    }
+
+    const updatedPost = await Post.findByIdAndUpdate(
+      post._id,
+      { $set: updates },
+      { new: true }
+    );
+
+    cleanupLocalFiles(req.files);
+    return res
+      .status(200)
+      .json(new ApiResponse(200, updatedPost, "Images updated successfully"));
+  } catch (error) {
+    cleanupLocalFiles(req.files);
+    throw error;
+  }
+});

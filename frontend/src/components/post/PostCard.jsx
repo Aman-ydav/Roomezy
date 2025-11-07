@@ -65,7 +65,7 @@ export default function PostCard({ post, index = 0 }) {
       variants={cardVariants}
       initial="hidden"
       animate="visible"
-      whileHover={{ scale: 1.02 }}
+      whileHover={{ scale: 1.005 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       onClick={() => navigate(`/post/${post._id}`)}
       className={`group relative bg-card border border-border rounded-xl overflow-hidden shadow-sm

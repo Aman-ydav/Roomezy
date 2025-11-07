@@ -10,6 +10,5 @@ export const store = configureStore({
     theme: themeReducer,
     profile: profileReducer,
     post: postReducer,
-
   },
 });
