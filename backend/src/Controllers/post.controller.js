@@ -16,7 +16,7 @@ export const createPost = asyncHandler(async (req, res) => {
     location,
     rent,
     room_type,
-    badge_type, 
+    badge_type,
     non_smoker,
     lgbtq_friendly,
     has_cat,
@@ -24,33 +24,35 @@ export const createPost = asyncHandler(async (req, res) => {
     allow_pets,
   } = req.body;
 
-  if (!post_type || !title || !description || !location || !rent) {
+  // Validate required fields
+  if (!post_type || !title || !description || !location) {
     cleanupLocalFiles(req.files);
     throw new ApiError(400, "Missing required fields");
   }
 
-  // upload main image
+  // Validate and upload main image
   if (!req.files || !req.files.main_image) {
     throw new ApiError(400, "Main image is required");
   }
 
   const mainImagePath = req.files.main_image[0].path;
-
   const mainImageUpload = await uploadOnCloudinary(mainImagePath);
+
   if (!mainImageUpload?.url) {
     cleanupLocalFiles(req.files.main_image);
     throw new ApiError(500, "Failed to upload main image");
   }
 
-  // upload additional media (if any)
-  let mediaUploads = [];
+  // Upload additional images (optional)
+  let additionalImages = [];
   if (req.files.media_files) {
     for (let file of req.files.media_files.slice(0, 3)) {
       const uploaded = await uploadOnCloudinary(file.path);
-      if (uploaded?.url) mediaUploads.push(uploaded.url);
+      if (uploaded?.url) additionalImages.push(uploaded.url);
     }
   }
 
+  // Create the post in MongoDB
   const post = await Post.create({
     user: req.user._id,
     post_type,
@@ -62,14 +64,16 @@ export const createPost = asyncHandler(async (req, res) => {
     room_type,
     badge_type,
     main_image: mainImageUpload.url,
-    media_urls: mediaUploads,
+    additional_images: additionalImages, // ✅ FIXED FIELD NAME
     non_smoker,
     lgbtq_friendly,
     has_cat,
-    badge_type,
     has_dog,
     allow_pets,
   });
+
+  // Cleanup temp files
+  cleanupLocalFiles(req.files);
 
   return res
     .status(201)

@@ -10,12 +10,12 @@ const postSchema = new Schema({
     // Type and Role
     post_type: {
       type: String,
-      enum: ["looking_for_room", "room_available"],
+      enum: ["looking-for-room", "room-available"],
       required: true,
     },
     post_role: {
       type: String,
-      enum: ["owner", "room_stayer"],
+      enum: ["owner", "roommate-share", "room-seeker"],
       required: true,
     },
 
@@ -59,7 +59,7 @@ const postSchema = new Schema({
     // Badges
     badge_type: {
       type: String,
-      enum: ["roommate_shareable", "empty_room"],
+      enum: ["roommate-share", "empty-room","looking-for-room"],
       required: true,
     },
     status_badge: {

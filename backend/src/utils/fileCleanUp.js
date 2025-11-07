@@ -6,7 +6,7 @@ export const cleanupLocalFiles = (files) => {
     .flat()
     .forEach((file) => {
       if (file?.path && fs.existsSync(file.path)) {
-        fs.unlink(file.path);
+        fs.unlinkSync(file.path);
       }
     });
 };
