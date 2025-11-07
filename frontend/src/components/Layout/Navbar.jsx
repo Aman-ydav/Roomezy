@@ -266,10 +266,9 @@ export default function Navbar() {
           ) : (
             <Link
               to="/login"
-              className="p-2 rounded-full hover:bg-muted transition-colors"
-              title="Sign In"
+              className="p-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium"
             >
-              <MessageSquareText className="h-5 w-5 text-muted-foreground" />
+              Sign In
             </Link>
           )}
         </div>
