@@ -8,12 +8,13 @@ import { Input } from "@/components/ui/input";
 import ThemeToggle from "../theme/ThemeToggle.jsx";
 import {
   LogOut,
-  Menu,
-  X,
   Search,
-  User,
   Settings,
   LayoutDashboard,
+  Mail,
+  MessageSquareText,
+  MessageCircle,
+  MessageSquare
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,13 +31,11 @@ export default function Navbar() {
   const { user } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
   const handleLogout = () => {
     dispatch(logoutUser());
-    setIsMenuOpen(false);
     navigate("/");
   };
 
@@ -57,20 +56,20 @@ export default function Navbar() {
     "
     >
       {/* Desktop Navbar */}
-      <div className="hidden md:flex max-w-9xl  justify-between items-center px-4 py-1 md:px-8">
+      <div className="hidden md:flex max-w-9xl justify-between items-center px-4 py-2 md:px-8">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-2 cursor-pointer group">
           <img
             src={logo}
-            alt="logo"
-            className="w-12 h-12 object-contain transition-transform group-hover:scale-110 "
+            alt="Roomezy Logo"
+            className="w-12 h-12 object-contain transition-transform group-hover:scale-110"
           />
           <span
             className="
-                   text-2xl font-extrabold 
-                   bg-primary dark:bg-forground
-                   bg-clip-text text-transparent 
-                   tracking-tight"
+              text-2xl font-extrabold 
+              bg-primary bg-clip-text text-transparent 
+              tracking-tight
+            "
           >
             Roomezy
           </span>
@@ -94,6 +93,23 @@ export default function Navbar() {
         {/* Right Section */}
         <div className="flex items-center gap-4">
           <ThemeToggle />
+
+          {/* Show Inbox only when logged in */}
+          {user && (
+            <button
+              onClick={() => navigate("/inbox")}
+              className="p-2 rounded-full hover:bg-muted transition-colors relative group"
+              title="Chat Inbox (Coming Soon)"
+            >
+              <MessageSquare className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
+
+              <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
+                Inbox
+              </span>
+            </button>
+          )}
+
+          {/* Auth Menu */}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -114,7 +130,7 @@ export default function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-56  bg-card/60 dark:bg-card/40  backdrop-blur-xl  border border-border/40  shadow-xl  rounded-xl"
+                className="w-56 bg-card/60 dark:bg-card/40 backdrop-blur-xl border border-border/40 shadow-xl rounded-xl"
               >
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
@@ -143,20 +159,17 @@ export default function Navbar() {
             <>
               <Link
                 to="/login"
-                className="
-                text-sm font-medium text-foreground/90 
-                hover:text-primary transition-colors
-              "
+                className="flex items-center gap-1 text-sm font-medium text-foreground/90 hover:text-primary transition-colors"
               >
                 Sign In
               </Link>
               <Link to="/register">
                 <Button
                   className="
-                  bg-linear-to-r from-primary to-accent 
-                  hover:from-primary/90 hover:to-accent/90 
-                  text-primary-foreground font-medium shadow-md
-                "
+                    bg-linear-to-r from-primary to-accent 
+                    hover:from-primary/90 hover:to-accent/90 
+                    text-primary-foreground font-medium shadow-md
+                  "
                 >
                   Sign Up
                 </Button>
@@ -166,7 +179,7 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Navbar (No Hamburger, Inline Icons) */}
+      {/* Mobile Navbar */}
       <div className="flex md:hidden justify-between items-center px-4 py-3 bg-card/80 backdrop-blur-md">
         {/* Left: Logo */}
         <Link to="/" className="flex items-center gap-2 cursor-pointer group">
@@ -187,9 +200,20 @@ export default function Navbar() {
           </span>
         </Link>
 
-        {/* Right: Theme, Search, and User Menu */}
+        {/* Right: Theme, Search, Inbox (if logged in), User/Login */}
         <div className="flex items-center gap-3">
           <ThemeToggle />
+
+          {/* Inbox (only for logged-in users) */}
+          {user && (
+            <button
+              onClick={() => navigate("/inbox")}
+              className="p-2 rounded-full hover:bg-muted transition-colors"
+              title="Inbox (Coming Soon)"
+            >
+              <MessageCircle  className="h-5 w-5 text-muted-foreground" />
+            </button>
+          )}
 
           {/* Search Icon */}
           <button
@@ -199,7 +223,7 @@ export default function Navbar() {
             <Search className="h-5 w-5 text-muted-foreground" />
           </button>
 
-          {/* User Dropdown */}
+          {/* User Dropdown / Chat Icon */}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -214,7 +238,7 @@ export default function Navbar() {
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-48 bg-card/60 dark:bg-card/40  backdrop-blur-xl  border border-border/40  shadow-xl  rounded-xl"
+                className="w-48 bg-card/60 dark:bg-card/40 backdrop-blur-xl border border-border/40 shadow-xl rounded-xl"
               >
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
@@ -230,7 +254,7 @@ export default function Navbar() {
                 <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                   <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
                 </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => navigate("/profile")}>
+                <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                   <Settings className="mr-2 h-4 w-4" /> Profile
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
@@ -240,13 +264,18 @@ export default function Navbar() {
               </DropdownMenuContent>
             </DropdownMenu>
           ) : (
-            <Link to="/login">
-              <User className="h-5 w-5 text-muted-foreground" />
+            <Link
+              to="/login"
+              className="p-2 rounded-full hover:bg-muted transition-colors"
+              title="Sign In"
+            >
+              <MessageSquareText className="h-5 w-5 text-muted-foreground" />
             </Link>
           )}
         </div>
       </div>
 
+      {/* Mobile Search Bar */}
       {showSearch && (
         <div className="md:hidden px-4 py-3 bg-card border-t border-border backdrop-blur-md animate-in fade-in slide-in-from-top-2">
           <form

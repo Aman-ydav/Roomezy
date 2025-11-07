@@ -13,8 +13,10 @@ export default function PostCard({ post, index = 0 }) {
         return "bg-sky-500/90 hover:bg-sky-600/90";
       case "empty-room":
         return "bg-emerald-500/90 hover:bg-emerald-600/90";
-      default:
+      case "roommate-share":
         return "bg-violet-500/90 hover:bg-violet-600/90";
+      default:
+        return "bg-rose-500/90 hover:bg-rose-600/90";
     }
   };
 

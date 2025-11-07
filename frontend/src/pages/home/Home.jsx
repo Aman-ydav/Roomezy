@@ -1,17 +1,20 @@
-import { useEffect } from "react";
+import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, useAnimation, useInView } from "framer-motion";
 import { getAllPosts } from "@/features/post/postSlice";
 import CreatePostBanner from "@/components/home/HeroBanner";
-import PostCard from "../../components/post/PostCard";
-import PostSkeleton from "../../components/home/PostSkeleton";
+import PostCard from "@/components/post/PostCard";
+import PostSkeleton from "@/components/home/PostSkeleton";
+import Filters from "@/components/home/Filters"; // ✅ import your updated Filters
 import { useNavigate } from "react-router-dom";
-import { useRef } from "react";
 
 export default function Home() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { posts, loading } = useSelector((state) => state.post);
+
+  const [filter, setFilter] = useState("all");
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     dispatch(getAllPosts());
@@ -22,9 +25,7 @@ export default function Home() {
   const inView = useInView(containerRef, { once: true, margin: "-50px" });
 
   useEffect(() => {
-    if (inView) {
-      controls.start("visible");
-    }
+    if (inView) controls.start("visible");
   }, [inView, controls]);
 
   const cardVariants = {
@@ -36,6 +37,23 @@ export default function Home() {
     }),
   };
 
+  // ✅ Filter + Search Logic
+  const filteredPosts = useMemo(() => {
+    return posts
+      ?.filter((post) => {
+        if (filter === "all") return true;
+        return post.badge_type === filter;
+      })
+      .filter((post) => {
+        if (!search.trim()) return true;
+        const query = search.toLowerCase();
+        return (
+          post.title?.toLowerCase().includes(query) ||
+          post.location?.toLowerCase().includes(query)
+        );
+      });
+  }, [posts, filter, search]);
+
   return (
     <motion.div
       className="min-h-screen bg-background text-foreground py-8 px-4 md:px-8"
@@ -43,6 +61,7 @@ export default function Home() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
+      {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -51,6 +70,15 @@ export default function Home() {
         <CreatePostBanner onClick={() => navigate("/dashboard")} />
       </motion.div>
 
+      {/* Filters */}
+      <Filters
+        filter={filter}
+        setFilter={setFilter}
+        search={search}
+        setSearch={setSearch}
+      />
+
+      {/* Post Grid */}
       <motion.div
         ref={containerRef}
         initial="hidden"
@@ -60,7 +88,7 @@ export default function Home() {
             transition: { staggerChildren: 0.08 },
           },
         }}
-        className="max-w-6xl mx-auto mt-10"
+        className="max-w-6xl mx-auto"
       >
         <motion.h2
           className="text-2xl font-bold mb-6 text-foreground"
@@ -77,9 +105,9 @@ export default function Home() {
               <PostSkeleton key={i} />
             ))}
           </div>
-        ) : posts?.length > 0 ? (
+        ) : filteredPosts?.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {posts.map((post, i) => (
+            {filteredPosts.map((post, i) => (
               <motion.div
                 key={post._id}
                 custom={i}
@@ -93,8 +121,8 @@ export default function Home() {
             ))}
           </div>
         ) : (
-          <p className="text-center text-muted-foreground">
-            No posts available yet. Be the first to create one!
+          <p className="text-center text-muted-foreground mt-12">
+            No posts found. Try adjusting your filters or search.
           </p>
         )}
       </motion.div>
