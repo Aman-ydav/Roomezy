@@ -37,6 +37,14 @@ app.use(express.static("public"));
 
 app.use(cookieParser());
 
+app.get("/api/v1/health", (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Roomezy backend is live!",
+    timestamp: new Date().toISOString(),
+  });
+});
+
 
 // routes import
 import userRoutes from "./routes/user.routes.js";
