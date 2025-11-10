@@ -22,27 +22,27 @@ export default function PostCard({ post, index = 0 }) {
 
   const hoverThemes = [
     {
-      light: "hover:bg-sky-105",
+      light: "hover:bg-sky-50",
       dark: "dark:hover:bg-sky-500/10",
       border: "hover:border-sky-300/50",
     },
     {
-      light: "hover:bg-emerald-100",
+      light: "hover:bg-emerald-50",
       dark: "dark:hover:bg-emerald-500/10",
       border: "hover:border-emerald-300/50",
     },
     {
-      light: "hover:bg-violet-100",
+      light: "hover:bg-violet-50",
       dark: "dark:hover:bg-violet-500/10",
       border: "hover:border-violet-300/50",
     },
     {
-      light: "hover:bg-rose-100",
+      light: "hover:bg-rose-50",
       dark: "dark:hover:bg-rose-500/10",
       border: "hover:border-rose-300/50",
     },
     {
-      light: "hover:bg-amber-100",
+      light: "hover:bg-amber-50",
       dark: "dark:hover:bg-amber-500/10",
       border: "hover:border-amber-300/50",
     },
@@ -58,7 +58,7 @@ export default function PostCard({ post, index = 0 }) {
     visible: {
       opacity: 1,
       y: 0,
-      transition: { duration: 0.1, ease: "easeOut" },
+      transition: { duration: 0.2, ease: "easeOut" },
     },
   };
 
@@ -67,11 +67,10 @@ export default function PostCard({ post, index = 0 }) {
       variants={cardVariants}
       initial="hidden"
       animate="visible"
-      whileHover={{ scale: 1.005 }}
       transition={{ duration: 0.2, ease: "easeOut" }}
       onClick={() => navigate(`/post/${post._id}`)}
       className={`group relative bg-card border border-border rounded-xl overflow-hidden shadow-sm
-        transition-all duration-200 cursor-pointer 
+        transition-all duration-300 cursor-pointer 
         ${randomTheme.light} ${randomTheme.dark} ${randomTheme.border}
         hover:shadow-[0_8px_25px_rgba(0,0,0,0.12)] dark:hover:shadow-[0_8px_25px_rgba(0,0,0,0.4)]`}
     >
@@ -79,7 +78,7 @@ export default function PostCard({ post, index = 0 }) {
         <img
           src={post.main_image}
           alt={post.title}
-          className="w-full h-full object-cover pointer-events-none"
+          className="w-full h-full object-cover pointer-events-none transition-transform duration-300"
         />
 
         {post.badge_type && (
@@ -93,7 +92,9 @@ export default function PostCard({ post, index = 0 }) {
                 ? "Looking for Room"
                 : post.badge_type === "empty-room"
                 ? "Room Available"
-                : "Roommate Wanted"}
+                : post.badge_type === "roommate-share"
+                ? "Looking for Roommate"
+                : "Room Availabe"}
             </Badge>
           </div>
         )}
@@ -101,11 +102,11 @@ export default function PostCard({ post, index = 0 }) {
 
       <div className="p-4 flex flex-col grow justify-between">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-200 truncate">
+          <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300 truncate">
             {post.title}
           </h3>
           <Badge
-            className={`font-semibold px-3 py-1 rounded-full border group-hover:shadow-md transition-shadow duration-200 ${
+            className={`font-semibold px-3 py-1 rounded-full border group-hover:shadow-md transition-shadow duration-300 ${
               post.status_badge === "active"
                 ? "bg-green-500/10 text-green-600 border-green-400/20"
                 : "bg-red-500/10 text-red-600 border-red-400/20"
@@ -115,17 +116,17 @@ export default function PostCard({ post, index = 0 }) {
           </Badge>
         </div>
 
-        <p className="text-sm text-muted-foreground line-clamp-2 h-10 group-hover:text-foreground transition-colors duration-200">
+        <p className="text-sm text-muted-foreground line-clamp-2 h-10 group-hover:text-foreground transition-colors duration-300">
           {post.description}
         </p>
 
         <div className="flex justify-between items-center mt-3 text-sm">
-          <span className="flex items-center gap-1 text-muted-foreground group-hover:text-foreground transition-colors duration-200 truncate">
+          <span className="flex items-center gap-1 text-muted-foreground group-hover:text-foreground transition-colors duration-300 truncate">
             <MapPin className="w-4 h-4" />
             {post.location}
           </span>
           {post.rent > 0 && (
-            <span className="flex items-center gap-1 font-semibold text-primary group-hover:text-primary/80 transition-colors duration-200">
+            <span className="flex items-center gap-1 font-semibold text-primary group-hover:text-primary/80 transition-colors duration-300">
               <IndianRupee className="w-4 h-4" />
               {post.rent}
             </span>

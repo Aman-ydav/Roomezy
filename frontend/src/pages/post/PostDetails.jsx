@@ -30,6 +30,8 @@ import {
   StarHalf,
   MessageCircle,
   Send,
+  AlertTriangle,
+  Info,
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -182,6 +184,37 @@ export default function PostDetails() {
     return <span className="inline-flex items-center gap-1">{stars}</span>;
   };
 
+  // Determine post type description
+  const postTypeDescription =
+    {
+      "looking-for-room": "Looking for a Room",
+      "empty-room": "Room Available",
+      "roommate-share": "Looking for Roommate",
+    }[post.badge_type] || "Post";
+
+  // Preferences heading based on type
+  let preferencesHeading = "";
+  let preferencesSubtext = "";
+
+  if (post.badge_type === "looking-for-room") {
+    preferencesHeading = "My Preferences & Habits";
+    preferencesSubtext =
+      "Here are my personal preferences and habits to help potential roommates or owners understand my lifestyle better.";
+  } else if (post.badge_type === "roommate-share") {
+    preferencesHeading = "Preferences for Roommate";
+    preferencesSubtext =
+      "I’m looking for a roommate who matches these preferences and lifestyle habits to ensure a comfortable living environment.";
+  } else if (post.badge_type === "empty-room") {
+    preferencesHeading = "Owner’s Room Preferences";
+    preferencesSubtext =
+      "These are the owner's expectations and preferences for future tenants or roommates.";
+  } else {
+    // Default fallback (in case no valid badge_type is found)
+    preferencesHeading = "Preferences & Lifestyle";
+    preferencesSubtext =
+      "Preferences or lifestyle details related to this post.";
+  }
+
   return (
     <motion.div
       className="min-h-screen bg-background text-foreground py-10 px-4 md:px-8"
@@ -191,19 +224,40 @@ export default function PostDetails() {
       <div className="max-w-7xl mx-auto grid grid-cols-1 lg:grid-cols-[2fr_1fr] gap-8">
         <div className="space-y-6">
           <Card className="p-6 border border-border bg-card rounded-2xl shadow-md">
+            <div className="max-w-7xl mb-6">
+              {post.status_badge === "closed" && (
+                <div className="flex items-center gap-2 p-4 bg-red-100 border border-red-300 text-red-800 rounded-xl shadow-sm">
+                  <AlertTriangle className="w-5 h-5" />
+                  <p className="text-sm font-medium">
+                    This post has been temporarily closed by the user.
+                  </p>
+                </div>
+              )}
+              {isOwner && post.archived && (
+                <div className="flex items-center gap-2 p-4 bg-amber-100 border border-amber-300 text-amber-800 rounded-xl shadow-sm">
+                  <Info className="w-5 h-5" />
+                  <p className="text-sm font-medium">
+                    You have archived this post. It’s hidden from other users.
+                    You can unarchive it anytime.
+                  </p>
+                </div>
+              )}
+            </div>
             <div className="flex flex-wrap items-center justify-between gap-4">
               <div className="flex items-center gap-3 flex-wrap">
                 <h1 className="text-2xl font-bold">{post.title}</h1>
 
+                {/* Prominent Post Type Indicator */}
+                <div className="flex items-center gap-2">
+                  <Badge
+                    className={`${typeColor} text-sm font-semibold px-3 py-1`}
+                  >
+                    {postTypeDescription}
+                  </Badge>
+                </div>
+
                 <div className="flex items-center gap-2 flex-wrap">
                   <Badge className={statusColor}>{post.status_badge}</Badge>
-                  <Badge className={typeColor}>
-                    {post.badge_type === "looking-for-room"
-                      ? "Looking for Room"
-                      : post.badge_type === "room-available"
-                      ? "Room Available"
-                      : "Roommate Wanted"}
-                  </Badge>
                   {post.archived && (
                     <Badge className="bg-amber-500/10 text-amber-700 border border-amber-400/30">
                       Archived
@@ -293,27 +347,31 @@ export default function PostDetails() {
           {/* Details */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Card className="p-4 border border-border bg-card rounded-xl">
-              <h3 className="font-semibold mb-2">Details</h3>
-              <div className="space-y-2 text-sm">
-                <div className="flex items-center gap-2">
-                  <MapPin className="w-4 h-4" /> {post.location}
+              <h3 className="font-semibold mb-3 text-lg">Property Details</h3>
+              <div className="space-y-3 text-sm">
+                <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
+                  <MapPin className="w-5 h-5 text-primary" />
+                  <span className="font-medium">Location:</span> {post.location}
                 </div>
 
                 {/* Budget or Rent */}
                 {post.rent > 0 && (
-                  <div className="flex items-center gap-2">
-                    <IndianRupee className="w-4 h-4" />
-                    {post.badge_type === "looking-for-room" ? (
-                      <span>Budget: {post.rent}</span>
-                    ) : (
-                      <span>Rent Price: {post.rent}</span>
-                    )}
+                  <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
+                    <IndianRupee className="w-5 h-5 text-primary" />
+                    <span className="font-medium">
+                      {post.badge_type === "looking-for-room"
+                        ? "Budget:"
+                        : "Rent Price:"}
+                    </span>{" "}
+                    ₹{post.rent}
                   </div>
                 )}
 
                 {post.room_type && (
-                  <div className="flex items-center gap-2">
-                    <DoorOpen className="w-4 h-4" /> Room Type: {post.room_type}
+                  <div className="flex items-center gap-3 p-2 rounded-lg bg-muted/20">
+                    <DoorOpen className="w-5 h-5 text-primary" />
+                    <span className="font-medium">Room Type:</span>{" "}
+                    {post.room_type}
                   </div>
                 )}
               </div>
@@ -321,30 +379,35 @@ export default function PostDetails() {
 
             {/* Preferences */}
             <Card className="p-4 border border-border bg-card rounded-xl">
-              <h3 className="font-semibold mb-2">Preferences</h3>
+              <h3 className="font-semibold mb-1 text-lg">
+                {preferencesHeading}
+                <span className="text-sm block font-normal">
+                  {preferencesSubtext}
+                </span>
+              </h3>
               <div className="flex flex-wrap gap-2">
                 {post.non_smoker && (
-                  <Badge className="bg-green-100 text-green-800">
+                  <Badge className="bg-green-100 text-green-800 px-3 py-1">
                     <CigaretteOff className="w-3 h-3 mr-1" /> Non-Smoker
                   </Badge>
                 )}
                 {post.lgbtq_friendly && (
-                  <Badge className="bg-pink-100 text-pink-800">
-                    <Rainbow className="w-3 h-3 mr-1" /> LGBTQ+
+                  <Badge className="bg-pink-100 text-pink-800 px-3 py-1">
+                    <Rainbow className="w-3 h-3 mr-1" /> LGBTQ+ Friendly
                   </Badge>
                 )}
                 {post.has_cat && (
-                  <Badge className="bg-purple-100 text-purple-800">
+                  <Badge className="bg-purple-100 text-purple-800 px-3 py-1">
                     <Cat className="w-3 h-3 mr-1" /> Has Cat
                   </Badge>
                 )}
                 {post.has_dog && (
-                  <Badge className="bg-yellow-100 text-yellow-800">
+                  <Badge className="bg-yellow-100 text-yellow-800 px-3 py-1">
                     <Dog className="w-3 h-3 mr-1" /> Has Dog
                   </Badge>
                 )}
                 {post.allow_pets && (
-                  <Badge className="bg-blue-100 text-blue-800">
+                  <Badge className="bg-blue-100 text-blue-800 px-3 py-1">
                     <PawPrint className="w-3 h-3 mr-1" /> Pets Allowed
                   </Badge>
                 )}
@@ -392,10 +455,9 @@ export default function PostDetails() {
               <Button
                 variant="outline"
                 size="sm"
-                className="text-sm flex items-center gap-2"
+                className="text-sm flex items-center gap-2 opacity-60 cursor-not-allowed"
                 title="Profile feature coming soon"
-                // onClick={() => navigate(`/user/${post?.user?._id}
-                //   `)}
+                // onClick={() => navigate(`/user/${post?.user?._id}`)}
               >
                 <MessageCircle className="w-4 h-4" />
                 View Profile
@@ -425,7 +487,10 @@ export default function PostDetails() {
             </div>
 
             {!authUser ? (
-              <p className="text-sm text-muted-foreground mt-3">
+              <p
+                className="text-sm text-muted-foreground mt-3 cursor-pointer hover:text-primary underline"
+                onClick={() => navigate("/login")}
+              >
                 Sign in to rate this post.
               </p>
             ) : isOwner ? (
@@ -448,8 +513,8 @@ export default function PostDetails() {
                       <Star
                         className={`w-6 h-6 transition-all ${
                           localRating >= i
-                            ? "text-yellow-400 fill-yellow-400"
-                            : "text-muted-foreground/40"
+                            ? "text-primary"
+                            : "text-muted-foreground"
                         }`}
                       />
                     </button>
@@ -462,61 +527,58 @@ export default function PostDetails() {
 
         {/* Right Column (Sticky Chat Section) */}
         <div className="lg:sticky lg:top-1/2 lg:-translate-y-1/2 relative h-fit">
-          {/* 🔹 Animated Chat Preview Background */}
+          {/* 🔹 Animated Chat Preview Background with Enhanced Blur */}
           <div
-            className="absolute inset-0 overflow-hidden rounded-2xl opacity-60 pointer-events-none"
+            className="absolute inset-0 overflow-hidden rounded-2xl opacity-40 pointer-events-none blur-2xl"
             aria-hidden="true"
           >
             <div className="absolute inset-0 flex flex-col gap-3 px-4 py-6 animate-pulse">
-              <div className="self-start bg-primary/25 dark:bg-primary/30 text-foreground/90 max-w-[85%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
+              <div className="self-start bg-primary/20 dark:bg-primary/25 text-foreground/80 max-w-[85%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
                 Hey! 👋 I just saw your listing.
               </div>
-              <div className="self-end bg-card/70 border border-border/50 text-foreground/90 max-w-[80%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
+              <div className="self-end bg-card/60 border border-border/40 text-foreground/80 max-w-[80%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
                 Hi! Great! Are you looking for a roommate?
               </div>
-              <div className="self-start bg-primary/25 dark:bg-primary/30 text-foreground/90 max-w-[90%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
+              <div className="self-start bg-primary/20 dark:bg-primary/25 text-foreground/80 max-w-[90%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
                 Yep! I’d love to connect and know more about the room.
               </div>
-              <div className="self-end bg-card/70 border border-border/50 text-foreground/90 max-w-[70%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
+              <div className="self-end bg-card/60 border border-border/40 text-foreground/80 max-w-[70%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
                 Perfect. Let’s chat here soon!
               </div>
             </div>
 
-            {/* Gradient overlay for clarity */}
-            <div className="absolute inset-0 bg-linear-to-b from-background/95 via-background/80 to-background/95 backdrop-blur-[2px] rounded-2xl pointer-events-none" />
+            {/* Enhanced Gradient Overlay for Clarity */}
+            <div className="absolute inset-0 bg-linear-to-b from-background/98 via-background/85 to-background/98 backdrop-blur-lg rounded-2xl pointer-events-none" />
           </div>
 
-          {/* 🔹 Foreground Chat Card */}
-          <Card className="relative z-10 p-6 bg-card/80 border border-border/40 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden">
-            {/* Header */}
+          {/* 🔹 Foreground Chat Card with Coming Soon Emphasis */}
+          <Card className="relative z-10 p-6 bg-card/70 border border-border/30 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden">
+            {/* Header with Coming Soon Badge */}
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold flex items-center gap-2">
-                <MessageCircle className="w-5 h-5 text-primary" /> Chat with
-                Owner
+              <h2 className="text-xl font-semibold flex items-center gap-2 text-muted-foreground">
+                <MessageCircle className="w-5 h-5 text-muted-foreground" />{" "}
+                Inbuild Chat Features
               </h2>
-              <Badge className="bg-primary/10 text-primary border border-primary/20 text-xs">
+              <Badge className="bg-primary/10 text-primary border border-primary/20 text-xs font-medium animate-pulse">
                 Coming Soon
               </Badge>
             </div>
 
-            {/* Subheader */}
-            <p className="text-sm text-muted-foreground mb-4 leading-relaxed">
-              Soon you’ll be able to chat directly with the post owner, share
-              details, and plan your visits — right here inside Roomezy.
-            </p>
-
-            {/* Chat Preview */}
-            <div className="bg-muted/40 border border-border/40 rounded-xl p-4 shadow-inner space-y-3 backdrop-blur-sm max-h-80 overflow-y-auto">
+            {/* Chat Preview with Disabled Styling */}
+            <div className="bg-muted/30 border border-border/30 rounded-xl p-4 shadow-inner space-y-3 backdrop-blur-sm max-h-80 overflow-y-auto opacity-70">
               <div className="flex items-start gap-2">
-                <MessageCircle className="text-primary mt-1" size={16} />
-                <div className="bg-primary text-primary-foreground p-3 rounded-lg shadow-md max-w-[70%]">
+                <MessageCircle
+                  className="text-muted-foreground mt-1"
+                  size={16}
+                />
+                <div className="bg-muted text-muted-foreground p-3 rounded-lg shadow-md max-w-[70%]">
                   <p className="text-sm">
                     Hey, I saw your post about the flat!
                   </p>
                 </div>
               </div>
               <div className="flex items-start gap-2 justify-end">
-                <div className="bg-secondary text-secondary-foreground p-3 rounded-lg shadow-md max-w-[70%]">
+                <div className="bg-muted/80 text-muted-foreground p-3 rounded-lg shadow-md max-w-[70%]">
                   <p className="text-sm">
                     Yes, it’s available! Want to visit tomorrow?
                   </p>
@@ -527,22 +589,32 @@ export default function PostDetails() {
                 />
               </div>
               <div className="flex items-start gap-2">
-                <MessageCircle className="text-primary mt-1" size={16} />
-                <div className="bg-primary text-primary-foreground p-3 rounded-lg shadow-md max-w-[70%]">
+                <MessageCircle
+                  className="text-muted-foreground mt-1"
+                  size={16}
+                />
+                <div className="bg-muted text-muted-foreground p-3 rounded-lg shadow-md max-w-[70%]">
                   <p className="text-sm">That’d be perfect. Thanks!</p>
                 </div>
               </div>
             </div>
 
-            {/* Disabled Input Mock */}
-            <div className="mt-5 flex items-center gap-2 bg-muted/60 border border-border/30 rounded-full px-4 py-2 shadow-inner backdrop-blur-sm opacity-60">
+            {/* Disabled Input Mock with Enhanced Styling */}
+            <div className="mt-5 flex items-center gap-2 bg-muted/50 border border-border/20 rounded-full px-4 py-2 shadow-inner backdrop-blur-sm opacity-50 cursor-not-allowed">
               <input
                 type="text"
                 placeholder="Type a message..."
                 disabled
-                className="flex-1 bg-transparent text-sm text-muted-foreground placeholder:text-muted-foreground/70 outline-none"
+                className="flex-1 bg-transparent text-sm text-muted-foreground placeholder:text-muted-foreground/60 outline-none"
               />
               <Send className="w-4 h-4 text-muted-foreground" />
+            </div>
+
+            {/* Optional: Subtle Coming Soon Overlay */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="bg-background backdrop-blur-sm rounded-2xl px-4 py-2 text-xs text-forground font-medium">
+                Feature Coming Soon
+              </div>
             </div>
           </Card>
         </div>

@@ -48,7 +48,7 @@ export default function Navbar() {
   return (
     <nav
       className="
-      sticky top-0 z-50 backdrop-blur-md 
+      sticky top-0 z-50 backdrop-blur-2xl 
       border-b border-border bg-card/80 text-foreground 
       transition-all duration-300 
     "
@@ -143,6 +143,9 @@ export default function Navbar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                   <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/my-posts")}>
+                  <LayoutDashboard className="mr-2 h-4 w-4" /> Posts
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                   <Settings className="mr-2 h-4 w-4" /> Personal Profile
@@ -251,6 +254,9 @@ export default function Navbar() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => navigate("/dashboard")}>
                   <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/my-posts")}>
+                  <LayoutDashboard className="mr-2 h-4 w-4" /> Posts
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                   <Settings className="mr-2 h-4 w-4" /> Profile

@@ -7,7 +7,7 @@ import {
   updatePostPreferences,
   updatePostImages,
   deletePost,
-} from "@/features/post/postSlice"; // Updated imports
+} from "@/features/post/postSlice";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,15 @@ import { Card } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
-import { FileText, Settings, Image, Trash2,ChevronUp, ChevronDown } from "lucide-react";
+import {
+  FileText,
+  Settings,
+  Image,
+  Trash2,
+  ChevronUp,
+  ChevronDown,
+  Loader2, // 🌀 Added spinner icon
+} from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -71,7 +79,8 @@ export default function EditPost() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { selectedPost, updatingBasic, updatingPreferences, updatingImages, deleting } = useSelector((state) => state.post); // Updated selectors
+  const { selectedPost, updatingBasic, updatingPreferences, updatingImages, deleting } =
+    useSelector((state) => state.post);
 
   const [form, setForm] = useState({
     title: "",
@@ -91,16 +100,13 @@ export default function EditPost() {
   const [mediaFiles, setMediaFiles] = useState([]);
   const [mediaPreviews, setMediaPreviews] = useState([]);
 
-  const [openSection, setOpenSection] = useState("basic"); // Default open section
-  const toggleSection = (section) =>
-    setOpenSection(openSection === section ? null : section);
+  const [openSection, setOpenSection] = useState("basic");
+  const toggleSection = (section) => setOpenSection(openSection === section ? null : section);
 
-  // Fetch post data
   useEffect(() => {
     dispatch(getPostById(id));
   }, [dispatch, id]);
 
-  // Populate form once post is loaded
   useEffect(() => {
     if (selectedPost && selectedPost._id === id) {
       setForm({
@@ -143,7 +149,6 @@ export default function EditPost() {
     setMediaPreviews(files.map((f) => URL.createObjectURL(f)));
   };
 
-  // Update Basic Information
   const handleUpdateBasic = async () => {
     const updatedData = {
       title: form.title,
@@ -161,7 +166,6 @@ export default function EditPost() {
     }
   };
 
-  // Update Preferences
   const handleUpdatePreferences = async () => {
     const updatedData = {
       non_smoker: form.non_smoker,
@@ -179,7 +183,6 @@ export default function EditPost() {
     }
   };
 
-  // Update Images
   const handleUpdateImages = async () => {
     const updatedData = {};
     if (mainImage) updatedData.main_image = mainImage;
@@ -188,19 +191,21 @@ export default function EditPost() {
     try {
       await dispatch(updatePostImages({ id, updatedData })).unwrap();
       toast.success("Images updated successfully!");
-      // Update previews after successful update
       setMainPreview(mainImage ? URL.createObjectURL(mainImage) : selectedPost.main_image);
-      setMediaPreviews(mediaFiles.length > 0 ? mediaFiles.map((f) => URL.createObjectURL(f)) : selectedPost.additional_images);
+      setMediaPreviews(
+        mediaFiles.length > 0
+          ? mediaFiles.map((f) => URL.createObjectURL(f))
+          : selectedPost.additional_images
+      );
     } catch (err) {
       toast.error(err || "Failed to update images.");
     }
   };
 
-  // Delete Post
   const handleDeletePost = async () => {
     try {
       await dispatch(deletePost(id)).unwrap();
-      navigate("/my-posts"); // Navigate to my posts or home after deletion
+      navigate("/my-posts");
     } catch (err) {
       toast.error(err || "Failed to delete post.");
     }
@@ -216,7 +221,9 @@ export default function EditPost() {
         {/* Header Card */}
         <Card className="p-6 text-center border border-border bg-card shadow-md">
           <h1 className="text-3xl font-bold text-foreground">Edit Post</h1>
-          <p className="text-sm text-muted-foreground mt-2">Update your post details below</p>
+          <p className="text-sm text-muted-foreground mt-2">
+            Update your post details below
+          </p>
         </Card>
 
         {/* Basic Information */}
@@ -229,13 +236,7 @@ export default function EditPost() {
           <div className="space-y-4 mt-4">
             <div>
               <Label>Title</Label>
-              <Input
-                type="text"
-                name="title"
-                value={form.title}
-                onChange={handleChange}
-                required
-              />
+              <Input type="text" name="title" value={form.title} onChange={handleChange} required />
             </div>
 
             <div>
@@ -262,26 +263,22 @@ export default function EditPost() {
 
             <div>
               <Label>Rent (₹)</Label>
-              <Input
-                type="number"
-                name="rent"
-                value={form.rent}
-                onChange={handleChange}
-              />
+              <Input type="number" name="rent" value={form.rent} onChange={handleChange} />
             </div>
 
             <div>
               <Label>Room Type</Label>
-              <Input
-                type="text"
-                name="room_type"
-                value={form.room_type}
-                onChange={handleChange}
-              />
+              <Input type="text" name="room_type" value={form.room_type} onChange={handleChange} />
             </div>
 
             <Button onClick={handleUpdateBasic} disabled={updatingBasic} className="w-full">
-              {updatingBasic ? "Updating..." : "Update Basic Information"}
+              {updatingBasic ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating...
+                </>
+              ) : (
+                "Update Basic Information"
+              )}
             </Button>
           </div>
         </Section>
@@ -294,17 +291,8 @@ export default function EditPost() {
           toggle={() => toggleSection("preferences")}
         >
           <div className="grid sm:grid-cols-2 gap-3 mt-4">
-            {[
-              "non_smoker",
-              "lgbtq_friendly",
-              "has_cat",
-              "has_dog",
-              "allow_pets",
-            ].map((pref) => (
-              <label
-                key={pref}
-                className="flex items-center gap-2 text-sm capitalize"
-              >
+            {["non_smoker", "lgbtq_friendly", "has_cat", "has_dog", "allow_pets"].map((pref) => (
+              <label key={pref} className="flex items-center gap-2 text-sm capitalize">
                 <input
                   type="checkbox"
                   name={pref}
@@ -319,7 +307,13 @@ export default function EditPost() {
 
           <div className="mt-4">
             <Button onClick={handleUpdatePreferences} disabled={updatingPreferences} className="w-full">
-              {updatingPreferences ? "Updating..." : "Update Preferences"}
+              {updatingPreferences ? (
+                <>
+                  <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating...
+                </>
+              ) : (
+                "Update Preferences"
+              )}
             </Button>
           </div>
         </Section>
@@ -341,11 +335,7 @@ export default function EditPost() {
                   className="w-full max-h-48 object-cover rounded-md mb-2"
                 />
               )}
-              <Input
-                type="file"
-                accept="image/*"
-                onChange={handleMainImageChange}
-              />
+              <Input type="file" accept="image/*" onChange={handleMainImageChange} />
             </div>
 
             <div>
@@ -362,17 +352,23 @@ export default function EditPost() {
                   ))}
                 </div>
               )}
-              <Input
-                type="file"
-                multiple
-                accept="image/*"
-                onChange={handleMediaFilesChange}
-              />
+              <Input type="file" multiple accept="image/*" onChange={handleMediaFilesChange} />
             </div>
 
-            <Button onClick={handleUpdateImages} disabled={updatingImages} className="w-full">
-              {updatingImages ? "Updating..." : "Update Images"}
-            </Button>
+            <div className="space-y-1">
+              <Button onClick={handleUpdateImages} disabled={updatingImages} className="w-full">
+                {updatingImages ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating Images...
+                  </>
+                ) : (
+                  "Update Images"
+                )}
+              </Button>
+              <p className="text-xs text-muted-foreground text-center mt-1">
+                Image updates may take a while to reflect.
+              </p>
+            </div>
           </div>
         </Section>
 
@@ -387,7 +383,13 @@ export default function EditPost() {
           <AlertDialog>
             <AlertDialogTrigger asChild>
               <Button variant="destructive" className="w-full" disabled={deleting}>
-                {deleting ? "Deleting..." : "Delete Post Permanently"}
+                {deleting ? (
+                  <>
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...
+                  </>
+                ) : (
+                  "Delete Post Permanently"
+                )}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="border border-border bg-card text-foreground">
@@ -396,7 +398,8 @@ export default function EditPost() {
                   Are you absolutely sure?
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-muted-foreground">
-                  This action <strong>cannot be undone.</strong> It will permanently delete your post and all associated data.
+                  This action <strong>cannot be undone.</strong> It will permanently delete your post
+                  and all associated data.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -405,7 +408,13 @@ export default function EditPost() {
                   onClick={handleDeletePost}
                   className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                 >
-                  {deleting ? "Deleting..." : "Yes, Delete"}
+                  {deleting ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...
+                    </>
+                  ) : (
+                    "Yes, Delete"
+                  )}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

@@ -5,7 +5,7 @@ import { getAllPosts } from "@/features/post/postSlice";
 import CreatePostBanner from "@/components/home/HeroBanner";
 import PostCard from "@/components/post/PostCard";
 import PostSkeleton from "@/components/home/PostSkeleton";
-import Filters from "@/components/home/Filters"; // ✅ import your updated Filters
+import Filters from "@/components/home/Filters"; // import your updated Filters
 import { useNavigate } from "react-router-dom";
 
 export default function Home() {
@@ -37,7 +37,7 @@ export default function Home() {
     }),
   };
 
-  // ✅ Filter + Search Logic
+  // Filter + Search Logic
   const filteredPosts = useMemo(() => {
     return posts
       ?.filter((post) => {
@@ -61,7 +61,6 @@ export default function Home() {
       animate={{ opacity: 1 }}
       transition={{ duration: 0.4, ease: "easeOut" }}
     >
-      {/* Hero Section */}
       <motion.div
         initial={{ opacity: 0, y: -30 }}
         animate={{ opacity: 1, y: 0 }}
@@ -70,7 +69,7 @@ export default function Home() {
         <CreatePostBanner onClick={() => navigate("/dashboard")} />
       </motion.div>
 
-      {/* Filters */}
+
       <Filters
         filter={filter}
         setFilter={setFilter}
@@ -85,7 +84,7 @@ export default function Home() {
         animate={controls}
         variants={{
           visible: {
-            transition: { staggerChildren: 0.08 },
+            transition: { staggerChildren: 0.02 },
           },
         }}
         className="max-w-6xl mx-auto"
@@ -112,7 +111,7 @@ export default function Home() {
                 key={post._id}
                 custom={i}
                 variants={cardVariants}
-                initial="hidden"
+                // initial="hidden"
                 whileInView="visible"
                 viewport={{ once: true, margin: "-50px" }}
               >
