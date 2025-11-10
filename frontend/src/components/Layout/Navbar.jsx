@@ -12,7 +12,9 @@ import {
   Settings,
   LayoutDashboard,
   MessageCircle,
-  MessagesSquare
+  MessagesSquare,
+  ClipboardList,
+  Image
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -145,10 +147,10 @@ export default function Navbar() {
                   <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/my-posts")}>
-                  <LayoutDashboard className="mr-2 h-4 w-4" /> Posts
+                  <Image className="mr-2 h-4 w-4" /> Posts
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
-                  <Settings className="mr-2 h-4 w-4" /> Personal Profile
+                  <Settings className="mr-2 h-4 w-4" /> Account Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
@@ -256,10 +258,10 @@ export default function Navbar() {
                   <LayoutDashboard className="mr-2 h-4 w-4" /> Dashboard
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/my-posts")}>
-                  <LayoutDashboard className="mr-2 h-4 w-4" /> Posts
+                  <Image className="mr-2 h-4 w-4" /> Posts
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
-                  <Settings className="mr-2 h-4 w-4" /> Profile
+                  <Settings className="mr-2 h-4 w-4" /> Account Settings
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>

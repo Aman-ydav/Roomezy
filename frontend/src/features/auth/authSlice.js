@@ -6,17 +6,17 @@ export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (formData, thunkAPI) => {
     try {
-      const form = new FormData();
-      Object.entries(formData).forEach(([key, value]) => form.append(key, value));
-
-      const res = await api.post("/users/register", form, {
-        headers: { "Content-Type": "multipart/form-data" },
+      // Send FormData directly
+      const res = await api.post("/users/register", formData, {
+        // Don't set Content-Type manually — axios will set it with boundary
         withCredentials: true,
       });
 
-      // Auto-login
-      const { email, password } = formData;
+      // Optional auto-login
+      const email = formData.get ? formData.get("email") : formData.email;
+      const password = formData.get ? formData.get("password") : formData.password;
       await thunkAPI.dispatch(loginUser({ email, password }));
+
       return res.data?.data;
     } catch (error) {
       return thunkAPI.rejectWithValue(
@@ -25,6 +25,7 @@ export const registerUser = createAsyncThunk(
     }
   }
 );
+
 
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
@@ -97,7 +98,6 @@ export const logoutUser = createAsyncThunk(
       toast.success("Logged out successfully!");
       return true;
     } catch (error) {
-      toast.error("Logout failed. Try again.");
       return thunkAPI.rejectWithValue(error.message);
     }
   }

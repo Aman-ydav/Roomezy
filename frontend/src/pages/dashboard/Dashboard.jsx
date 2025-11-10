@@ -10,10 +10,7 @@ import {
   Settings,
   LogOut,
   PlusCircle,
-  TrendingUp,
-  Heart,
   Clock,
-  Eye,
   ThumbsUp,
   Archive,
   CheckCircle,
@@ -25,7 +22,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { getAllPosts } from "@/features/post/postSlice";
 import { logoutUser } from "@/features/auth/authSlice";
-import UserDetails from "@/features/dashboard/UserDetails";
+import UserDetails from "@/components/Dashboard/UserDetails";
 
 export default function Dashboard() {
   const { user } = useSelector((state) => state.auth);
@@ -86,7 +83,7 @@ export default function Dashboard() {
   const userPosts = posts.filter((p) => p.user?._id === user?._id);
   const recentPosts = userPosts
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-    .slice(0, 5);
+    .slice(0, 3); // Show only 3 posts
 
   const getStatusIcon = (status) => {
     switch (status) {
@@ -102,11 +99,9 @@ export default function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-8 px-4 md:px-8">
-      {/* 🔹 Responsive two-column layout for desktop */}
+    <div className="min-h-screen bg-background py-6 px-3 sm:px-4 md:px-8">
       <div className="max-w-7xl mx-auto flex flex-col lg:flex-row gap-10">
-        
-        {/* 🧭 Left: Existing Dashboard Content (100% same as yours) */}
+        {/* Left: Dashboard Content */}
         <div className="flex-1 space-y-8">
           {/* Header */}
           <motion.div
@@ -124,18 +119,18 @@ export default function Dashboard() {
             </p>
           </motion.div>
 
-          {/* User Details Card */}
+          {/* User Details Card (Improved for Mobile) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1, duration: 0.6 }}
           >
-            <UserDetails />
+            <UserDetails/>
           </motion.div>
 
           {/* Stats Grid */}
           <motion.div
-            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6"
+            className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2, duration: 0.6 }}
@@ -182,7 +177,7 @@ export default function Dashboard() {
             <h2 className="text-xl font-semibold text-foreground mb-4">
               Quick Actions
             </h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-3 sm:gap-4">
               {quickActions.map((action, idx) => (
                 <motion.div
                   key={idx}
@@ -193,14 +188,16 @@ export default function Dashboard() {
                   onClick={action.onClick}
                 >
                   <Card
-                    className={`p-6 border border-border bg-card hover:shadow-md transition-all text-center ${action.bgColor} ${
-                      action.enabled ? "hover:border-primary" : ""
-                    }`}
+                    className={`p-6 border border-border bg-card hover:shadow-md transition-all text-center ${
+                      action.bgColor
+                    } ${action.enabled ? "hover:border-primary" : ""}`}
                   >
                     <action.icon
                       className={`w-8 h-8 mx-auto mb-3 ${action.color}`}
                     />
-                    <p className="font-medium text-foreground">{action.title}</p>
+                    <p className="font-medium text-foreground">
+                      {action.title}
+                    </p>
                     {action.overlay && (
                       <div className="absolute inset-0 flex items-center justify-center bg-muted/50 rounded-lg">
                         <p className="text-sm font-semibold text-muted-foreground">
@@ -214,7 +211,7 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          {/* Recent Activity */}
+          {/* Recent Activity (Now max 3 posts, clickable) */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -229,7 +226,8 @@ export default function Dashboard() {
                   {recentPosts.map((post) => (
                     <div
                       key={post._id}
-                      className="flex items-start space-x-4 p-4 border border-border rounded-lg bg-muted/10"
+                      onClick={() => navigate(`/post/${post._id}`)}
+                      className="flex items-start space-x-4 p-4 border border-border rounded-lg bg-muted/10 cursor-pointer hover:bg-muted/20 transition"
                     >
                       <FileText className="w-5 h-5 text-primary shrink-0 mt-1" />
                       <div className="flex-1 min-w-0">
@@ -261,6 +259,14 @@ export default function Dashboard() {
                       </div>
                     </div>
                   ))}
+                  {userPosts.length > 3 && (
+                    <p
+                      onClick={() => navigate("/my-posts")}
+                      className="text-center text-sm text-primary mt-4 cursor-pointer hover:underline"
+                    >
+                      View all posts →
+                    </p>
+                  )}
                 </div>
               ) : (
                 <div className="text-center text-muted-foreground">
@@ -286,7 +292,9 @@ export default function Dashboard() {
             <Card className="p-6 border border-border bg-card">
               <div className="text-center text-muted-foreground">
                 <BarChart2 className="w-12 h-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium mb-2">Analytics Coming Soon</p>
+                <p className="text-lg font-medium mb-2">
+                  Analytics Coming Soon
+                </p>
                 <p className="text-sm">
                   Detailed insights into your posts' performance and audience
                   engagement.
@@ -305,7 +313,7 @@ export default function Dashboard() {
             <Button
               onClick={() => handleNavigate("/edit-profile")}
               variant="outline"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <Settings className="w-4 h-4" />
               Edit Profile
@@ -314,7 +322,7 @@ export default function Dashboard() {
             <Button
               onClick={handleLogout}
               variant="destructive"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 w-full sm:w-auto"
             >
               <LogOut className="w-4 h-4" />
               Logout
@@ -322,7 +330,7 @@ export default function Dashboard() {
           </motion.div>
         </div>
 
-        {/* Right: Sticky Chat App (Responsive) */}
+        {/* Right: Sticky Chat Card */}
         <motion.div
           className="w-full lg:w-[340px] h-fit sticky top-1/2 lg:-translate-y-1/2 self-start"
           initial={{ opacity: 0, scale: 0.95 }}
@@ -335,8 +343,8 @@ export default function Dashboard() {
             </div>
             <h3 className="text-xl font-semibold mb-2">Chat App Coming Soon</h3>
             <p className="text-sm text-muted-foreground mb-4 max-w-[260px]">
-              Stay tuned! Soon, you’ll be able to chat with roommates and discuss
-              listings directly here.
+              Stay tuned! Soon, you’ll be able to chat with roommates and
+              discuss listings directly here.
             </p>
             <Button
               variant="outline"

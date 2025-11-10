@@ -466,62 +466,113 @@ export default function PostDetails() {
           </Card>
 
           {/* Rating Section */}
-          <Card className="p-5 border border-border bg-linear-to-br from-card/80 to-muted/50 rounded-2xl shadow-lg">
-            <h3 className="font-semibold text-lg mb-3">Rate this Post</h3>
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-3">
-                {renderStars(post.averageRating ?? 0)}
-                <span className="text-sm text-muted-foreground">
-                  ({post.rating?.length ?? 0} ratings)
-                </span>
-              </div>
-              {post.averageRating ? (
-                <span className="text-sm font-medium text-primary">
-                  Avg: {post.averageRating.toFixed(1)} ★
-                </span>
-              ) : (
-                <span className="text-sm text-muted-foreground italic">
-                  No ratings yet
-                </span>
-              )}
-            </div>
+          {/* Rating Section */}
+          <Card className="p-6 border border-border bg-card/80 rounded-2xl shadow-lg backdrop-blur-sm transition-all hover:shadow-xl">
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4 }}
+            >
+              <h3 className="font-semibold text-lg mb-3 flex items-center gap-2">
+                Rate This Post
+              </h3>
 
-            {!authUser ? (
-              <p
-                className="text-sm text-muted-foreground mt-3 cursor-pointer hover:text-primary underline"
-                onClick={() => navigate("/login")}
-              >
-                Sign in to rate this post.
-              </p>
-            ) : isOwner ? (
-              <p className="text-sm text-muted-foreground mt-3">
-                Owners cannot rate their own posts.
-              </p>
-            ) : (
-              <div className="flex flex-col sm:flex-row sm:items-center gap-3 mt-4">
-                <span className="font-medium">Your Rating:</span>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map((i) => (
-                    <button
-                      key={i}
-                      onMouseEnter={() => setLocalRating(i)}
-                      onMouseLeave={() => setLocalRating(0)}
-                      onClick={() => submitRating(i)}
-                      disabled={submittingRating}
-                      className="group p-1 transition-transform hover:scale-110"
-                    >
-                      <Star
-                        className={`w-6 h-6 transition-all ${
-                          localRating >= i
-                            ? "text-primary"
-                            : "text-muted-foreground"
-                        }`}
-                      />
-                    </button>
-                  ))}
+              {/* Average rating display */}
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+                <div className="flex items-center gap-3">
+                  {renderStars(post.averageRating ?? 0)}
+                  <span className="text-sm text-muted-foreground">
+                    ({post.rating?.length ?? 0} ratings)
+                  </span>
                 </div>
+
+                {post.averageRating ? (
+                  <span className="text-sm font-medium text-primary">
+                    Avg: {post.averageRating.toFixed(1)} ★
+                  </span>
+                ) : (
+                  <span className="text-sm text-muted-foreground italic">
+                    No ratings yet
+                  </span>
+                )}
               </div>
-            )}
+
+              {/* User interaction section */}
+              {!authUser ? (
+                <p
+                  className="text-sm text-muted-foreground mt-3 cursor-pointer hover:text-primary underline"
+                  onClick={() => navigate("/login")}
+                >
+                  Sign in to rate this post.
+                </p>
+              ) : isOwner ? (
+                <p className="text-sm text-muted-foreground mt-3">
+                  Owners cannot rate their own posts.
+                </p>
+              ) : (
+                <motion.div
+                  className="flex flex-col sm:flex-row sm:items-center gap-4 mt-4"
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: 0.2 }}
+                >
+                  <span className="font-medium text-sm sm:text-base">
+                    Your Rating:
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <motion.button
+                        key={star}
+                        whileHover={{ scale: 1.2 }}
+                        whileTap={{ scale: 0.95 }}
+                        onClick={() => submitRating(star)}
+                        disabled={submittingRating}
+                        className="focus:outline-none"
+                      >
+                        <Star
+                          className={`w-7 h-7 transition-all duration-200 ${
+                            localRating >= star
+                              ? "text-yellow-500 fill-yellow-500 drop-shadow-sm"
+                              : "text-muted-foreground"
+                          }`}
+                          onMouseEnter={() => setLocalRating(star)}
+                          onMouseLeave={() => setLocalRating(0)}
+                        />
+                      </motion.button>
+                    ))}
+                  </div>
+
+                  {submittingRating && (
+                    <motion.span
+                      className="text-xs text-muted-foreground"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                    >
+                      Submitting your rating...
+                    </motion.span>
+                  )}
+                </motion.div>
+              )}
+
+              {/* Optional: Animated bar visualization for average rating */}
+              {post.averageRating > 0 && (
+                <motion.div
+                  className="mt-6 h-2 bg-muted rounded-full overflow-hidden"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                >
+                  <motion.div
+                    className="h-full bg-yellow-400 rounded-full shadow-sm"
+                    initial={{ width: 0 }}
+                    animate={{
+                      width: `${(post.averageRating / 5) * 100}%`,
+                    }}
+                    transition={{ duration: 0.7, ease: "easeOut" }}
+                  />
+                </motion.div>
+              )}
+            </motion.div>
           </Card>
         </div>
 

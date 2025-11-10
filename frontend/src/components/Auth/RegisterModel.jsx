@@ -168,27 +168,31 @@ const RegisterModal = ({ isOpen, onClose }) => {
       avatar,
     } = formData;
 
-    const data = {
-      userName,
-      email,
-      password,
-      age,
-      phone,
-      gender,
-      preferredLocations,
-      avatar,
-    };
+    const formDataToSend = new FormData();
+    formDataToSend.append("userName", userName);
+    formDataToSend.append("email", email);
+    formDataToSend.append("password", password);
+    formDataToSend.append("age", String(age));
+    formDataToSend.append("phone", phone || "");
+    formDataToSend.append("gender", gender || "");
 
-    dispatch(registerUser(data))
-      .unwrap()
-      .then(() => {
-        toast.success("Account created successfully!");
-        handleClose();
-        navigate("/");
-      })
-      .catch((err) => {
-        setFormError(err || "An unexpected error occurred. Please try again.");
-      });
+    // ✅ Append each location with the correct field name
+    (preferredLocations || []).forEach((loc) =>
+      formDataToSend.append("preferredLocations", loc)
+    );
+
+    if (avatar) {
+      formDataToSend.append("avatar", avatar);
+    }
+
+    try {
+      await dispatch(registerUser(formDataToSend)).unwrap();
+      toast.success("Account created successfully!");
+      handleClose();
+      navigate("/");
+    } catch (err) {
+      setFormError(err || "An unexpected error occurred. Please try again.");
+    }
   };
 
   // Reset and close modal
@@ -420,7 +424,11 @@ const RegisterModal = ({ isOpen, onClose }) => {
                                         ? "hover:bg-primary hover:text-primary-foreground"
                                         : ""
                                     }
-                                    ${isFocused && !isSelected ? "ring-1 ring-primary/30" : ""}
+                                    ${
+                                      isFocused && !isSelected
+                                        ? "ring-1 ring-primary/30"
+                                        : ""
+                                    }
                                   `}
                           >
                             <span className="truncate">{opt}</span>
@@ -487,27 +495,29 @@ const RegisterModal = ({ isOpen, onClose }) => {
               </div>
 
               {/* Preferred Locations */}
+              {/* Preferred Locations */}
               <div>
                 <Label htmlFor="preferredLocations" className="mb-2">
                   Preferred Locations
                 </Label>
                 <div className="space-y-2">
+                  {/* Selected Locations Display */}
                   <div
                     className="
-                      flex flex-wrap gap-2 border border-input rounded-md p-2 
-                      focus-within:ring-2 focus-within:ring-primary transition-all duration-300
-                    "
+                            flex flex-wrap gap-2 border border-input rounded-md p-2 
+                            focus-within:ring-2 focus-within:ring-primary transition-all duration-300
+                          "
                   >
                     {formData.preferredLocations.length > 0 &&
                       formData.preferredLocations.map((loc, index) => (
                         <div
-                          key={index}
+                          key={`${loc}-${index}`}
                           className="
-                            flex items-center gap-2 bg-accent text-accent-foreground
-                            px-3 py-1 rounded-full text-sm shadow-sm
-                          "
+                                  flex items-center gap-2 bg-accent text-accent-foreground
+                                  px-3 py-1 rounded-full text-sm shadow-sm
+                                  hover:bg-accent/90 transition-colors "
                         >
-                          <span>{loc}</span>
+                          <span className="truncate max-w-[100px]">{loc}</span>
                           <button
                             type="button"
                             onClick={() =>
@@ -519,56 +529,68 @@ const RegisterModal = ({ isOpen, onClose }) => {
                                   ),
                               }))
                             }
-                            className="hover:text-destructive transition-colors"
+                            className="hover:text-destructive transition-colors text-xs"
+                            aria-label="Remove location"
                           >
                             ✕
                           </button>
                         </div>
                       ))}
 
-                    <input
-                      id="preferredLocations"
-                      type="text"
-                      placeholder="Type a location & press Enter..."
-                      value={formData.newLocation}
-                      onChange={(e) =>
-                        setFormData((prev) => ({
-                          ...prev,
-                          newLocation: e.target.value,
-                        }))
-                      }
-                      onKeyDown={(e) => {
-                        if (
-                          e.key === "Enter" &&
-                          formData.newLocation.trim() !== ""
-                        ) {
-                          e.preventDefault();
+                    {/* Input + Add Button */}
+                    <div className="flex items-center gap-2 flex-1 min-w-[150px]">
+                      <input
+                        id="preferredLocations"
+                        type="text"
+                        placeholder="Add a location..."
+                        value={formData.newLocation}
+                        onChange={(e) =>
+                          setFormData((prev) => ({
+                            ...prev,
+                            newLocation: e.target.value,
+                          }))
+                        }
+                        className="
+                              flex-1 bg-transparent outline-none px-2 py-1 text-sm
+                              placeholder:text-muted-foreground font-medium
+                            "
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        className="px-4 py-2 text-xs flex items-center gap-1"
+                        onClick={() => {
                           const newLoc = formData.newLocation.trim();
+                          if (!newLoc) return;
+
+                          // Prevent duplicates
                           if (
-                            !formData.preferredLocations.some(
+                            formData.preferredLocations.some(
                               (loc) =>
                                 loc.toLowerCase() === newLoc.toLowerCase()
                             )
                           ) {
-                            setFormData((prev) => ({
-                              ...prev,
-                              preferredLocations: [
-                                ...prev.preferredLocations,
-                                newLoc,
-                              ],
-                              newLocation: "",
-                            }));
-                          } else {
                             toast.error("Location already added!");
+                            return;
                           }
-                        }
-                      }}
-                      className="
-                        flex-1 bg-transparent outline-none px-2 py-1 text-sm
-                        placeholder:text-muted-foreground font-medium
-                      "
-                    />
+
+                          // Add as new array item
+                          setFormData((prev) => ({
+                            ...prev,
+                            preferredLocations: [
+                              ...prev.preferredLocations,
+                              newLoc,
+                            ],
+                            newLocation: "",
+                          }));
+                        }}
+                      >
+                        Add
+                      </Button>
+                    </div>
                   </div>
+
                   {formData.preferredLocations.length > 0 && (
                     <p className="text-xs text-muted-foreground">
                       Press ✕ to remove a location.
