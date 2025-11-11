@@ -248,98 +248,39 @@ const changeCurrentPassword = asyncHandler(async (req, res, next) => {
 });
 
 // forgot password functionality
-// const forgotPassword = asyncHandler(async (req, res) => {
-//     const { email } = req.body;
-
-//     // Find user by email
-//     const user = await User.findOne({ email });
-//     if (!user) throw new ApiError(404, "User not found");
-
-//     // Generate a reset token (from Mongoose method)
-//     const resetToken = user.generatePasswordResetToken();
-
-//     // Save user with new token + expiry (hashed in DB)
-//     await user.save({ validateBeforeSave: false });
-
-//     //  Prepare password reset URL
-//     const resetUrl = `${process.env.FRONTEND_URL_PROD}/reset-password/${resetToken}`;
-
-//     // Email message content
-//     const message = `
-//     You requested a password reset.
-//     Click the link to reset your password:
-//     ${resetUrl}
-//     If you didn’t request this, ignore this email.
-//   `;
-
-//     // Send the email
-//     await sendEmail({
-//         email: user.email,
-//         subject: "Password Reset Request",
-//         message,
-//     });
-
-//     // Respond success
-//     res.status(200).json(new ApiResponse(200, {}, "Reset link sent!"));
-// });
-
 const forgotPassword = asyncHandler(async (req, res) => {
-  const { email } = req.body;
+    const { email } = req.body;
 
-  const user = await User.findOne({ email });
-  if (!user) throw new ApiError(404, "User not found");
+    // Find user by email
+    const user = await User.findOne({ email });
+    if (!user) throw new ApiError(404, "User not found");
 
-  // Generate reset token and save
-  const resetToken = user.generatePasswordResetToken();
-  await user.save({ validateBeforeSave: false });
+    // Generate a reset token (from Mongoose method)
+    const resetToken = user.generatePasswordResetToken();
 
-  const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    // Save user with new token + expiry (hashed in DB)
+    await user.save({ validateBeforeSave: false });
 
-  // Plain text (fallback)
-  const message = `
+    //  Prepare password reset URL
+    const resetUrl = `${process.env.FRONTEND_URL_PROD}/reset-password/${resetToken}`;
+
+    // Email message content
+    const message = `
     You requested a password reset.
-    Reset your password here: ${resetUrl}
+    Click the link to reset your password:
+    ${resetUrl}
     If you didn’t request this, ignore this email.
   `;
 
-  // Styled HTML content
-  const html = `
-    <div style="font-family: 'Arial', sans-serif; background-color: #f8f9fb; padding: 30px;">
-      <div style="max-width: 500px; margin: auto; background-color: #ffffff; padding: 30px; border-radius: 12px; box-shadow: 0 2px 10px rgba(0,0,0,0.1);">
-        <h2 style="color: #222; text-align: center;">Roomezy Password Reset</h2>
-        <p style="font-size: 15px; color: #444;">Hello ${user.name || "there"},</p>
-        <p style="font-size: 15px; color: #444;">
-          We received a request to reset your password. Please click the button below to set a new password.
-        </p>
+    // Send the email
+    await sendEmail({
+        email: user.email,
+        subject: "Password Reset Request",
+        message,
+    });
 
-        <div style="text-align: center; margin: 25px 0;">
-          <a href="${resetUrl}" 
-             style="background-color: #2563eb; color: #fff; text-decoration: none; padding: 12px 24px; border-radius: 6px; font-weight: bold;">
-            Reset Password
-          </a>
-        </div>
-
-        <p style="font-size: 13px; color: #666;">
-          If you didn’t request this, you can safely ignore this email. <br />
-          This link will expire in 10 minutes.
-        </p>
-
-        <hr style="margin: 25px 0; border: none; border-top: 1px solid #ddd;" />
-        <p style="font-size: 12px; color: #aaa; text-align: center;">
-          © ${new Date().getFullYear()} Roomezy. All rights reserved.
-        </p>
-      </div>
-    </div>
-  `;
-
-  await sendEmail({
-    email: user.email,
-    subject: "Password Reset Request – Roomezy",
-    message,
-    html,
-  });
-
-  res.status(200).json(new ApiResponse(200, {}, "Reset link sent!"));
+    // Respond success
+    res.status(200).json(new ApiResponse(200, {}, "Reset link sent!"));
 });
 
 
