@@ -9,7 +9,7 @@ import {
 } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
-import "../config.js"
+import "../config.js";
 import sendEmail from "../utils/sendEmail.js";
 
 const generateAccessAndRefreshToken = async (userId) => {
