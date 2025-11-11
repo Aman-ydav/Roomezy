@@ -9,6 +9,7 @@ import {
 } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
+import "../config.js"
 import sendEmail from "../utils/sendEmail.js";
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -261,7 +262,7 @@ const forgotPassword = asyncHandler(async (req, res) => {
     await user.save({ validateBeforeSave: false });
 
     //  Prepare password reset URL
-    const resetUrl = `${process.env.FRONTEND_URL}/reset-password/${resetToken}`;
+    const resetUrl = `${process.env.FRONTEND_URL_PROD}/reset-password/${resetToken}`;
 
     // Email message content
     const message = `
