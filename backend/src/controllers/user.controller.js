@@ -10,7 +10,7 @@ import {
 import jwt from "jsonwebtoken";
 import crypto from "crypto";
 import "../config.js";
-import sendEmail from "../utils/sendEmail.js";
+import { sendEmail } from "../utils/sendEmail.js";
 
 const generateAccessAndRefreshToken = async (userId) => {
     try {
@@ -247,42 +247,49 @@ const changeCurrentPassword = asyncHandler(async (req, res, next) => {
         .json(new ApiResponse(200, {}, "Password changed successfully"));
 });
 
-// forgot password functionality
 const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
 
-    // Find user by email
+    // Validate email
+    if (!email) throw new ApiError(400, "Email is required");
+
+    //Find user
     const user = await User.findOne({ email });
     if (!user) throw new ApiError(404, "User not found");
 
-    // Generate a reset token (from Mongoose method)
+    //  Generate reset token
     const resetToken = user.generatePasswordResetToken();
 
-    // Save user with new token + expiry (hashed in DB)
+    //  Save user with hashed token + expiry
     await user.save({ validateBeforeSave: false });
 
-    //  Prepare password reset URL
+    //  Build frontend reset URL
     const resetUrl = `${process.env.FRONTEND_URL_PROD}/reset-password/${resetToken}`;
 
-    // Email message content
-    const message = `
-    You requested a password reset.
-    Click the link to reset your password:
-    ${resetUrl}
-    If you didn’t request this, ignore this email.
+    //  HTML email body (professional version)
+    const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6">
+      <h2>Reset Your Password</h2>
+      <p>Hello ${user.name || "there"},</p>
+      <p>You requested a password reset. Click the button below to set a new one:</p>
+      <a href="${resetUrl}" 
+         style="background:#007bff;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;display:inline-block;">
+         Reset Password
+      </a>
+      <p>This link will expire in 15 minutes.</p>
+      <p>If you didn’t request this, please ignore this email.</p>
+      <p>– The Roomezy Team</p>
+    </div>
   `;
 
-    // Send the email
-    await sendEmail({
-        email: user.email,
-        subject: "Password Reset Request",
-        message,
-    });
+    //  Send email using Brevo via Nodemailer
+    await sendEmail(user.email, "Password Reset Request", html);
 
-    // Respond success
-    res.status(200).json(new ApiResponse(200, {}, "Reset link sent!"));
+    // Success response
+    res.status(200).json(
+        new ApiResponse(200, {}, "Reset link sent successfully!")
+    );
 });
-
 
 const resetPassword = asyncHandler(async (req, res) => {
     //  Hash token (same way we stored it)
