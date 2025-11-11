@@ -249,43 +249,28 @@ const changeCurrentPassword = asyncHandler(async (req, res, next) => {
 
 const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
-
-    // Validate email
     if (!email) throw new ApiError(400, "Email is required");
 
-    //Find user
     const user = await User.findOne({ email });
     if (!user) throw new ApiError(404, "User not found");
 
-    //  Generate reset token
     const resetToken = user.generatePasswordResetToken();
-
-    //  Save user with hashed token + expiry
     await user.save({ validateBeforeSave: false });
 
-    //  Build frontend reset URL
     const resetUrl = `${process.env.FRONTEND_URL_PROD}/reset-password/${resetToken}`;
 
-    //  HTML email body (professional version)
     const html = `
-    <div style="font-family:Arial,sans-serif;line-height:1.6">
-      <h2>Reset Your Password</h2>
-      <p>Hello ${user.name || "there"},</p>
-      <p>You requested a password reset. Click the button below to set a new one:</p>
-      <a href="${resetUrl}" 
-         style="background:#007bff;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;display:inline-block;">
-         Reset Password
-      </a>
-      <p>This link will expire in 15 minutes.</p>
+    <div style="font-family:sans-serif;background:#f7f9fc;padding:20px;border-radius:10px;">
+      <h2 style="color:#007bff;">Reset Your Roomezy Password</h2>
+      <p>We received a request to reset your password.</p>
+      <a href="${resetUrl}" style="background:#007bff;color:#fff;padding:10px 15px;text-decoration:none;border-radius:5px;">Reset Password</a>
       <p>If you didn’t request this, please ignore this email.</p>
-      <p>– The Roomezy Team</p>
+      <p style="color:#555;">– The Roomezy Team</p>
     </div>
   `;
 
-    //  Send email using Brevo via Nodemailer
     await sendEmail(user.email, "Password Reset Request", html);
 
-    // Success response
     res.status(200).json(
         new ApiResponse(200, {}, "Reset link sent successfully!")
     );
