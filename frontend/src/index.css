@@ -237,3 +237,17 @@ html {
 .animate-bounce-slow {
   animation: bounce-slow 1.5s infinite ease-in-out;
 }
+
+/* Smooth height handling for 100dvh across devices */
+@supports (height: 100dvh) {
+  .sidebar-stable {
+    height: calc(100dvh - 64px);
+  }
+}
+
+/* Fallback for older browsers */
+@supports not (height: 100dvh) {
+  .sidebar-stable {
+    height: calc(100vh - 64px);
+  }
+}
