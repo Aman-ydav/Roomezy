@@ -5,6 +5,7 @@ import Sidebar from "./Sidebar";
 export default function MobileSidebar({ open, setOpen }) {
   const sidebarRef = useRef(null);
 
+  // Close sidebar on outside click or Esc
   useEffect(() => {
     if (!open) return;
 
@@ -39,14 +40,13 @@ export default function MobileSidebar({ open, setOpen }) {
           ref={sidebarRef}
           className="
             fixed top-[60px] left-0
-            h-[calc(100dvh-60px)] w-64
+            h-[calc(var(--vh,1vh)*100-60px)] w-64
             bg-card/95 backdrop-blur-xl
-            border-border shadow-xl
+            border-r border-border shadow-xl
             z-60
             overflow-y-auto overflow-x-hidden
             transition-transform duration-300 ease-in-out
             will-change-transform
-            scrollbar-hide::-webkit-scrollbar
           "
         >
           <Sidebar />
