@@ -5,8 +5,11 @@ import { getAllPosts } from "@/features/post/postSlice";
 import CreatePostBanner from "@/components/home/HeroBanner";
 import PostCard from "@/components/post/PostCard";
 import PostSkeleton from "@/components/home/PostSkeleton";
-import Filters from "@/components/home/Filters"; // import your updated Filters
+import Filters from "@/components/home/Filters";  
 import { useNavigate } from "react-router-dom";
+import Footer from "@/components/layout/Footer";
+
+import ScrollToTop from "@/components/layout/ScrollToTop";
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -55,6 +58,7 @@ export default function Home() {
   }, [posts, filter, search]);
 
   return (
+    <>
     <motion.div
       className="min-h-screen bg-background text-foreground py-8 px-4 md:px-8"
       initial={{ opacity: 0 }}
@@ -68,7 +72,6 @@ export default function Home() {
       >
         <CreatePostBanner onClick={() => navigate("/dashboard")} />
       </motion.div>
-
 
       <Filters
         filter={filter}
@@ -125,6 +128,14 @@ export default function Home() {
           </p>
         )}
       </motion.div>
+
+      {/* Adjusted Footer with top margin for better spacing */}
+      
     </motion.div>
+     <ScrollToTop />
+    <div className="mt-16">
+        <Footer />
+    </div>
+    </>
   );
 }

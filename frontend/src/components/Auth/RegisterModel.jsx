@@ -176,7 +176,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
     formDataToSend.append("phone", phone || "");
     formDataToSend.append("gender", gender || "");
 
-    // ✅ Append each location with the correct field name
+    // Append each location with the correct field name
     (preferredLocations || []).forEach((loc) =>
       formDataToSend.append("preferredLocations", loc)
     );
@@ -191,6 +191,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
       handleClose();
       navigate("/");
     } catch (err) {
+      console.log(err);
       setFormError(err || "An unexpected error occurred. Please try again.");
     }
   };
@@ -495,7 +496,6 @@ const RegisterModal = ({ isOpen, onClose }) => {
               </div>
 
               {/* Preferred Locations */}
-              {/* Preferred Locations */}
               <div>
                 <Label htmlFor="preferredLocations" className="mb-2">
                   Preferred Locations
@@ -600,6 +600,9 @@ const RegisterModal = ({ isOpen, onClose }) => {
               </div>
             </div>
 
+            {formError && (
+              <p className="text-sm text-destructive text-center">{formError}</p>
+            )}
             {/* Submit */}
             <Button
               type="submit"

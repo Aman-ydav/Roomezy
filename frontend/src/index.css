@@ -164,19 +164,76 @@ body {
   overflow-y: overlay; 
   scroll-behavior: smooth;
 }
-
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 8px;
 }
 
+::-webkit-scrollbar-track {
+  background: rgb(200, 169, 169);
+}
+
 ::-webkit-scrollbar-thumb {
-  background-color: rgba(255, 214, 214, 0.3);
+  background: linear-gradient(to bottom, var(--primary), var(--accent));
   border-radius: 20px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: rgba(100, 100, 100, 0.5);
+  background: linear-gradient(to bottom, var(--accent), var(--primary));
 }
-::-webkit-scrollbar-track {
-  background-color: transparent;
+
+/* Optional subtle glow */
+::-webkit-scrollbar-thumb {
+  box-shadow: 0 0 6px rgba(0, 0, 0, 0.2);
+}
+
+/* Smooth scroll behavior */
+html {
+  scroll-behavior: smooth;
+}
+
+
+.scroll-indicator {
+  position: fixed;
+  bottom: 20px;
+  right: 20px;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  background: var(--primary);
+  color: white;
+  border-radius: 50%;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+  animation: bounceArrow 1.2s infinite;
+  cursor: pointer;
+}
+
+.scroll-indicator svg {
+  width: 22px;
+  height: 22px;
+}
+
+@keyframes bounceArrow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(8px);
+  }
+}
+
+@keyframes bounce-slow {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-1px);
+  }
+}
+
+.animate-bounce-slow {
+  animation: bounce-slow 1.5s infinite ease-in-out;
 }

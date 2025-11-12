@@ -1,5 +1,6 @@
+// src/components/layout/Navbar.jsx
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { logoutUser } from "../../features/auth/authSlice";
 import { useAuth } from "../../hooks/useAuth";
@@ -13,8 +14,9 @@ import {
   LayoutDashboard,
   MessageCircle,
   MessagesSquare,
-  ClipboardList,
-  Image
+  Image,
+  PanelLeftClose,
+  PanelRightClose,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -27,10 +29,11 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import logo from "../../assets/logo.png";
 
-export default function Navbar() {
+export default function Navbar({ onToggleSidebar, isSidebarOpen }) {
   const { user } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
 
@@ -50,30 +53,46 @@ export default function Navbar() {
   return (
     <nav
       className="
-      sticky top-0 z-50 backdrop-blur-2xl 
-      border-b border-border bg-card/80 text-foreground 
-      transition-all duration-300 
+      fixed top-0 left-0 right-0 z-50 
+      backdrop-blur-2xl border-b border-border 
+      bg-card/80 text-foreground transition-all duration-300
     "
     >
-      {/* Desktop Navbar */}
-      <div className="hidden md:flex max-w-9xl justify-between items-center px-4 py-2 md:px-8">
-        {/* Brand */}
-        <Link to="/" className="flex items-center gap-2 cursor-pointer group">
-          <img
-            src={logo}
-            alt="Roomezy Logo"
-            className="w-12 h-12 object-contain transition-transform group-hover:scale-110"
-          />
-          <span
-            className="
+      {/* ---------------- Desktop Navbar ---------------- */}
+      <div className="hidden md:flex max-w-9xl justify-between items-center px-2 py-2 md:px-8">
+        <div className="flex items-center gap-3">
+          {/* Sidebar Toggle */}
+          <div
+            onClick={onToggleSidebar}
+            data-sidebar-toggle="true"
+            className="flex items-center justify-center cursor-pointer rounded-md transition-transform duration-200"
+            title={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
+          >
+            {isSidebarOpen ? (
+              <PanelLeftClose className="h-7 w-7 text-primary drop-shadow-md" />
+            ) : (
+              <PanelRightClose className="h-7 w-7 text-primary drop-shadow-md" />
+            )}
+          </div>
+
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-2 cursor-pointer group">
+            <img
+              src={logo}
+              alt="Roomezy Logo"
+              className="w-12 h-12 object-contain transition-transform group-hover:scale-110"
+            />
+            <span
+              className="
               text-2xl font-extrabold 
               bg-primary bg-clip-text text-transparent 
               tracking-tight
             "
-          >
-            Roomezy
-          </span>
-        </Link>
+            >
+              Roomezy
+            </span>
+          </Link>
+        </div>
 
         {/* Search Bar */}
         <form
@@ -94,15 +113,14 @@ export default function Navbar() {
         <div className="flex items-center gap-4">
           <ThemeToggle />
 
-          {/* Show Inbox only when logged in */}
+          {/* Inbox */}
           {user && (
             <button
               onClick={() => navigate("/inbox")}
               className="p-2 rounded-full hover:bg-muted transition-colors relative group"
-              title="Chat Inbox (Coming Soon)"
+              title="Chat Inbox"
             >
-              <MessagesSquare  className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
-
+              <MessagesSquare className="h-5 w-5 text-muted-foreground group-hover:text-primary transition-colors" />
               <span className="absolute -bottom-6 left-1/2 -translate-x-1/2 text-xs text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity">
                 Inbox
               </span>
@@ -167,13 +185,7 @@ export default function Navbar() {
                 Sign In
               </Link>
               <Link to="/register">
-                <Button
-                  className="
-                    bg-linear-to-r from-primary to-accent 
-                    hover:from-primary/90 hover:to-accent/90 
-                    text-primary-foreground font-medium shadow-md
-                  "
-                >
+                <Button className="bg-linear-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground font-medium shadow-md">
                   Sign Up
                 </Button>
               </Link>
@@ -182,51 +194,56 @@ export default function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Navbar */}
-      <div className="flex md:hidden justify-between items-center px-4 py-3 bg-card/80 backdrop-blur-md">
-        {/* Left: Logo */}
-        <Link to="/" className="flex items-center gap-2 cursor-pointer group">
-          <img
-            src={logo}
-            alt="Roomezy Logo"
-            className="w-7 h-7 object-contain transition-transform group-hover:scale-110"
-          />
-          <span
-            className="
-              text-xl font-extrabold 
-              bg-linear-to-r from-primary to-accent 
-              bg-clip-text text-transparent 
-              tracking-tight
-            "
+      {/* ---------------- Mobile Navbar ---------------- */}
+      <div className="flex md:hidden justify-between items-center px-4 py-3 bg-card/90 backdrop-blur-md border-b border-border fixed top-0 left-0 right-0 z-50">
+        <div className="flex items-center gap-2">
+          {/* Sidebar Toggle Button */}
+          <div
+            onClick={onToggleSidebar}
+            data-sidebar-toggle="true"
+            className="flex items-center justify-center cursor-pointer rounded-md hover:bg-accent/30 p-2 transition-transform duration-200"
+            title={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
           >
-            Roomezy
-          </span>
-        </Link>
+            {isSidebarOpen ? (
+              <PanelLeftClose className="h-4 w-4 text-primary transition-transform" />
+            ) : (
+              <PanelRightClose className="h-4 w-4 text-primary transition-transform" />
+            )}
+          </div>
 
-        {/* Right: Theme, Search, Inbox (if logged in), User/Login */}
+          {/* Brand */}
+          <Link to="/" className="flex items-center gap-2 cursor-pointer group">
+            <img
+              src={logo}
+              alt="Roomezy Logo"
+              className="w-7 h-7 object-contain transition-transform group-hover:scale-110"
+            />
+            <span
+              className="text-xl font-extrabold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight"
+            >
+              Roomezy
+            </span>
+          </Link>
+        </div>
+
+        {/* Right Icons */}
         <div className="flex items-center gap-3">
           <ThemeToggle />
-
-          {/* Inbox (only for logged-in users) */}
           {user && (
             <button
               onClick={() => navigate("/inbox")}
               className="p-2 rounded-full hover:bg-muted transition-colors"
-              title="Inbox (Coming Soon)"
+              title="Inbox"
             >
-              <MessageCircle  className="h-5 w-5 text-muted-foreground" />
+              <MessageCircle className="h-5 w-5 text-muted-foreground" />
             </button>
           )}
-
-          {/* Search Icon */}
           <button
             onClick={() => setShowSearch((prev) => !prev)}
             className="p-2 rounded-full hover:bg-muted transition-colors"
           >
             <Search className="h-5 w-5 text-muted-foreground" />
           </button>
-
-          {/* User Dropdown / Chat Icon */}
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -282,7 +299,7 @@ export default function Navbar() {
 
       {/* Mobile Search Bar */}
       {showSearch && (
-        <div className="md:hidden px-4 py-3 bg-card border-t border-border backdrop-blur-md animate-in fade-in slide-in-from-top-2">
+        <div className="md:hidden px-4 py-3 bg-card border-t border-border backdrop-blur-md animate-in fade-in slide-in-from-top-2 fixed top-16 left-0 right-0 z-40">
           <form
             onSubmit={(e) => {
               handleSearch(e);
