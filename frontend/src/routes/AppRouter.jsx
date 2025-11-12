@@ -15,6 +15,8 @@ import SearchPage from "@/components/search/SearchPage";
 import Inbox from "@/components/inbox/Inbox";
 import Layout from "@/components/layout/Layout"; 
 import Navbar from "@/components/layout/Navbar";
+import HelpCenterPage from "@/pages/About/HelpCenterPage";
+import AboutPage from "@/pages/About/AboutPage";
 
 export default function AppRouter() {
   return (
@@ -24,8 +26,7 @@ export default function AppRouter() {
       <Route
           element={
             <Layout>
-                {/* <Route path="/help" element={<Help />} />
-                <Route path="/about" element={<About />} /> */}
+        
             </Layout>
           }
         >
@@ -36,6 +37,9 @@ export default function AppRouter() {
       <Route path="/reset-password/:token" element={<ResetPassword />} />
       <Route path="/post/:id" element={<PostDetails />} />
       <Route path="/search" element={<SearchPage />} />
+      <Route path="/help" element={<HelpCenterPage />} />
+      <Route path="/about" element={<AboutPage />} />
+
       <Route path="*" element={<NotFound />} />
 
       {/* ----------PROTECTED ROUTES (with Layout) ---------- */}

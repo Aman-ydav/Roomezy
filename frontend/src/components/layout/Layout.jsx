@@ -79,20 +79,24 @@ export default function Layout() {
               ease: "easeInOut",
             }}
             className="
-              fixed left-0 top-16 
-              h-[calc(100vh-64px)] w-72 
-              bg-card/70 backdrop-blur-md 
-              border-r border-border shadow-lg 
-              z-40
-            "
+                fixed left-0 top-[50px] 
+                h-[calc(100vh-50px)] w-72 
+                bg-card/70 backdrop-blur-md 
+                border-r border-border shadow-lg 
+                z-40
+              "
           >
-            <Sidebar />
+            {/* Pass setSidebarOpen for desktop */}
+            <Sidebar setOpen={setSidebarOpen} />
           </motion.aside>
         )}
 
         {/* Mobile Sidebar (slides below navbar) */}
         {isMobile && (
-          <MobileSidebar open={mobileSidebarOpen} setOpen={setMobileSidebarOpen} />
+          <MobileSidebar
+            open={mobileSidebarOpen}
+            setOpen={setMobileSidebarOpen}
+          />
         )}
 
         {/* Main Content */}

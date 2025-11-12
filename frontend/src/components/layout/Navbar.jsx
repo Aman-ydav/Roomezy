@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import ThemeToggle from "../theme/ThemeToggle.jsx";
 import {
   LogOut,
+  User,
   Search,
   Settings,
   LayoutDashboard,
@@ -16,7 +17,7 @@ import {
   MessagesSquare,
   Image,
   PanelLeftClose,
-  PanelRightClose,
+  PanelLeftOpen,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -69,19 +70,15 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen }) {
             title={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
           >
             {isSidebarOpen ? (
-              <PanelLeftClose className="h-7 w-7 text-primary drop-shadow-md" />
+              <PanelLeftOpen className="h-7 w-7 text-primary drop-shadow-md" />
             ) : (
-              <PanelRightClose className="h-7 w-7 text-primary drop-shadow-md" />
+              <PanelLeftClose className="h-7 w-7 text-primary drop-shadow-md" />
             )}
           </div>
 
           {/* Brand */}
           <Link to="/" className="flex items-center gap-2 cursor-pointer group">
-            <img
-              src={logo}
-              alt="Roomezy Logo"
-              className="w-12 h-12 object-contain transition-transform group-hover:scale-110"
-            />
+            
             <span
               className="
               text-2xl font-extrabold 
@@ -205,24 +202,21 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen }) {
             title={isSidebarOpen ? "Close Sidebar" : "Open Sidebar"}
           >
             {isSidebarOpen ? (
-              <PanelLeftClose className="h-4 w-4 text-primary transition-transform" />
+              <PanelLeftOpen className="h-4.5 w-4.5 text-primary transition-transform" />
             ) : (
-              <PanelRightClose className="h-4 w-4 text-primary transition-transform" />
+              <PanelLeftClose className="h-4.5 w-4.5 text-primary transition-transform" />
             )}
           </div>
 
           {/* Brand */}
           <Link to="/" className="flex items-center gap-2 cursor-pointer group">
-            <img
-              src={logo}
-              alt="Roomezy Logo"
-              className="w-7 h-7 object-contain transition-transform group-hover:scale-110"
-            />
+            
             <span
               className="text-xl font-extrabold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight"
             >
               Roomezy
             </span>
+            
           </Link>
         </div>
 
@@ -291,7 +285,7 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen }) {
               to="/login"
               className="p-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium"
             >
-              Sign In
+              <User className="h-5 w-5 text-muted-foreground"/>
             </Link>
           )}
         </div>

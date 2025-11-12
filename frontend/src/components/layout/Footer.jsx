@@ -92,7 +92,7 @@ export default function Footer() {
       {/* Big Branding Line */}
       <div className="w-full flex justify-center py-6 bg-linear-to-r from-primary/10 to-primary/60 m-0">
         <h1
-          className="text-[10vw] sm:text-[8vw] md:text-[6vw] lg:text-[4vw] font-extrabold
+          className="text-[11vw] sm:text-[9vw] md:text-[7vw] lg:text-[4vw] font-extrabold
             text-primary-foreground hover:text-accent transition-all duration-300
             text-center leading-none tracking-[1vw] sm:tracking-[2vw] md:tracking-[3vw] lg:tracking-[4vw]
           "

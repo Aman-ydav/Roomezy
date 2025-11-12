@@ -42,13 +42,13 @@ export default function MobileSidebar({ open, setOpen }) {
             h-screen w-64
             bg-card/95 backdrop-blur-xl
             border-border shadow-xl
-            z-60
+            z-25
             overflow-y-auto overflow-x-hidden
             transition-transform duration-300 ease-in-out
             will-change-transform
             scrollbar-hide pb-16"
         >
-          <Sidebar />
+          <Sidebar setOpen={setOpen} />
         </motion.div>
       )}
     </AnimatePresence>

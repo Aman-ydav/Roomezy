@@ -19,6 +19,7 @@ const ThemeToggle = () => {
         bg-card text-primary
         transition-all duration-500
       `}
+      aria-label="Toggle theme"
     >
       {/* Switch Track Glow */}
       <motion.div
@@ -50,7 +51,8 @@ const ThemeToggle = () => {
               exit={{ opacity: 0, rotate: 90 }}
               transition={{ duration: 0.3 }}
             >
-              <Sun className={`w-3 h-3 text--primary-background`} />
+              {/* Smaller on mobile, normal on desktop */}
+              <Sun className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary-background" />
             </motion.div>
           ) : (
             <motion.div
@@ -60,7 +62,8 @@ const ThemeToggle = () => {
               exit={{ opacity: 0, rotate: -90 }}
               transition={{ duration: 0.3 }}
             >
-              <Moon className={`w-3 h-3 text-primary-background`} />
+              {/* Smaller on mobile, normal on desktop */}
+              <Moon className="w-2.5 h-2.5 sm:w-3 sm:h-3 text-primary-background" />
             </motion.div>
           )}
         </AnimatePresence>

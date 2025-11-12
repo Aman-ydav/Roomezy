@@ -18,16 +18,26 @@ import { Button } from "@/components/ui/button";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Separator } from "@/components/ui/separator";
 
-export default function Sidebar() {
+/**
+ * Sidebar component.
+ * @param {Function} [setOpen] - Optional function from MobileSidebar to close sidebar after click.
+ */
+export default function Sidebar({ setOpen }) {
   const { user } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
 
-  const handleLogout = () => {
-    dispatch(logoutUser());
-    navigate("/");
-  };
+ const handleLogout = () => {
+  dispatch(logoutUser());
+  navigate("/");
+  if (setOpen) setOpen(false); 
+};
+
+const handleNavigate = (path) => {
+  navigate(path);
+  if (setOpen) setOpen(false); 
+};
 
   const isActive = (path) => location.pathname === path;
 
@@ -53,7 +63,7 @@ export default function Sidebar() {
               key={item.path}
               variant={isActive(item.path) ? "secondary" : "ghost"}
               className="w-full justify-start text-sm h-10"
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavigate(item.path)}
             >
               <item.icon className="mr-3 h-4 w-4" />
               {item.label}
@@ -71,7 +81,7 @@ export default function Sidebar() {
                   key={item.path}
                   variant={isActive(item.path) ? "secondary" : "ghost"}
                   className="w-full justify-start text-sm h-10"
-                  onClick={() => navigate(item.path)}
+                  onClick={() => handleNavigate(item.path)}
                 >
                   <item.icon className="mr-3 h-4 w-4" />
                   {item.label}
@@ -89,7 +99,7 @@ export default function Sidebar() {
               key={item.path}
               variant="ghost"
               className="w-full justify-start text-sm h-10"
-              onClick={() => navigate(item.path)}
+              onClick={() => handleNavigate(item.path)}
             >
               <item.icon className="mr-3 h-4 w-4" />
               {item.label}
@@ -113,13 +123,13 @@ export default function Sidebar() {
             <Button
               variant="outline"
               className="w-full justify-start text-sm h-10 font-medium hover:bg-muted"
-              onClick={() => navigate("/login")}
+              onClick={() => handleNavigate("/login")}
             >
               <LogIn className="mr-2 h-4 w-4" /> Sign In
             </Button>
             <Button
               className="w-full justify-start text-sm h-10 font-medium bg-primary text-primary-foreground hover:bg-primary/90"
-              onClick={() => navigate("/register")}
+              onClick={() => handleNavigate("/register")}
             >
               <UserPlus className="mr-2 h-4 w-4" /> Sign Up
             </Button>
