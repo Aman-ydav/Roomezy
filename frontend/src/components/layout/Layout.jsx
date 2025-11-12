@@ -3,7 +3,6 @@ import { Outlet } from "react-router-dom";
 import Sidebar from "./Sidebar";
 import MobileSidebar from "./MobileSidebar";
 import Navbar from "./Navbar";
-import { ChevronDown } from "lucide-react";
 import { motion } from "framer-motion";
 
 export default function Layout() {
