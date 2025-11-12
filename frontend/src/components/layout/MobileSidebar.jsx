@@ -5,19 +5,6 @@ import Sidebar from "./Sidebar";
 export default function MobileSidebar({ open, setOpen }) {
   const sidebarRef = useRef(null);
 
-  // ✅ Prevent background scroll when sidebar is open
-  useEffect(() => {
-    if (open) {
-      document.body.style.overflow = "hidden";
-    } else {
-      document.body.style.overflow = "";
-    }
-    return () => {
-      document.body.style.overflow = "";
-    };
-  }, [open]);
-
-  // ✅ Close sidebar on outside click or Esc key
   useEffect(() => {
     if (!open) return;
 
@@ -51,15 +38,15 @@ export default function MobileSidebar({ open, setOpen }) {
           transition={{ duration: 0.3, ease: "easeInOut" }}
           ref={sidebarRef}
           className="
-            fixed top-16 left-0
-            h-[calc(100dvh-64px)] w-64
+            fixed top-[60px] left-0
+            h-[calc(100dvh-60px)] w-64
             bg-card/95 backdrop-blur-xl
-            border-r border-border shadow-xl
-            z-50
+            border-border shadow-xl
+            z-60
             overflow-y-auto overflow-x-hidden
-            rounded-tr-xl rounded-br-xl
-            transition-all duration-300
-            sidebar-stable
+            transition-transform duration-300 ease-in-out
+            will-change-transform
+            scrollbar-hide::-webkit-scrollbar
           "
         >
           <Sidebar />
