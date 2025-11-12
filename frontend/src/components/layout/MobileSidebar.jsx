@@ -42,8 +42,7 @@ export default function MobileSidebar({ open, setOpen }) {
           ref={sidebarRef}
            className="
             fixed top-16 left-0
-            h-[calc(100vh-64px)] w-64   
-            sm:h-screen   
+            h-[calc(100dvh-64px)] w-64      
             bg-card/95 backdrop-blur-xl
             border-r border-border shadow-xl
             z-50
