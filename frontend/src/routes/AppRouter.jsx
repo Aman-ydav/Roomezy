@@ -17,6 +17,8 @@ import Layout from "@/components/layout/Layout";
 import Navbar from "@/components/layout/Navbar";
 import HelpCenterPage from "@/pages/About/HelpCenterPage";
 import AboutPage from "@/pages/About/AboutPage";
+import TermsOfServicePage from "@/pages/About/TermsOfServicePage";
+import PrivacyPolicyPage from "@/pages/About/PrivacyPolicyPage";
 
 export default function AppRouter() {
   return (
@@ -39,6 +41,8 @@ export default function AppRouter() {
       <Route path="/search" element={<SearchPage />} />
       <Route path="/help" element={<HelpCenterPage />} />
       <Route path="/about" element={<AboutPage />} />
+      <Route path="/terms" element={<TermsOfServicePage />} />
+      <Route path="/privacy" element={<PrivacyPolicyPage />} />
 
       <Route path="*" element={<NotFound />} />
 
