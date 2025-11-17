@@ -7,6 +7,16 @@ import ThemeProvider from './features/theme/ThemeProvider';
 import App from "./App";
 import "./index.css";
 
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker
+      .register("/service-worker.js")
+      .then(() => console.log("SW registered"))
+      .catch((err) => console.log("SW failed", err));
+  });
+}
+
+
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <Provider store={store}>
