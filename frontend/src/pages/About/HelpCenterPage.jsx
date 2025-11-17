@@ -491,7 +491,7 @@ export default function HelpCenterPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <a
-              href="/list-room"
+              href="/how-posting-works"
               className="group p-6 rounded-xl border bg-card shadow-md hover:shadow-xl transition-all duration-300 flex items-center gap-4 hover:bg-accent/5"
             >
               <div className="p-4 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-all">

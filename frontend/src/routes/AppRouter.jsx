@@ -47,7 +47,7 @@ export default function AppRouter() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/terms" element={<TermsOfServicePage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
-      <Route path="/list-room" element={<ListRoom />} />
+      <Route path="/how-posting-works" element={<ListRoom />} />
       <Route path="/find-room" element={<FindRoom />} />
 
       <Route path="*" element={<NotFound />} />

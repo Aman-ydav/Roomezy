@@ -39,8 +39,8 @@ export default function Footer() {
             How to Find a Room
           </Link>
 
-          <Link to="/list-room" className="footer-link">
-            How to List a Room
+          <Link to="/how-posting-works" className="footer-link">
+            How Listing Works
           </Link>
 
         </div>

@@ -9,7 +9,6 @@ import Step3Images from "./Step3Images";
 import StepIndicator from "./StepIndicator";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
-import Footer from "@/components/layout/Footer";
 
 export default function CreatePost() {
   const dispatch = useDispatch();
@@ -193,7 +192,7 @@ export default function CreatePost() {
           </motion.p>
         )}
 
-        <div className="flex justify-between mt-10 mb-22">
+        <div className="flex justify-between mt-10 mb-25">
           <Button
             variant="outline"
             onClick={prevStep}
@@ -237,7 +236,6 @@ export default function CreatePost() {
           )}
         </div>
       </div>
-      <Footer/>
     </div>
   );
 }
