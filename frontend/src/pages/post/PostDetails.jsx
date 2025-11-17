@@ -577,97 +577,95 @@ export default function PostDetails() {
         </div>
 
         {/* Right Column (Sticky Chat Section) */}
-        <div className="lg:sticky lg:top-1/2 lg:-translate-y-1/2 relative h-fit">
-          {/* 🔹 Animated Chat Preview Background with Enhanced Blur */}
-          <div
-            className="absolute inset-0 overflow-hidden rounded-2xl opacity-40 pointer-events-none blur-2xl"
-            aria-hidden="true"
-          >
-            <div className="absolute inset-0 flex flex-col gap-3 px-4 py-6 animate-pulse">
-              <div className="self-start bg-primary/20 dark:bg-primary/25 text-foreground/80 max-w-[85%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
-                Hey! 👋 I just saw your listing.
+  
+        <div className="relative h-fit lg:mt-54">
+         
+          <div className="lg:sticky lg:top-1/2 lg:-translate-y-1/2">
+            <div
+              className="absolute inset-0 overflow-hidden rounded-2xl opacity-40 pointer-events-none blur-2xl"
+              aria-hidden="true"
+            >
+              <div className="absolute inset-0 flex flex-col gap-3 px-4 py-6 animate-pulse">
+                <div className="self-start bg-primary/20 dark:bg-primary/25 text-foreground/80 max-w-[85%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
+                  Hey! 👋 I just saw your listing.
+                </div>
+                <div className="self-end bg-card/60 border border-border/40 text-foreground/80 max-w-[80%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
+                  Hi! Great! Are you looking for a roommate?
+                </div>
+                <div className="self-start bg-primary/20 dark:bg-primary/25 text-foreground/80 max-w-[90%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
+                  Yep! I’d love to connect and know more about the room.
+                </div>
+                <div className="self-end bg-card/60 border border-border/40 text-foreground/80 max-w-[70%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
+                  Perfect. Let’s chat here soon!
+                </div>
               </div>
-              <div className="self-end bg-card/60 border border-border/40 text-foreground/80 max-w-[80%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
-                Hi! Great! Are you looking for a roommate?
-              </div>
-              <div className="self-start bg-primary/20 dark:bg-primary/25 text-foreground/80 max-w-[90%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
-                Yep! I’d love to connect and know more about the room.
-              </div>
-              <div className="self-end bg-card/60 border border-border/40 text-foreground/80 max-w-[70%] rounded-2xl px-3 py-2 text-xs shadow-sm backdrop-blur-md">
-                Perfect. Let’s chat here soon!
-              </div>
+
+              <div className="absolute inset-0 bg-linear-to-b from-background/98 via-background/85 to-background/98 backdrop-blur-lg rounded-2xl pointer-events-none" />
             </div>
 
-            {/* Enhanced Gradient Overlay for Clarity */}
-            <div className="absolute inset-0 bg-linear-to-b from-background/98 via-background/85 to-background/98 backdrop-blur-lg rounded-2xl pointer-events-none" />
+            <Card className="relative z-10 p-6 bg-card/70 border border-border/30 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden">
+              <div className="flex items-center justify-between mb-4">
+                <h2 className="text-xl font-semibold flex items-center gap-2 text-muted-foreground">
+                  <MessageCircle className="w-5 h-5 text-muted-foreground" />
+                  Inbuild Chat Features
+                </h2>
+                <Badge className="bg-primary/10 text-primary border border-primary/20 text-xs font-medium animate-pulse">
+                  Coming Soon
+                </Badge>
+              </div>
+
+              <div className="bg-muted/30 border border-border/30 rounded-xl p-4 shadow-inner space-y-3 backdrop-blur-sm max-h-80 overflow-y-auto opacity-70">
+                <div className="flex items-start gap-2">
+                  <MessageCircle
+                    className="text-muted-foreground mt-1"
+                    size={16}
+                  />
+                  <div className="bg-muted text-muted-foreground p-3 rounded-lg shadow-md max-w-[70%]">
+                    <p className="text-sm">
+                      Hey, I saw your post about the flat!
+                    </p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 justify-end">
+                  <div className="bg-muted/80 text-muted-foreground p-3 rounded-lg shadow-md max-w-[70%]">
+                    <p className="text-sm">
+                      Yes, it’s available! Want to visit tomorrow?
+                    </p>
+                  </div>
+                  <MessageCircle
+                    className="text-muted-foreground mt-1"
+                    size={16}
+                  />
+                </div>
+                <div className="flex items-start gap-2">
+                  <MessageCircle
+                    className="text-muted-foreground mt-1"
+                    size={16}
+                  />
+                  <div className="bg-muted text-muted-foreground p-3 rounded-lg shadow-md max-w-[70%]">
+                    <p className="text-sm">That’d be perfect. Thanks!</p>
+                  </div>
+                </div>
+              </div>
+
+              <div className="mt-5 flex items-center gap-2 bg-muted/50 border border-border/20 rounded-full px-4 py-2 shadow-inner backdrop-blur-sm opacity-50 cursor-not-allowed">
+                <input
+                  type="text"
+                  placeholder="Type a message..."
+                  disabled
+                  className="flex-1 bg-transparent text-sm text-muted-foreground placeholder:text-muted-foreground/60 outline-none"
+                />
+                <Send className="w-4 h-4 text-muted-foreground" />
+              </div>
+
+              {/* Overlay */}
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="bg-background/70 backdrop-blur-sm rounded-2xl px-4 py-2 text-xs text-foreground font-medium">
+                  Feature Coming Soon
+                </div>
+              </div>
+            </Card>
           </div>
-
-          {/* 🔹 Foreground Chat Card with Coming Soon Emphasis */}
-          <Card className="relative z-10 p-6 bg-card/70 border border-border/30 backdrop-blur-xl shadow-2xl rounded-2xl overflow-hidden">
-            {/* Header with Coming Soon Badge */}
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-semibold flex items-center gap-2 text-muted-foreground">
-                <MessageCircle className="w-5 h-5 text-muted-foreground" />{" "}
-                Inbuild Chat Features
-              </h2>
-              <Badge className="bg-primary/10 text-primary border border-primary/20 text-xs font-medium animate-pulse">
-                Coming Soon
-              </Badge>
-            </div>
-
-            {/* Chat Preview with Disabled Styling */}
-            <div className="bg-muted/30 border border-border/30 rounded-xl p-4 shadow-inner space-y-3 backdrop-blur-sm max-h-80 overflow-y-auto opacity-70">
-              <div className="flex items-start gap-2">
-                <MessageCircle
-                  className="text-muted-foreground mt-1"
-                  size={16}
-                />
-                <div className="bg-muted text-muted-foreground p-3 rounded-lg shadow-md max-w-[70%]">
-                  <p className="text-sm">
-                    Hey, I saw your post about the flat!
-                  </p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2 justify-end">
-                <div className="bg-muted/80 text-muted-foreground p-3 rounded-lg shadow-md max-w-[70%]">
-                  <p className="text-sm">
-                    Yes, it’s available! Want to visit tomorrow?
-                  </p>
-                </div>
-                <MessageCircle
-                  className="text-muted-foreground mt-1"
-                  size={16}
-                />
-              </div>
-              <div className="flex items-start gap-2">
-                <MessageCircle
-                  className="text-muted-foreground mt-1"
-                  size={16}
-                />
-                <div className="bg-muted text-muted-foreground p-3 rounded-lg shadow-md max-w-[70%]">
-                  <p className="text-sm">That’d be perfect. Thanks!</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Disabled Input Mock with Enhanced Styling */}
-            <div className="mt-5 flex items-center gap-2 bg-muted/50 border border-border/20 rounded-full px-4 py-2 shadow-inner backdrop-blur-sm opacity-50 cursor-not-allowed">
-              <input
-                type="text"
-                placeholder="Type a message..."
-                disabled
-                className="flex-1 bg-transparent text-sm text-muted-foreground placeholder:text-muted-foreground/60 outline-none"
-              />
-              <Send className="w-4 h-4 text-muted-foreground" />
-            </div>
-
-            {/* Optional: Subtle Coming Soon Overlay */}
-            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-background backdrop-blur-sm rounded-2xl px-4 py-2 text-xs text-forground font-medium">
-                Feature Coming Soon
-              </div>
-            </div>
-          </Card>
         </div>
       </div>
 
