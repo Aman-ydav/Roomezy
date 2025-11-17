@@ -133,6 +133,12 @@
   --sidebar-ring: #cda26a;
 }
 
+* {
+  box-sizing: border-box;
+}
+html, body {
+  overflow-x: hidden !important;
+}
 
 
 @layer base {
