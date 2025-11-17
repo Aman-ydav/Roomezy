@@ -28,67 +28,75 @@ const generateAccessAndRefreshToken = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res, next) => {
-    const {
-        userName,
-        email,
-        password,
-        age,
-        phone,
-        gender,
-        preferredLocations,
-    } = req.body;
+  const {
+    userName,
+    email,
+    password,
+    age,
+    phone,
+    gender,
+    preferredLocations,
+    accountType, // NEW
+  } = req.body;
 
-    // validate required fields
-    if ([userName, email, password, age, gender].some((f) => !f?.trim())) {
-        cleanupLocalFiles(req.files);
-        throw new ApiError(
-            400,
-            "Required fields missing: userName, email, password, age"
-        );
-    }
+  // validate required fields
+  const requiredFields = [userName, email, password, gender, accountType];
 
-    // Check if user already exists
-    const existedUser = await User.findOne({ $or: [{ email }] });
-    if (existedUser) {
-        cleanupLocalFiles(req.files);
-        throw new ApiError(409, "User already exists with this email");
-    }
-
-    // if avatar is there then
-    let avatarUrl = "";
-    if (req.file && req.file.path) {
-        avatarUrl = req.file.path;
-    }
-
-    const avatar = await uploadOnCloudinary(avatarUrl);
-
-    // Create user in DB
-    const newUser = await User.create({
-        userName: userName.toLowerCase(),
-        email,
-        password,
-        age,
-        phone,
-        avatar: avatar?.url,
-        gender,
-        preferredLocations: preferredLocations ? preferredLocations : [],
-    });
-
-    // Fetch user without sensitive fields
-    const createdUser = await User.findById(newUser._id).select(
-        "-password -refreshToken"
+  if (
+    requiredFields.some((f) => !f || String(f).trim() === "") ||
+    !age // ensure age is present
+  ) {
+    cleanupLocalFiles(req.files);
+    throw new ApiError(
+      400,
+      "Required fields missing: userName, email, password, age, gender, accountType"
     );
-    if (!createdUser) {
-        cleanupLocalFiles(req.files);
-        throw new ApiError(500, "User registration failed");
-    }
+  }
 
-    return res
-        .status(201)
-        .json(
-            new ApiResponse(201, createdUser, "User registered successfully")
-        );
+  // Check if user already exists
+  const existedUser = await User.findOne({ $or: [{ email }] });
+  if (existedUser) {
+    cleanupLocalFiles(req.files);
+    throw new ApiError(409, "User already exists with this email");
+  }
+
+  // if avatar is there then
+  let avatarUrl = "";
+  if (req.file && req.file.path) {
+    avatarUrl = req.file.path;
+  }
+
+  const avatar = await uploadOnCloudinary(avatarUrl);
+
+  // Create user in DB
+  const newUser = await User.create({
+    userName: userName.toLowerCase(),
+    email,
+    password,
+    age,
+    phone,
+    avatar: avatar?.url,
+    gender,
+    accountType, // NEW
+    preferredLocations: preferredLocations ? preferredLocations : [],
+  });
+
+  // Fetch user without sensitive fields
+  const createdUser = await User.findById(newUser._id).select(
+    "-password -refreshToken"
+  );
+  if (!createdUser) {
+    cleanupLocalFiles(req.files);
+    throw new ApiError(500, "User registration failed");
+  }
+
+  return res
+    .status(201)
+    .json(
+      new ApiResponse(201, createdUser, "User registered successfully")
+    );
 });
+
 
 const loginUser = asyncHandler(async (req, res, next) => {
     // get the data from frontend

@@ -22,6 +22,8 @@ export default function Step2Details({ data, setData }) {
     setData({ ...data, [field]: !data[field] });
   };
 
+  const isRoomSeeker = data.post_type === "looking-for-room";
+
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-foreground">Room Details</h2>
@@ -43,18 +45,18 @@ export default function Step2Details({ data, setData }) {
 
       {/* Preferences */}
       <div>
-        {/* Context-Aware Label */}
+        {/* 💡 Dynamic Label */}
         <label className="text-sm font-medium block mb-2">
-          {data.post_type === "looking-for-room"
+          {isRoomSeeker
             ? "Your Lifestyle & Preferences"
-            : "Preferred Roommate Preferences"}
+            : "What do you prefer in the room seeker?"}
         </label>
 
-        {/* Context-Aware Subtext */}
+        {/* 💡 Dynamic Subtext */}
         <p className="text-xs text-muted-foreground mb-3">
-          {data.post_type === "looking-for-room"
+          {isRoomSeeker
             ? "Tell others about your lifestyle or habits — it helps find compatible roommates."
-            : "Select the preferences you’d like your future roommate to have."}
+            : "Choose the qualities or habits you prefer in the person who wants to stay in your room."}
         </p>
 
         {/* Preference Buttons */}
@@ -62,42 +64,27 @@ export default function Step2Details({ data, setData }) {
           {[
             {
               key: "non_smoker",
-              label:
-                data.post_type === "looking-for-room"
-                  ? "I don’t smoke"
-                  : "Prefer non-smoker",
+              label: isRoomSeeker ? "I don’t smoke" : "Prefer non-smoker",
               icon: <CigaretteOff className="w-4 h-4" />,
             },
             {
               key: "lgbtq_friendly",
-              label:
-                data.post_type === "looking-for-room"
-                  ? "LGBTQ+ Friendly"
-                  : "Prefer LGBTQ+ friendly",
+              label: isRoomSeeker ? "LGBTQ+ Friendly" : "LGBTQ+ Friendly Only",
               icon: <Heart className="w-4 h-4" />,
             },
             {
               key: "has_dog",
-              label:
-                data.post_type === "looking-for-room"
-                  ? "I have a dog"
-                  : "Okay with dogs",
+              label: isRoomSeeker ? "I have a dog" : "Okay with dogs",
               icon: <Dog className="w-4 h-4" />,
             },
             {
               key: "has_cat",
-              label:
-                data.post_type === "looking-for-room"
-                  ? "I have a cat"
-                  : "Okay with cats",
+              label: isRoomSeeker ? "I have a cat" : "Okay with cats",
               icon: <Cat className="w-4 h-4" />,
             },
             {
               key: "allow_pets",
-              label:
-                data.post_type === "looking-for-room"
-                  ? "Pets allowed where I stay"
-                  : "Allow pets",
+              label: isRoomSeeker ? "Pets allowed where I stay" : "Allows pets",
               icon: <PawPrint className="w-4 h-4" />,
             },
           ].map((item) => (

@@ -1,57 +1,82 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
-export default function Step1Basic({ data, setData }) {
-  const [availableRoles, setAvailableRoles] = useState([]);
-
+export default function Step1Basic({ data, setData, user }) {
+  // Auto-lock allowed posting options based on user.accountType
   useEffect(() => {
-    if (data.post_type === "room-available") {
-      setAvailableRoles([
-        { value: "owner", label: "I’m the Owner" },
-        { value: "roommate-share", label: "I have a room, looking for a roommate" },
-      ]);
-      if (data.post_role === "room-seeker") {
-        setData({ ...data, post_role: "owner" });
-      }
-    } else {
-      setAvailableRoles([{ value: "room-seeker", label: "Room Seeker" }]);
-      setData({ ...data, post_role: "room-seeker" });
+    if (!user?.accountType) return;
+
+    if (user.accountType === "lookingForRoom") {
+      setData({
+        ...data,
+        post_type: "looking-for-room",
+        post_role: "room-seeker",
+      });
     }
-  }, [data.post_type]);
+
+    if (user.accountType === "lookingForRoommate") {
+      setData({
+        ...data,
+        post_type: "room-available",
+        post_role: "roommate-share",
+      });
+    }
+
+    if (user.accountType === "ownerLookingForRenters") {
+      setData({
+        ...data,
+        post_type: "room-available",
+        post_role: "owner",
+      });
+    }
+  }, [user?.accountType]);
+
+  // Allowed roles based on account type
+  const getAvailableRoles = () => {
+    if (user.accountType === "lookingForRoom") {
+      return [{ value: "room-seeker", label: "Room Seeker" }];
+    }
+    if (user.accountType === "lookingForRoommate") {
+      return [
+        {
+          value: "roommate-share",
+          label: "I have a room and want a roommate",
+        },
+      ];
+    }
+    if (user.accountType === "ownerLookingForRenters") {
+      return [{ value: "owner", label: "I'm the Owner" }];
+    }
+    return [];
+  };
+
+  const availableRoles = getAvailableRoles();
 
   return (
     <div className="space-y-6">
       <h2 className="text-xl font-semibold text-foreground">Basic Information</h2>
       <p className="text-sm text-muted-foreground">
-        Let’s start with the basics — what kind of post are you creating and who you are.
+        These options are based on your account type.
       </p>
 
-      {/* Post Type */}
+      {/* POST TYPE - LOCKED */}
       <div>
         <label className="text-sm font-medium block mb-2">
-          What are you posting about? <span className="text-destructive">*</span>
+          Post Type <span className="text-destructive">*</span>
         </label>
-        <div className="flex gap-3 flex-wrap">
-          {[
-            { value: "room-available", label: "I have a room to offer" },
-            { value: "looking-for-room", label: "I’m looking for a room" },
-          ].map((option) => (
-            <button
-              key={option.value}
-              onClick={() => setData({ ...data, post_type: option.value })}
-              className={`px-4 py-2 rounded-md border transition-all ${
-                data.post_type === option.value
-                  ? "bg-primary text-primary-foreground border-primary"
-                  : "border-border text-foreground hover:bg-accent/10"
-              }`}
-            >
-              {option.label}
-            </button>
-          ))}
+
+        <div className="text-sm px-4 py-2 rounded-md bg-accent/20 border border-input text-primary font-medium">
+          {data.post_type === "looking-for-room"
+            ? "Looking for a Room"
+            : "Room Available"}
         </div>
+
+        <p className="text-xs text-muted-foreground mt-1 italic">
+          Based on your account type, this option is automatically selected.
+        </p>
       </div>
 
-      {/* Role */}
+      {/* ROLE - LOCKED */}
       <AnimatePresence mode="wait">
         {availableRoles.length > 0 && (
           <motion.div
@@ -62,23 +87,16 @@ export default function Step1Basic({ data, setData }) {
             transition={{ duration: 0.3 }}
           >
             <label className="text-sm font-medium block mb-2">
-              Posting as (You are) <span className="text-destructive">*</span>
+              Posting as <span className="text-destructive">*</span>
             </label>
-            <div className="flex gap-3 flex-wrap">
-              {availableRoles.map((role) => (
-                <button
-                  key={role.value}
-                  onClick={() => setData({ ...data, post_role: role.value })}
-                  className={`px-4 py-2 rounded-md border transition-all ${
-                    data.post_role === role.value
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "border-border text-foreground hover:bg-accent/10"
-                  }`}
-                >
-                  {role.label}
-                </button>
-              ))}
+
+            <div className="text-sm px-4 py-2 rounded-md bg-accent/20 border border-input text-primary font-medium">
+              {availableRoles.find((r) => r.value === data.post_role)?.label}
             </div>
+
+            <p className="text-xs text-muted-foreground mt-1 italic">
+              You cannot change this role.
+            </p>
           </motion.div>
         )}
       </AnimatePresence>
@@ -92,7 +110,7 @@ export default function Step1Basic({ data, setData }) {
           type="text"
           value={data.title}
           onChange={(e) => setData({ ...data, title: e.target.value })}
-          placeholder="e.g. Spacious 2BHK near city center / need a room near city"
+          placeholder="e.g. Spacious 2BHK near IT Park / need a room near Koramangala"
           className="w-full border border-input bg-background rounded-md p-2 mt-1"
         />
       </div>
@@ -106,17 +124,12 @@ export default function Step1Basic({ data, setData }) {
           value={data.description}
           onChange={(e) => setData({ ...data, description: e.target.value })}
           rows={6}
-          placeholder="Describe your room or what kind of room you’re looking for e.g. 
-fully furnished
-air conditioned
-high-speed Wi-Fi
-lower backup
-ro water"
+          placeholder="Describe details…"
           className="w-full border border-input bg-background rounded-md p-2 mt-1 resize-none text-sm"
         />
       </div>
 
-      {/* Location + Rent */}
+      {/* Location + Rent/Budget */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div>
           <label className="text-sm font-medium">
@@ -126,24 +139,22 @@ ro water"
             type="text"
             value={data.location}
             onChange={(e) => setData({ ...data, location: e.target.value })}
-            placeholder="e.g. Delhi, Mumbai, Bangalore"
+            placeholder="City"
             className="w-full border border-input bg-background rounded-md p-2 mt-1"
           />
         </div>
 
         <div>
           <label className="text-sm font-medium">
-            {data.post_type === "looking-for-room" ? (
-              <span className="text-foreground text-xs ml-1">Budget (₹)</span>
-            ) : (
-              <span> Rent (₹) <span className="text-destructive">*</span></span>
-            )}
+            {data.post_type === "looking-for-room"
+              ? "Budget (₹)"
+              : "Rent (₹) *"}
           </label>
           <input
             type="number"
             value={data.rent}
             onChange={(e) => setData({ ...data, rent: e.target.value })}
-            placeholder="Enter monthly rent"
+            placeholder="Enter amount"
             className="w-full border border-input bg-background rounded-md p-2 mt-1"
           />
         </div>
@@ -151,4 +162,3 @@ ro water"
     </div>
   );
 }
-

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
@@ -9,11 +9,13 @@ import Step3Images from "./Step3Images";
 import StepIndicator from "./StepIndicator";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import Footer from "@/components/layout/Footer";
 
 export default function CreatePost() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { creating } = useSelector((s) => s.post);
+  const { user } = useSelector((s) => s.auth); // ⭐ GET LOGGED-IN USER
 
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
@@ -24,6 +26,7 @@ export default function CreatePost() {
     title: "",
     description: "",
     location: "",
+    accountType: "",
     rent: "",
     room_type: "",
     badge_type: "empty-room",
@@ -36,8 +39,37 @@ export default function CreatePost() {
 
   const [files, setFiles] = useState({
     main_image: null,
-    media_files: [], // ✅ Keep this exactly as before
+    media_files: [],
   });
+
+  
+  useEffect(() => {
+    if (!user?.accountType) return;
+
+    if (user.accountType === "lookingForRoom") {
+      setFormData((prev) => ({
+        ...prev,
+        post_type: "looking-for-room",
+        post_role: "room-seeker",
+      }));
+    }
+
+    if (user.accountType === "lookingForRoommate") {
+      setFormData((prev) => ({
+        ...prev,
+        post_type: "room-available",
+        post_role: "roommate-share",
+      }));
+    }
+
+    if (user.accountType === "ownerLookingForRenters") {
+      setFormData((prev) => ({
+        ...prev,
+        post_type: "room-available",
+        post_role: "owner",
+      }));
+    }
+  }, [user?.accountType]);
 
   const nextStep = () => setStep((prev) => Math.min(prev + 1, 3));
   const prevStep = () => setStep((prev) => Math.max(prev - 1, 1));
@@ -67,11 +99,27 @@ export default function CreatePost() {
   const handleSubmit = async () => {
     if (!validateCurrentStep()) return;
 
+  
+    if (user.accountType === "lookingForRoom") {
+      formData.post_type = "looking-for-room";
+      formData.post_role = "room-seeker";
+    }
+
+    if (user.accountType === "lookingForRoommate") {
+      formData.post_type = "room-available";
+      formData.post_role = "roommate-share";
+    }
+
+    if (user.accountType === "ownerLookingForRenters") {
+      formData.post_type = "room-available";
+      formData.post_role = "owner";
+    }
+
     try {
       const payload = {
         ...formData,
         main_image: files.main_image,
-        media_files: files.media_files, // ✅ unchanged
+        media_files: files.media_files,
       };
 
       await dispatch(createPost(payload)).unwrap();
@@ -82,8 +130,8 @@ export default function CreatePost() {
   };
 
   return (
-    <div className="min-h-screen bg-background py-10 px-4 flex flex-col items-center">
-      <div className="max-w-3xl w-full">
+    <div className="min-h-screen bg-background pt-10 px-0 flex flex-col items-center">
+      <div className="max-w-3xl w-full px-7">
         <h1 className="text-3xl font-bold text-center text-foreground mb-6">
           Create Your <span className="text-primary">Roomezy</span> Post
         </h1>
@@ -100,9 +148,10 @@ export default function CreatePost() {
                 exit={{ opacity: 0, x: 40 }}
                 transition={{ duration: 0.3 }}
               >
-                <Step1Basic data={formData} setData={setFormData} />
+                <Step1Basic data={formData} setData={setFormData} user={user} />
               </motion.div>
             )}
+
             {step === 2 && (
               <motion.div
                 key="step2"
@@ -114,6 +163,7 @@ export default function CreatePost() {
                 <Step2Details data={formData} setData={setFormData} />
               </motion.div>
             )}
+
             {step === 3 && (
               <motion.div
                 key="step3"
@@ -125,7 +175,7 @@ export default function CreatePost() {
                 <Step3Images
                   files={files}
                   setFiles={setFiles}
-                  postType={formData.post_type} 
+                  postType={formData.post_type}
                 />
               </motion.div>
             )}
@@ -143,7 +193,7 @@ export default function CreatePost() {
           </motion.p>
         )}
 
-        <div className="flex justify-between mt-8">
+        <div className="flex justify-between mt-10 mb-22">
           <Button
             variant="outline"
             onClick={prevStep}
@@ -187,6 +237,7 @@ export default function CreatePost() {
           )}
         </div>
       </div>
+      <Footer/>
     </div>
   );
 }

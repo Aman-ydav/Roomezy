@@ -3,7 +3,6 @@ import { useSelector, useDispatch } from "react-redux";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
-  User,
   Bookmark,
   FileText,
   BarChart2,
@@ -11,6 +10,7 @@ import {
   LogOut,
   PlusCircle,
   Activity,
+   User, Users, Home
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -18,6 +18,7 @@ import { useEffect } from "react";
 import { getAllPosts } from "@/features/post/postSlice";
 import { logoutUser } from "@/features/auth/authSlice";
 import UserDetails from "@/components/Dashboard/UserDetails";
+import ProfileCard from "@/components/Dashboard/ProfileCard";  
 
 export default function Dashboard() {
   const { user } = useSelector((state) => state.auth);
@@ -33,7 +34,6 @@ export default function Dashboard() {
 
   const totalPosts = posts.filter((p) => p.user?._id === user?._id).length;
 
- 
   const recentActivities = posts
     .filter((p) => p.user?._id === user?._id)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
@@ -82,6 +82,9 @@ export default function Dashboard() {
           Manage your posts, track engagement, and personalize your experience.
         </p>
       </div>
+
+      {/* User Role Highlight */}
+    <ProfileCard user={user} />
 
       {/* User Details Card */}
       <div className="max-w-6xl mx-auto mb-10">
@@ -152,7 +155,7 @@ export default function Dashboard() {
                 <div
                   key={idx}
                   className="flex items-center justify-between border-b border-border pb-4 last:border-b-0 cursor-pointer hover:bg-muted/50 transition-colors rounded-md p-2"
-                  onClick={() => handleNavigate(`/post/${activity._id}`)} 
+                  onClick={() => handleNavigate(`/post/${activity._id}`)}
                 >
                   <div>
                     <p className="font-medium text-foreground">

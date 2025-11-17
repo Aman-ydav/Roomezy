@@ -46,7 +46,9 @@ const RegisterModal = ({ isOpen, onClose }) => {
     preferredLocations: [],
     newLocation: "",
     avatar: null,
+    accountType: "", // NEW
   });
+
   const [previewAvatar, setPreviewAvatar] = useState(null);
   const [errors, setErrors] = useState({});
 
@@ -79,6 +81,8 @@ const RegisterModal = ({ isOpen, onClose }) => {
       newErrors.password = "Password must be at least 6 characters";
     if (!formData.age) newErrors.age = "Age is required";
     if (!formData.gender) newErrors.gender = "Gender is required";
+    if (!formData.accountType)
+      newErrors.accountType = "Please select what you are looking for"; // NEW
     if (formData.phone && !/^\d{10}$/.test(formData.phone))
       newErrors.phone = "Phone number must be 10 digits";
     setErrors(newErrors);
@@ -89,6 +93,59 @@ const RegisterModal = ({ isOpen, onClose }) => {
   const [focusedGenderIndex, setFocusedGenderIndex] = useState(-1);
   const genderBtnRef = useRef(null);
   const genderListRef = useRef(null);
+
+  const [openAccountType, setOpenAccountType] = useState(false);
+  const [focusedAccountTypeIndex, setFocusedAccountTypeIndex] = useState(-1);
+  const accountTypeBtnRef = useRef(null);
+  const accountTypeListRef = useRef(null);
+  // Select AccountType
+  const selectAccountType = (val) => {
+    setFormData((p) => ({ ...p, accountType: val }));
+    setOpenAccountType(false);
+    setFocusedAccountTypeIndex(-1);
+    accountTypeBtnRef.current?.focus();
+  };
+
+  // Keyboard when focus is on button
+  const handleAccountTypeKeyDown = (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setOpenAccountType(true);
+      setFocusedAccountTypeIndex(0);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setOpenAccountType(true);
+      setFocusedAccountTypeIndex(2);
+    } else if (e.key === "Enter" || e.key === " ") {
+      e.preventDefault();
+      setOpenAccountType((s) => !s);
+    }
+  };
+
+  // Keyboard inside list
+  const handleAccountTypeListKeyDown = (e) => {
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      setFocusedAccountTypeIndex((i) => Math.min(i + 1, 2));
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      setFocusedAccountTypeIndex((i) => Math.max(i - 1, 0));
+    } else if (e.key === "Enter") {
+      e.preventDefault();
+      const opts = [
+        "lookingForRoom",
+        "lookingForRoommate",
+        "ownerLookingForRenters",
+      ];
+      if (focusedAccountTypeIndex >= 0)
+        selectAccountType(opts[focusedAccountTypeIndex]);
+      selectAccountType(opts[focussedAccountTypeIndex]);
+    } else if (e.key === "Escape") {
+      setOpenAccountType(false);
+      setFocusedAccountTypeIndex(-1);
+      accountTypeBtnRef.current?.focus();
+    }
+  };
 
   // close on outside click
   useEffect(() => {
@@ -166,6 +223,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
       gender,
       preferredLocations,
       avatar,
+      accountType,
     } = formData;
 
     const formDataToSend = new FormData();
@@ -175,6 +233,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
     formDataToSend.append("age", String(age));
     formDataToSend.append("phone", phone || "");
     formDataToSend.append("gender", gender || "");
+    formDataToSend.append("accountType", accountType || ""); // NEW
 
     // Append each location with the correct field name
     (preferredLocations || []).forEach((loc) =>
@@ -209,6 +268,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
       preferredLocations: [],
       newLocation: "",
       avatar: null,
+      accountType: "", // NEW
     });
     setPreviewAvatar(null);
     setErrors({});
@@ -449,6 +509,110 @@ const RegisterModal = ({ isOpen, onClose }) => {
                   </p>
                 )}
               </div>
+              {/* Account Type */}
+              {/* ACCOUNT TYPE DROPDOWN (Same effects as Gender) */}
+              <div>
+                <Label
+                  htmlFor="accountType"
+                  className="text-sm font-normal text-foreground mb-2 block"
+                >
+                  Select your role
+                </Label>
+
+                <div className="relative w-full">
+                  {/* Dropdown Button */}
+                  <button
+                    type="button"
+                    aria-haspopup="listbox"
+                    aria-expanded={openAccountType ? "true" : "false"}
+                    onClick={() => setOpenAccountType((s) => !s)}
+                    onKeyDown={handleAccountTypeKeyDown}
+                    ref={accountTypeBtnRef}
+                    className="
+        w-full pl-3 pr-8 h-10 text-sm font-normal text-foreground
+        bg-background border border-input rounded-md
+        flex items-center justify-between gap-2
+        focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary
+        transition-all duration-200 relative z-0
+      "
+                  >
+                    <span className="truncate">
+                      {{
+                        lookingForRoom: "Looking for a room",
+                        lookingForRoommate: "Looking for a roommate",
+                        ownerLookingForRenters: "Owner looking for renters",
+                      }[formData.accountType] || "Select an option"}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-muted-foreground shrink-0" />
+                  </button>
+
+                  {/* Options Dropdown */}
+                  {openAccountType && (
+                    <ul
+                      role="listbox"
+                      aria-labelledby="accountType"
+                      ref={accountTypeListRef}
+                      className="
+          absolute z-50 mt-2 w-full bg-card border border-border rounded-md shadow-lg
+          max-h-44 overflow-auto py-1
+        "
+                      onKeyDown={handleAccountTypeListKeyDown}
+                    >
+                      {[
+                        { id: "lookingForRoom", label: "Looking for a room" },
+                        {
+                          id: "lookingForRoommate",
+                          label: "Looking for a roommate",
+                        },
+                        {
+                          id: "ownerLookingForRenters",
+                          label: "Owner looking for renters",
+                        },
+                      ].map((opt, idx) => {
+                        const isSelected = formData.accountType === opt.id;
+                        const isFocused = focusedAccountTypeIndex === idx;
+
+                        return (
+                          <li
+                            key={opt.id}
+                            role="option"
+                            aria-selected={isSelected}
+                            tabIndex={-1}
+                            onMouseEnter={() => setFocusedAccountTypeIndex(idx)}
+                            onClick={() => selectAccountType(opt.id)}
+                            className={`
+                cursor-pointer select-none px-3 py-2 text-sm flex items-center justify-between
+                transition-colors duration-150
+                ${
+                  isSelected
+                    ? "bg-primary text-primary-foreground"
+                    : "text-foreground"
+                }
+                ${
+                  !isSelected
+                    ? "hover:bg-primary hover:text-primary-foreground"
+                    : ""
+                }
+                ${isFocused && !isSelected ? "ring-1 ring-primary/30" : ""}
+              `}
+                          >
+                            <span className="truncate">{opt.label}</span>
+                            {isSelected && (
+                              <span className="text-xs opacity-90">✓</span>
+                            )}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  )}
+                </div>
+
+                {errors.accountType && (
+                  <p className="text-sm text-destructive mt-1">
+                    {errors.accountType}
+                  </p>
+                )}
+              </div>
 
               {/* Age + Phone */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -495,113 +659,120 @@ const RegisterModal = ({ isOpen, onClose }) => {
                 </div>
               </div>
 
-              {/* Preferred Locations */}
-              <div>
-                <Label htmlFor="preferredLocations" className="mb-2">
-                  Preferred Locations
-                </Label>
-                <div className="space-y-2">
-                  {/* Selected Locations Display */}
-                  <div
-                    className="
-                            flex flex-wrap gap-2 border border-input rounded-md p-2 
-                            focus-within:ring-2 focus-within:ring-primary transition-all duration-300
-                          "
-                  >
-                    {formData.preferredLocations.length > 0 &&
-                      formData.preferredLocations.map((loc, index) => (
-                        <div
-                          key={`${loc}-${index}`}
-                          className="
-                                  flex items-center gap-2 bg-accent text-accent-foreground
-                                  px-3 py-1 rounded-full text-sm shadow-sm
-                                  hover:bg-accent/90 transition-colors "
-                        >
-                          <span className="truncate max-w-[100px]">{loc}</span>
-                          <button
-                            type="button"
-                            onClick={() =>
-                              setFormData((prev) => ({
-                                ...prev,
-                                preferredLocations:
-                                  prev.preferredLocations.filter(
-                                    (_, i) => i !== index
-                                  ),
-                              }))
-                            }
-                            className="hover:text-destructive transition-colors text-xs"
-                            aria-label="Remove location"
+              {/* Preferred Locations — Only for "Looking for a room" */}
+              {formData.accountType === "lookingForRoom" && (
+                <div>
+                  <Label htmlFor="preferredLocations" className="mb-2">
+                    Preferred Locations
+                  </Label>
+
+                  <div className="space-y-2">
+                    {/* Selected Locations Display */}
+                    <div
+                      className="
+          flex flex-wrap gap-2 border border-input rounded-md p-2 
+          focus-within:ring-2 focus-within:ring-primary transition-all duration-300
+        "
+                    >
+                      {formData.preferredLocations.length > 0 &&
+                        formData.preferredLocations.map((loc, index) => (
+                          <div
+                            key={`${loc}-${index}`}
+                            className="
+                flex items-center gap-2 bg-accent text-accent-foreground
+                px-3 py-1 rounded-full text-sm shadow-sm
+                hover:bg-accent/90 transition-colors
+              "
                           >
-                            ✕
-                          </button>
-                        </div>
-                      ))}
+                            <span className="truncate max-w-[100px]">
+                              {loc}
+                            </span>
+                            <button
+                              type="button"
+                              onClick={() =>
+                                setFormData((prev) => ({
+                                  ...prev,
+                                  preferredLocations:
+                                    prev.preferredLocations.filter(
+                                      (_, i) => i !== index
+                                    ),
+                                }))
+                              }
+                              className="hover:text-destructive transition-colors text-xs"
+                              aria-label="Remove location"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
 
-                    {/* Input + Add Button */}
-                    <div className="flex items-center gap-2 flex-1 min-w-[150px]">
-                      <input
-                        id="preferredLocations"
-                        type="text"
-                        placeholder="Add a location..."
-                        value={formData.newLocation}
-                        onChange={(e) =>
-                          setFormData((prev) => ({
-                            ...prev,
-                            newLocation: e.target.value,
-                          }))
-                        }
-                        className="
-                              flex-1 bg-transparent outline-none px-2 py-1 text-sm
-                              placeholder:text-muted-foreground font-medium
-                            "
-                      />
-                      <Button
-                        type="button"
-                        variant="outline"
-                        size="sm"
-                        className="px-4 py-2 text-xs flex items-center gap-1"
-                        onClick={() => {
-                          const newLoc = formData.newLocation.trim();
-                          if (!newLoc) return;
-
-                          // Prevent duplicates
-                          if (
-                            formData.preferredLocations.some(
-                              (loc) =>
-                                loc.toLowerCase() === newLoc.toLowerCase()
-                            )
-                          ) {
-                            toast.error("Location already added!");
-                            return;
+                      {/* Input + Add Button */}
+                      <div className="flex items-center gap-2 flex-1 min-w-[150px]">
+                        <input
+                          id="preferredLocations"
+                          type="text"
+                          placeholder="Add a location..."
+                          value={formData.newLocation}
+                          onChange={(e) =>
+                            setFormData((prev) => ({
+                              ...prev,
+                              newLocation: e.target.value,
+                            }))
                           }
+                          className="
+              flex-1 bg-transparent outline-none px-2 py-1 text-sm
+              placeholder:text-muted-foreground font-medium
+            "
+                        />
 
-                          // Add as new array item
-                          setFormData((prev) => ({
-                            ...prev,
-                            preferredLocations: [
-                              ...prev.preferredLocations,
-                              newLoc,
-                            ],
-                            newLocation: "",
-                          }));
-                        }}
-                      >
-                        Add
-                      </Button>
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="px-4 py-2 text-xs flex items-center gap-1"
+                          onClick={() => {
+                            const newLoc = formData.newLocation.trim();
+                            if (!newLoc) return;
+
+                            if (
+                              formData.preferredLocations.some(
+                                (loc) =>
+                                  loc.toLowerCase() === newLoc.toLowerCase()
+                              )
+                            ) {
+                              toast.error("Location already added!");
+                              return;
+                            }
+
+                            setFormData((prev) => ({
+                              ...prev,
+                              preferredLocations: [
+                                ...prev.preferredLocations,
+                                newLoc,
+                              ],
+                              newLocation: "",
+                            }));
+                          }}
+                        >
+                          Add
+                        </Button>
+                      </div>
                     </div>
-                  </div>
 
-                  {formData.preferredLocations.length > 0 && (
-                    <p className="text-xs text-muted-foreground">
-                      Press ✕ to remove a location.
-                    </p>
-                  )}
+                    {formData.preferredLocations.length > 0 && (
+                      <p className="text-xs text-muted-foreground">
+                        Press ✕ to remove a location.
+                      </p>
+                    )}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             {formError && (
-              <p className="text-sm text-destructive text-center">{formError}</p>
+              <p className="text-sm text-destructive text-center">
+                {formError}
+              </p>
             )}
             {/* Submit */}
             <Button
