@@ -2,6 +2,7 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/utils/axiosInterceptor";
 import { toast } from "sonner";
 
+
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (formData, thunkAPI) => {

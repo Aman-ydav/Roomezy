@@ -32,6 +32,7 @@ import {
   Send,
   AlertTriangle,
   Info,
+  MessageSquare
 } from "lucide-react";
 import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
@@ -415,6 +416,14 @@ export default function PostDetails() {
             </Card>
           </div>
 
+          <Button
+            onClick={() => navigate(`/chat/${post.user._id}`)}
+            className="flex items-center gap-2"
+          >
+            <MessageSquare size={18} />
+            Message With Post Owner
+          </Button>
+
           {/* Posted By Section */}
           <Card className="p-5 border border-border/50 bg-card/70 backdrop-blur-md rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">
             <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
@@ -577,9 +586,8 @@ export default function PostDetails() {
         </div>
 
         {/* Right Column (Sticky Chat Section) */}
-  
+
         <div className="relative h-fit lg:mt-54">
-         
           <div className="lg:sticky lg:top-1/2 lg:-translate-y-1/2">
             <div
               className="absolute inset-0 overflow-hidden rounded-2xl opacity-40 pointer-events-none blur-2xl"

@@ -23,6 +23,7 @@ import PrivacyPolicyPage from "@/pages/About/PrivacyPolicyPage";
 import ListRoom from "@/pages/About/ListRoom";
 import FindRoom from "@/pages/About/FindRoom";
 import ScrollToTop from "@/components/layout/ScrollToTop";
+import ChatPage from "@/pages/chat/ChatPage";
 
 export default function AppRouter() {
   return (
@@ -59,6 +60,7 @@ export default function AppRouter() {
           <Route path="/create-post" element={<CreatePost />} />
           <Route path="/my-posts" element={<MyPosts />} />
           <Route path="/post/:id/edit" element={<EditPost />} />
+          <Route path="/chat/:id" element={<ChatPage />} />
           <Route path="/inbox" element={<Inbox />} />
       </Route>
       </Route>

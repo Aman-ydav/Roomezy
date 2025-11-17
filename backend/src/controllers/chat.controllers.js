@@ -1,0 +1,122 @@
+import { Conversation } from "../models/conversation.model.js";
+import { Message } from "../models/message.model.js";
+import { ApiError } from "../utils/apiError.js";
+import { ApiResponse } from "../utils/apiResponse.js";
+import { asyncHandler } from "../utils/asyncHandler.js";
+
+// 1) Create or Get Conversation
+export const createOrGetConversation = asyncHandler(async (req, res) => {
+  const { senderId, receiverId } = req.body;
+
+  if (!senderId || !receiverId) {
+    throw new ApiError(400, "senderId and receiverId required");
+  }
+
+  // Check existing conversation
+  let conversation = await Conversation.findOne({
+    participants: { $all: [senderId, receiverId] },
+  });
+
+  // Create new conversation if not exist
+  if (!conversation) {
+    conversation = await Conversation.create({
+      participants: [senderId, receiverId],
+      unreadCount: {
+        [senderId]: 0,
+        [receiverId]: 0,
+      },
+    });
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, conversation, "Conversation fetched/created"));
+});
+
+// 2) Get User Conversations (Inbox)
+export const getUserConversations = asyncHandler(async (req, res) => {
+  const { userId } = req.params;
+
+  if (!userId) throw new ApiError(400, "userId is required");
+
+  const conversations = await Conversation.find({
+    participants: userId,
+  })
+    .populate("participants", "name username avatar")
+    .sort({ updatedAt: -1 });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, conversations, "User conversations fetched"));
+});
+
+// 3) Get Messages of a Conversation
+export const getMessages = asyncHandler(async (req, res) => {
+  const { conversationId } = req.params;
+
+  if (!conversationId) throw new ApiError(400, "conversationId required");
+
+  const messages = await Message.find({ conversationId }).sort({
+    createdAt: 1,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, messages, "Messages fetched"));
+});
+
+// 4) Send Message
+export const sendMessage = asyncHandler(async (req, res) => {
+  const { senderId, receiverId, conversationId, text } = req.body;
+
+  if (!senderId || !receiverId || !conversationId || !text) {
+    throw new ApiError(400, "Missing fields for sending message");
+  }
+
+  // Store message
+  const message = await Message.create({
+    sender: senderId,
+    receiver: receiverId,
+    conversationId,
+    text,
+  });
+
+  // Update conversation preview + unread count
+  await Conversation.findByIdAndUpdate(conversationId, {
+    lastMessage: text,
+    lastMessageSender: senderId,
+    $inc: { [`unreadCount.${receiverId}`]: 1 },
+    updatedAt: new Date(),
+  });
+
+  return res
+    .status(201)
+    .json(new ApiResponse(201, message, "Message sent successfully"));
+});
+
+// 5) Mark Messages as Read
+export const markMessagesAsRead = asyncHandler(async (req, res) => {
+  const { conversationId, userId } = req.params;
+
+  if (!conversationId || !userId)
+    throw new ApiError(400, "conversationId and userId required");
+
+  // Update all unread messages
+  await Message.updateMany(
+    {
+      conversationId,
+      receiver: userId,
+      read: false,
+    },
+    { read: true }
+  );
+
+  // Reset unread counter for this user
+  await Conversation.findByIdAndUpdate(conversationId, {
+    [`unreadCount.${userId}`]: 0,
+  });
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Messages marked as read"));
+});
