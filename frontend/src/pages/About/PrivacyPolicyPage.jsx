@@ -15,6 +15,7 @@ import {
   Cookie,
   AlertTriangle,
 } from "lucide-react";
+import ScrollToTop from "@/components/layout/ScrollToTop";
 
 export default function PrivacyPolicyPage() {
   return (
@@ -32,10 +33,10 @@ export default function PrivacyPolicyPage() {
         </div>
       </section>
 
-      {/* Privacy Content */}
+    
       <section className="py-8 md:py-12 px-4">
         <div className="container mx-auto max-w-6xl space-y-8">
-          {/* Section 1: Introduction */}
+
           <Card className="bg-card border border-border shadow-lg">
             <CardHeader className="bg-muted/20">
               <CardTitle className="flex items-center gap-3 text-xl md:text-2xl">
@@ -74,7 +75,7 @@ export default function PrivacyPolicyPage() {
             </CardContent>
           </Card>
 
-          {/* Section 3: How We Use Your Information */}
+     
           <Card className="bg-card border border-border shadow-lg">
             <CardHeader className="bg-muted/20">
               <CardTitle className="flex items-center gap-3 text-xl md:text-2xl">
@@ -96,7 +97,7 @@ export default function PrivacyPolicyPage() {
             </CardContent>
           </Card>
 
-          {/* Section 4: Sharing Your Information */}
+        
           <Card className="bg-card border border-border shadow-lg">
             <CardHeader className="bg-muted/20">
               <CardTitle className="flex items-center gap-3 text-xl md:text-2xl">
@@ -181,7 +182,6 @@ export default function PrivacyPolicyPage() {
             </CardContent>
           </Card>
 
-          {/* Section 8: Children's Privacy */}
           <Card className="bg-card border border-border shadow-lg">
             <CardHeader className="bg-muted/20">
               <CardTitle className="flex items-center gap-3 text-xl md:text-2xl">
@@ -211,7 +211,6 @@ export default function PrivacyPolicyPage() {
             </CardContent>
           </Card>
 
-          {/* Section 10: Contact Us */}
           <Card className="bg-card border border-border shadow-lg">
             <CardHeader className="bg-muted/20">
               <CardTitle className="flex items-center gap-3 text-xl md:text-2xl">
@@ -242,11 +241,7 @@ export default function PrivacyPolicyPage() {
       </section>
 
       {/* Scroll Indicator */}
-      <div className="scroll-indicator" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-        </svg>
-      </div>
+      <ScrollToTop/>
     </div>
   );
 }

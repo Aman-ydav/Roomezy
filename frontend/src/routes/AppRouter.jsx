@@ -12,6 +12,7 @@ import MyPosts from "@/components/post/MyPosts";
 import PostDetails from "@/pages/post/PostDetails";
 import EditPost from "@/pages/post/EditPost";
 import SearchPage from "@/components/search/SearchPage";
+import ScrollToTopOnRoute from "@/components/ui/ScrollToTopOnRoute";
 import Inbox from "@/components/inbox/Inbox";
 import Layout from "@/components/layout/Layout"; 
 import Navbar from "@/components/layout/Navbar";
@@ -19,17 +20,20 @@ import HelpCenterPage from "@/pages/About/HelpCenterPage";
 import AboutPage from "@/pages/About/AboutPage";
 import TermsOfServicePage from "@/pages/About/TermsOfServicePage";
 import PrivacyPolicyPage from "@/pages/About/PrivacyPolicyPage";
+import ListRoom from "@/pages/About/ListRoom";
+import FindRoom from "@/pages/About/FindRoom";
+import ScrollToTop from "@/components/layout/ScrollToTop";
 
 export default function AppRouter() {
   return (
     <>
+    <ScrollToTop/>
+    <ScrollToTopOnRoute />
     <Navbar/>
     <Routes>
       <Route
           element={
-            <Layout>
-        
-            </Layout>
+            <Layout/>
           }
         >
       {/* ---------- PUBLIC ROUTES ---------- */}
@@ -43,6 +47,8 @@ export default function AppRouter() {
       <Route path="/about" element={<AboutPage />} />
       <Route path="/terms" element={<TermsOfServicePage />} />
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
+      <Route path="/list-room" element={<ListRoom />} />
+      <Route path="/find-room" element={<FindRoom />} />
 
       <Route path="*" element={<NotFound />} />
 

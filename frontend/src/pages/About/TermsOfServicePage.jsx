@@ -13,6 +13,7 @@ import {
   Mail,
   Phone,
 } from "lucide-react";
+import ScrollToTop from "@/components/layout/ScrollToTop";
 
 export default function TermsOfServicePage() {
   return (
@@ -266,11 +267,7 @@ export default function TermsOfServicePage() {
       </section>
 
       {/* Scroll Indicator */}
-      <div className="scroll-indicator" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 10l7-7m0 0l7 7m-7-7v18" />
-        </svg>
-      </div>
+     < ScrollToTop/>
     </div>
   );
 }
