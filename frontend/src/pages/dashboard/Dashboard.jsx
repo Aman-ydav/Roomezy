@@ -17,7 +17,7 @@ import { useNavigate } from "react-router-dom";
 import { useEffect } from "react";
 import { getAllPosts } from "@/features/post/postSlice";
 import { logoutUser } from "@/features/auth/authSlice";
-import UserDetails from "@/components/dashboard/UserDetails";
+import UserDetails from "@/components/Dashboard/UserDetails";
 
 export default function Dashboard() {
   const { user } = useSelector((state) => state.auth);
@@ -33,7 +33,7 @@ export default function Dashboard() {
 
   const totalPosts = posts.filter((p) => p.user?._id === user?._id).length;
 
-  // Get recent activities (e.g., user's recent posts, limited to 3 for display)
+ 
   const recentActivities = posts
     .filter((p) => p.user?._id === user?._id)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
