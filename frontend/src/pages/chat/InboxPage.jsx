@@ -8,6 +8,7 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { ArrowLeft } from "lucide-react";
 import { socket } from "@/socket/socket";
 import { newMessageAlert } from "@/features/chat/chatSlice";
+import { useLocation } from "react-router-dom";
 
 export default function InboxPage() {
   const dispatch = useDispatch();
@@ -17,6 +18,21 @@ export default function InboxPage() {
 
   const [activeConversation, setActiveConversation] = useState(null);
   const [searchParams] = useSearchParams();
+
+  const location = useLocation();
+  const openChatWith = location.state?.openChatWith;
+
+  useEffect(() => {
+    if (openChatWith && conversations.length > 0) {
+      const targetConversation = conversations.find((c) =>
+        c.participants.some((p) => String(p._id) === String(openChatWith))
+      );
+
+      if (targetConversation) {
+        setActiveConversation(targetConversation);
+      }
+    }
+  }, [openChatWith, conversations]);
 
   // OPTIONAL: if /inbox?with=<userId> open/create chat with that user
   const fromUserId = searchParams.get("with");
@@ -75,7 +91,7 @@ export default function InboxPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background scrollbar-hide">
+      <div className="min-h-screen flex items-center justify-center bg-background">
         <p className="text-sm text-muted-foreground">
           Please login to view your inbox.
         </p>
@@ -84,16 +100,16 @@ export default function InboxPage() {
   }
 
   return (
-   <div className="h-[calc(100vh-64px)] w-full overflow-hidden flex bg-background">
+    <div className="h-[calc(100vh-64px)] w-full overflow-hidden flex bg-background">
       {/* LEFT PANEL — conversation list */}
-      <div className="w-full md:w-[350px] flex flex-col border-r border-border overflow-hidden">
+      <div className="w-full md:w-[350px] flex flex-col border-r border-border overflow-hidden bg-card shadow-sm">
         {/* FIXED HEADER */}
-        <div className="px-4 py-3 border-b border-border bg-card shrink-0">
-          <h1 className="text-lg font-semibold">Chats</h1>
+        <div className="px-6 py-4 border-b border-border bg-card/95 backdrop-blur-sm shrink-0">
+          <h1 className="text-xl font-bold text-foreground">Chats</h1>
         </div>
 
         {/* SCROLLABLE LIST ONLY */}
-        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent ">
+        <div className="flex-1 overflow-y-auto scrollbar-thin scrollbar-thumb-muted scrollbar-track-transparent">
           <ConversationList
             conversations={conversations}
             currentUserId={user._id}
@@ -104,26 +120,26 @@ export default function InboxPage() {
       </div>
 
       {/* RIGHT PANEL — desktop only */}
-      <div className="hidden md:flex flex-1 flex-col overflow-hidden">
+      <div className="hidden md:flex flex-1 flex-col overflow-hidden bg-background">
         {activeConversation && partner ? (
           <>
             {/* FIXED CHAT HEADER */}
-            <div className="px-4 py-3 border-b border-border bg-card shrink-0 flex items-center gap-3">
+            <div className="px-6 py-4 border-b border-border bg-card/95 backdrop-blur-sm shrink-0 flex items-center gap-4 shadow-sm">
               <img
                 src={
                   partner.avatar ||
                   `https://ui-avatars.com/api/?name=${partner.userName}`
                 }
-                className="w-10 h-10 rounded-full border border-border object-cover"
+                className="w-11 h-11 rounded-full border border-border object-cover shadow-sm"
               />
               <div>
-                <p className="text-sm font-semibold">{partner.userName}</p>
-                <p className="text-xs text-green-600">Online</p>
+                <p className="text-base font-semibold text-foreground">{partner.userName}</p>
+                <p className="text-xs text-green-600 font-medium">Online</p>
               </div>
             </div>
 
             {/* CHAT CONTENT SCROLLABLE */}
-            <div className="flex-1 overflow-y-auto">
+            <div className="flex-1 overflow-y-auto bg-background">
               <ChatWindow
                 user={user}
                 receiver={partner}
@@ -132,7 +148,7 @@ export default function InboxPage() {
             </div>
           </>
         ) : (
-          <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
+          <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground bg-muted/10">
             Select a chat to start messaging
           </div>
         )}
@@ -140,27 +156,27 @@ export default function InboxPage() {
 
       {/* MOBILE CHAT OVERLAY */}
       {isMobile && activeConversation && partner && (
-        <div className="fixed inset-0 z-40 bg-background flex flex-col overflow-hidden md:hidden">
+        <div className="fixed inset-0 z-40 bg-background flex flex-col overflow-hidden md:hidden shadow-lg">
           {/* FIXED HEADER MOBILE */}
-          <div className="px-4 py-3 border-b border-border bg-card shrink-0 flex items-center gap-3">
-            <button onClick={() => setActiveConversation(null)}>
-              <ArrowLeft size={18} />
+          <div className="px-6 py-4 border-b border-border bg-card/95 backdrop-blur-sm shrink-0 flex items-center gap-4 shadow-sm">
+            <button onClick={() => setActiveConversation(null)} className="p-1 rounded-full hover:bg-muted/20">
+              <ArrowLeft size={20} className="text-foreground" />
             </button>
             <img
               src={
                 partner.avatar ||
                 `https://ui-avatars.com/api/?name=${partner.userName}`
               }
-              className="w-9 h-9 rounded-full border border-border object-cover"
+              className="w-10 h-10 rounded-full border border-border object-cover shadow-sm"
             />
             <div>
-              <p className="text-sm font-semibold">{partner.userName}</p>
-              <p className="text-xs text-green-600">Online</p>
+              <p className="text-sm font-semibold text-foreground">{partner.userName}</p>
+              <p className="text-xs text-green-600 font-medium">Online</p>
             </div>
           </div>
 
           {/* CHAT WINDOW WITH OWN SCROLL */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto bg-background">
             <ChatWindow
               user={user}
               receiver={partner}

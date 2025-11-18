@@ -43,7 +43,7 @@ export default function MiniChatWidget({ receiverId }) {
   if (isSelf) return null; // don't show mini chat if viewing own post
 
   return (
-    <div className="fixed bottom-20 right-4 z-40">
+    <div className="fixed bottom-10 right-4 z-40">
       {/* Floating Chat Button */}
       {!open && (
         <motion.button
