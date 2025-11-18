@@ -30,7 +30,7 @@ import {
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import logo from "../../assets/logo.png";
 
-export default function Navbar({ onToggleSidebar, isSidebarOpen }) {
+export default function Navbar({ onToggleSidebar, isSidebarOpen,sidebarIconRef  }) {
   const { user } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
@@ -196,6 +196,7 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen }) {
         <div className="flex items-center gap-2">
           {/* Sidebar Toggle Button */}
           <div
+          ref={sidebarIconRef} 
             onClick={onToggleSidebar}
             data-sidebar-toggle="true"
             className="flex items-center justify-center cursor-pointer rounded-md hover:bg-accent/30 p-2 transition-transform duration-200"

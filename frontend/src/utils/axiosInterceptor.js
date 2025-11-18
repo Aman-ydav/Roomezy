@@ -16,7 +16,7 @@ api.interceptors.response.use(
 
     if (status === 401 && message.includes("invalid access token")) {
       store.dispatch(forceLogout());
-      toast.error("Session expired. Please log in again.");
+      toast.info("Session expired. Please log in again.");
     }
 
     return Promise.reject(error);

@@ -4,12 +4,15 @@ import Sidebar from "./Sidebar";
 import MobileSidebar from "./MobileSidebar";
 import Navbar from "./Navbar";
 import { motion } from "framer-motion";
+import SidebarCoachmark from "@/components/ui/SidebarCoachmark";
+
 
 export default function Layout() {
   const [isMobile, setIsMobile] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false);
   const sidebarRef = useRef(null);
+  const sidebarIconRef = useRef(null); // Reference for the sidebar icon
 
   const toggleSidebar = () => {
     if (isMobile) {
@@ -62,7 +65,10 @@ export default function Layout() {
       <Navbar
         onToggleSidebar={toggleSidebar}
         isSidebarOpen={sidebarOpen || mobileSidebarOpen}
+        sidebarIconRef={sidebarIconRef}
       />
+
+      <SidebarCoachmark targetRef={sidebarIconRef} />
 
       <div className="flex flex-1 relative">
         {/* Desktop Sidebar */}

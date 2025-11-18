@@ -24,13 +24,14 @@ import ListRoom from "@/pages/About/ListRoom";
 import FindRoom from "@/pages/About/FindRoom";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import ChatPage from "@/pages/chat/ChatPage";
+import SidebarCoachmark from "@/components/ui/SidebarCoachmark";
 
 export default function AppRouter() {
   return (
     <>
+
     <ScrollToTop/>
     <ScrollToTopOnRoute />
-    <Navbar/>
     <Routes>
       <Route
           element={
