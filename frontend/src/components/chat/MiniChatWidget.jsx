@@ -4,6 +4,9 @@ import ChatWindow from "./ChatWindow";
 import { createConversation } from "@/utils/chatApi";
 import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
+import { Button } from "../ui/button";
+import { Link } from "react-router-dom";
+import Loader from "../layout/Loader";
 
 export default function MiniChatWidget({ receiverId }) {
   const user = useSelector((s) => s.auth.user);
@@ -95,7 +98,7 @@ export default function MiniChatWidget({ receiverId }) {
                 ) : (
                   <>
                     <MessageCircle className="text-primary" size={18} />
-                    <p className="font-semibold text-xs">Chat with owner</p>
+                    <p className="font-semibold text-xs">Chat with post owner</p>
                   </>
                 )}
               </div>
@@ -122,15 +125,17 @@ export default function MiniChatWidget({ receiverId }) {
             {/* Body */}
             <div className="flex-1 overflow-hidden bg-background">
               {!user && (
-                <div className="h-full flex flex-col items-center justify-center px-4 text-center text-xs text-muted-foreground">
-                  Please login to start chatting with the room owner.
+                <div className="h-full flex flex-col items-center justify-center px-4 text-center text-sm text-muted-foreground">
+                  <MessageCircle size={32} className="mb-2" />
+                  Please login to start chatting with the post owner.
+                  <Button variant="link" className="mb-2">
+                    <Link href="/login">Login</Link>
+                  </Button>
                 </div>
               )}
 
               {user && loading && (
-                <div className="h-full flex items-center justify-center text-xs text-muted-foreground">
-                  Loading chat…
-                </div>
+                <Loader/>
               )}
 
               {user && !loading && conversationId && receiver && (

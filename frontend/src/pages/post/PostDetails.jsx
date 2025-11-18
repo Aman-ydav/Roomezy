@@ -38,6 +38,7 @@ import { toast } from "sonner";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MiniChatWidget from "@/components/chat/MiniChatWidget";
+import Loader from "@/components/layout/Loader";
 
 export default function PostDetails() {
   const { id } = useParams();
@@ -84,9 +85,7 @@ export default function PostDetails() {
 
   if (loading || !post)
     return (
-      <div className="flex justify-center items-center min-h-screen text-muted-foreground">
-        Loading post details...
-      </div>
+      <Loader/>
     );
 
   const images = [post.main_image, ...(post.additional_images || [])].filter(

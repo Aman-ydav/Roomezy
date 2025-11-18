@@ -2,7 +2,7 @@ export default function Loader() {
   return (
     <div className="flex flex-col justify-center items-center h-[60vh] w-full">
       {/* Loader circle */}
-      <div className="relative w-16 h-16">
+      <div className="relative w-10 h-10  md:w-20 md:h-20">
         <div className="absolute inset-0 border-[5px] border-primary/20 rounded-full"></div>
         <div className="absolute inset-0 border-[5px] border-t-primary border-r-transparent border-b-transparent border-l-transparent rounded-full animate-spin"></div>
 
