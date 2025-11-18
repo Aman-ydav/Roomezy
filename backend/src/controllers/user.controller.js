@@ -236,24 +236,57 @@ const refreshAccessToken = asyncHandler(async (req, res, next) => {
     }
 });
 
+// const changeCurrentPassword = asyncHandler(async (req, res, next) => {
+//     const { oldPassword, newPassword } = req.body;
+
+//     const user = await User.findById(req.user?._id);
+//     if (!user) {
+//         throw new ApiError(404, "User not found");
+//     }
+//     const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+
+//     if (!isPasswordValid) {
+//         throw new ApiError(401, "Old password is incorrect");
+//     }
+//     user.password = newPassword;
+//     await user.save({ validateBeforeSave: true });
+//     return res
+//         .status(200)
+//         .json(new ApiResponse(200, {}, "Password changed successfully"));
+// });
+
 const changeCurrentPassword = asyncHandler(async (req, res, next) => {
-    const { oldPassword, newPassword } = req.body;
+  const { oldPassword, newPassword } = req.body;
 
-    const user = await User.findById(req.user?._id);
-    if (!user) {
-        throw new ApiError(404, "User not found");
-    }
-    const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+  const user = await User.findById(req.user?._id);
+  if (!user) throw new ApiError(404, "User not found");
 
-    if (!isPasswordValid) {
-        throw new ApiError(401, "Old password is incorrect");
-    }
-    user.password = newPassword;
-    await user.save({ validateBeforeSave: true });
-    return res
-        .status(200)
-        .json(new ApiResponse(200, {}, "Password changed successfully"));
+  const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+  if (!isPasswordValid) throw new ApiError(401, "Old password is incorrect");
+
+  user.password = newPassword;
+  await user.save();
+
+  // ⭐ FIX — regenerate tokens after password change
+  const { accessToken, refreshToken } =
+    await generateAccessAndRefreshToken(user._id);
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    path: "/"
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json(
+      new ApiResponse(200, {}, "Password changed successfully")
+    );
 });
+
 
 const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
@@ -320,60 +353,125 @@ const getCurrentUser = asyncHandler(async (req, res, next) => {
         );
 });
 
+// const updateAccountDetails = asyncHandler(async (req, res, next) => {
+//     const { userName, age, gender, preferredLocations } = req.body;
+
+//     // Ensure at least one field is provided
+//     if (
+//         !userName &&
+//         !age &&
+//         !gender &&
+//         (!preferredLocations || preferredLocations.length === 0)
+//     ) {
+//         throw new ApiError(
+//             400,
+//             "At least one field (name, age, gender, or preferred locations) is required"
+//         );
+//     }
+
+//     // Build dynamic update object
+//     const updateFields = {};
+
+//     if (userName?.trim()) updateFields.userName = userName.trim();
+//     if (age) updateFields.age = age;
+//     if (gender) updateFields.gender = gender;
+
+//     // preferredLocations can be string or array
+//     if (preferredLocations) {
+//         if (typeof preferredLocations === "string") {
+//             // Single value sent as string
+//             updateFields.preferredLocations = [preferredLocations];
+//         } else if (Array.isArray(preferredLocations)) {
+//             updateFields.preferredLocations = preferredLocations.filter(
+//                 (loc) => typeof loc === "string" && loc.trim().length > 0
+//             );
+//         }
+//     }
+
+//     const updatedUser = await User.findByIdAndUpdate(
+//         req.user._id,
+//         { $set: updateFields },
+//         { new: true }
+//     ).select("-password -refreshToken");
+
+//     if (!updatedUser) {
+//         throw new ApiError(404, "User not found");
+//     }
+
+//     return res
+//         .status(200)
+//         .json(
+//             new ApiResponse(
+//                 200,
+//                 updatedUser,
+//                 "Account details updated successfully"
+//             )
+//         );
+// });
+
+
 const updateAccountDetails = asyncHandler(async (req, res, next) => {
-    const { userName, age, gender, preferredLocations } = req.body;
+  const { userName, age, gender, preferredLocations } = req.body;
 
-    // Ensure at least one field is provided
-    if (
-        !userName &&
-        !age &&
-        !gender &&
-        (!preferredLocations || preferredLocations.length === 0)
-    ) {
-        throw new ApiError(
-            400,
-            "At least one field (name, age, gender, or preferred locations) is required"
-        );
+  if (
+    !userName &&
+    !age &&
+    !gender &&
+    (!preferredLocations || preferredLocations.length === 0)
+  ) {
+    throw new ApiError(
+      400,
+      "At least one field (name, age, gender, or preferred locations) is required"
+    );
+  }
+
+  const updateFields = {};
+
+  if (userName?.trim()) updateFields.userName = userName.trim();
+  if (age) updateFields.age = age;
+  if (gender) updateFields.gender = gender;
+
+  if (preferredLocations) {
+    if (typeof preferredLocations === "string") {
+      updateFields.preferredLocations = [preferredLocations];
+    } else if (Array.isArray(preferredLocations)) {
+      updateFields.preferredLocations = preferredLocations.filter(
+        (loc) => typeof loc === "string" && loc.trim().length > 0
+      );
     }
+  }
 
-    // Build dynamic update object
-    const updateFields = {};
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: updateFields },
+    { new: true }
+  ).select("-password");
 
-    if (userName?.trim()) updateFields.userName = userName.trim();
-    if (age) updateFields.age = age;
-    if (gender) updateFields.gender = gender;
+  if (!updatedUser) throw new ApiError(404, "User not found");
 
-    // preferredLocations can be string or array
-    if (preferredLocations) {
-        if (typeof preferredLocations === "string") {
-            // Single value sent as string
-            updateFields.preferredLocations = [preferredLocations];
-        } else if (Array.isArray(preferredLocations)) {
-            updateFields.preferredLocations = preferredLocations.filter(
-                (loc) => typeof loc === "string" && loc.trim().length > 0
-            );
-        }
-    }
+  // ⭐ REGENERATE TOKENS AFTER UPDATE
+  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+    updatedUser._id
+  );
 
-    const updatedUser = await User.findByIdAndUpdate(
-        req.user._id,
-        { $set: updateFields },
-        { new: true }
-    ).select("-password -refreshToken");
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    path: "/",
+  };
 
-    if (!updatedUser) {
-        throw new ApiError(404, "User not found");
-    }
-
-    return res
-        .status(200)
-        .json(
-            new ApiResponse(
-                200,
-                updatedUser,
-                "Account details updated successfully"
-            )
-        );
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json(
+      new ApiResponse(
+        200,
+        updatedUser,
+        "Account details updated successfully"
+      )
+    );
 });
 
 const getUserProfileById = asyncHandler(async (req, res) => {
@@ -384,41 +482,84 @@ const getUserProfileById = asyncHandler(async (req, res) => {
     res.status(200).json(new ApiResponse(200, user, "User profile fetched"));
 });
 
+// const updateUserAvatar = asyncHandler(async (req, res) => {
+//     const avatarLocalPath = req.file?.path;
+//     if (!avatarLocalPath) throw new ApiError(400, "Avatar file is required");
+
+//     // Upload new avatar to Cloudinary
+//     const avatar = await uploadOnCloudinary(avatarLocalPath);
+//     if (!avatar)
+//         throw new ApiError(500, "Error uploading avatar to Cloudinary");
+
+//     const userId = req.user?._id;
+//     const user = await User.findById(userId);
+//     if (!user) throw new ApiError(404, "User not found");
+
+//     const oldAvatarUrl = user.avatar;
+
+//     // Update user avatar
+//     user.avatar = avatar.url;
+//     await user.save();
+
+//     // Delete old avatar from Cloudinary if exists
+//     if (oldAvatarUrl) {
+//         const result = await deleteFromCloudinary(oldAvatarUrl);
+//         if (result?.result === "ok") {
+//             console.log("Old avatar deleted from Cloudinary");
+//         } else {
+//             console.warn("Old avatar not found or already deleted.");
+//         }
+//     }
+
+//     const updatedUser = await User.findById(userId).select("-password");
+
+//     return res
+//         .status(200)
+//         .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
+// });
+
 const updateUserAvatar = asyncHandler(async (req, res) => {
-    const avatarLocalPath = req.file?.path;
-    if (!avatarLocalPath) throw new ApiError(400, "Avatar file is required");
+  const avatarLocalPath = req.file?.path;
+  if (!avatarLocalPath) throw new ApiError(400, "Avatar file is required");
 
-    // Upload new avatar to Cloudinary
-    const avatar = await uploadOnCloudinary(avatarLocalPath);
-    if (!avatar)
-        throw new ApiError(500, "Error uploading avatar to Cloudinary");
+  const avatar = await uploadOnCloudinary(avatarLocalPath);
+  if (!avatar) throw new ApiError(500, "Error uploading avatar");
 
-    const userId = req.user?._id;
-    const user = await User.findById(userId);
-    if (!user) throw new ApiError(404, "User not found");
+  const userId = req.user?._id;
+  const user = await User.findById(userId);
+  if (!user) throw new ApiError(404, "User not found");
 
-    const oldAvatarUrl = user.avatar;
+  const oldAvatarUrl = user.avatar;
 
-    // Update user avatar
-    user.avatar = avatar.url;
-    await user.save();
+  user.avatar = avatar.url;
+  await user.save();
 
-    // Delete old avatar from Cloudinary if exists
-    if (oldAvatarUrl) {
-        const result = await deleteFromCloudinary(oldAvatarUrl);
-        if (result?.result === "ok") {
-            console.log("Old avatar deleted from Cloudinary");
-        } else {
-            console.warn("Old avatar not found or already deleted.");
-        }
-    }
+  if (oldAvatarUrl) {
+    await deleteFromCloudinary(oldAvatarUrl).catch(() => {});
+  }
 
-    const updatedUser = await User.findById(userId).select("-password");
+  const updatedUser = await User.findById(userId).select("-password");
 
-    return res
-        .status(200)
-        .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
+  // ⭐ FIX — regenerate login cookies
+  const { accessToken, refreshToken } =
+    await generateAccessAndRefreshToken(updatedUser._id);
+
+  const cookieOptions = {
+    httpOnly: true,
+    secure: true,
+    sameSite: "none",
+    path: "/"
+  };
+
+  return res
+    .status(200)
+    .cookie("accessToken", accessToken, cookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
+    .json(
+      new ApiResponse(200, updatedUser, "Avatar updated successfully")
+    );
 });
+
 
 // Delete Account Controller (with Cloudinary cleanup)
 const deleteAccount = asyncHandler(async (req, res) => {
