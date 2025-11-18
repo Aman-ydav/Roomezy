@@ -46,7 +46,7 @@ export default function ChatPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-background">
+      <div className="min-h-screen flex items-center justify-center bg-background pt-16">
         <p className="text-sm text-muted-foreground">
           Please login to use chat.
         </p>
@@ -56,12 +56,12 @@ export default function ChatPage() {
 
   if (error) {
     return (
-      <div className="h-screen flex flex-col bg-background">
-        <div className="flex items-center gap-4 px-6 py-4 border-b border-border bg-card/95 backdrop-blur-sm shadow-sm">
-          <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-muted/20 transition-colors">
-            <ArrowLeft size={20} className="text-foreground" />
+      <div className="min-h-screen flex flex-col bg-background pt-16">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card">
+          <button onClick={() => navigate(-1)} className="mr-2">
+            <ArrowLeft size={18} />
           </button>
-          <p className="text-base font-semibold text-foreground">Chat</p>
+          <p className="text-sm font-semibold">Chat</p>
         </div>
         <div className="flex-1 flex items-center justify-center text-sm text-red-500">
           {error}
@@ -72,12 +72,12 @@ export default function ChatPage() {
 
   if (!conversationId || !receiver)
     return (
-      <div className="h-screen flex flex-col bg-background">
-        <div className="flex items-center gap-4 px-6 py-4 border-b border-border bg-card/95 backdrop-blur-sm shadow-sm">
-          <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-muted/20 transition-colors md:hidden">
-            <ArrowLeft size={20} className="text-foreground" />
+      <div className="min-h-screen flex flex-col bg-background pt-16">
+        <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card">
+          <button onClick={() => navigate(-1)} className="mr-2">
+            <ArrowLeft size={18} />
           </button>
-          <p className="text-base font-semibold text-foreground">Chat</p>
+          <p className="text-sm font-semibold">Chat</p>
         </div>
         <div className="flex-1 flex items-center justify-center text-sm text-muted-foreground">
           Loading chat...
@@ -86,11 +86,11 @@ export default function ChatPage() {
     );
 
   return (
-    <div className="h-screen flex flex-col bg-background">
+    <div className="min-h-screen flex flex-col bg-background pt-16">
       {/* Top Header */}
-      <div className="flex items-center gap-4 px-6 py-4 border-b border-border bg-card/95 backdrop-blur-sm shadow-sm">
-        <button onClick={() => navigate(-1)} className="p-2 rounded-full hover:bg-muted/20 transition-colors md:hidden">
-          <ArrowLeft size={20} className="text-foreground" />
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card">
+        <button onClick={() => navigate(-1)} className="mr-2 md:hidden">
+          <ArrowLeft size={18} />
         </button>
         <img
           src={
@@ -99,12 +99,12 @@ export default function ChatPage() {
               receiver.userName || "User"
             )}`
           }
-          className="w-12 h-12 rounded-full border border-border object-cover shadow-sm"
+          className="w-10 h-10 rounded-full border border-border object-cover"
           alt={receiver.userName}
         />
         <div>
-          <p className="text-base font-semibold text-foreground">{receiver.userName}</p>
-          <p className="text-xs text-green-600 font-medium">Online</p>
+          <p className="text-sm font-semibold">{receiver.userName}</p>
+          <p className="text-xs text-green-600">Online</p>
         </div>
       </div>
 

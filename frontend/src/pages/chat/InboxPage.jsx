@@ -156,9 +156,9 @@ export default function InboxPage() {
 
       {/* MOBILE CHAT OVERLAY */}
       {isMobile && activeConversation && partner && (
-        <div className="fixed inset-0 z-40 bg-background flex flex-col overflow-hidden md:hidden shadow-lg">
+        <div className="fixed top-14 left-0 rigth-0 inset-0 z-10 bg-background flex flex-col overflow-hidden md:hidden shadow-lg">
           {/* FIXED HEADER MOBILE */}
-          <div className="px-6 py-4 border-b border-border bg-card/95 backdrop-blur-sm shrink-0 flex items-center gap-4 shadow-sm">
+          <div className="px-6 py-5 border-b border-border bg-card/95 backdrop-blur-sm shrink-0 flex items-center gap-4 shadow-sm">
             <button onClick={() => setActiveConversation(null)} className="p-1 rounded-full hover:bg-muted/20">
               <ArrowLeft size={20} className="text-foreground" />
             </button>
