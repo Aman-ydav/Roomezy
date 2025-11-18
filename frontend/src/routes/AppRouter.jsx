@@ -24,13 +24,11 @@ import ListRoom from "@/pages/About/ListRoom";
 import FindRoom from "@/pages/About/FindRoom";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import ChatPage from "@/pages/chat/ChatPage";
-import SidebarCoachmark from "@/components/ui/SidebarCoachmark";
+import InboxPage from "@/pages/chat/InboxPage";
 
 export default function AppRouter() {
   return (
     <>
-
-    <ScrollToTop/>
     <ScrollToTopOnRoute />
     <Routes>
       <Route
@@ -62,7 +60,8 @@ export default function AppRouter() {
           <Route path="/my-posts" element={<MyPosts />} />
           <Route path="/post/:id/edit" element={<EditPost />} />
           <Route path="/chat/:id" element={<ChatPage />} />
-          <Route path="/inbox" element={<Inbox />} />
+          <Route path="/inbox" element={<InboxPage />} />
+
       </Route>
       </Route>
     </Routes>

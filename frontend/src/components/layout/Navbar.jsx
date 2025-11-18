@@ -54,13 +54,13 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen,sidebarIconRef  
   return (
     <nav
       className="
-      fixed top-0 left-0 right-0 z-50 
+      fixed top-0 left-0 right-0 z-1400 
       backdrop-blur-2xl border-b border-border 
       bg-card/80 text-foreground transition-all duration-300
     "
     >
       {/* ---------------- Desktop Navbar ---------------- */}
-      <div className="hidden md:flex max-w-9xl justify-between items-center px-2 py-2 md:px-8">
+      <div className="hidden md:flex max-w-9xl justify-between items-center px-2 md:py-3 md:px-8 py-4 lg:py-3">
         <div className="flex items-center gap-3">
           {/* Sidebar Toggle */}
           <div

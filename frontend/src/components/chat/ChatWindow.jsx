@@ -1,48 +1,70 @@
-import React, { useEffect } from "react";
+import { useEffect, useRef } from "react";
 import { useChat } from "@/hooks/useChat";
 import MessageInput from "./MessageInput";
-import { getConversations } from "@/utils/chatApi";
-import { setConversations } from "@/features/chat/chatSlice";
-import { useDispatch } from "react-redux";
 
 export default function ChatWindow({ user, receiver, conversationId }) {
-  const dispatch = useDispatch();
-  const { messages, sendMessage, typing, sendTyping, stopTyping, markRead } =
-    useChat(conversationId, user, receiver);
+  const {
+    messages,
+    sendMessage,
+    typing,
+    sendTyping,
+    stopTyping,
+    markRead,
+    getSenderId,
+  } = useChat(conversationId, user, receiver);
+
+  const bottomRef = useRef(null);
 
   useEffect(() => {
-    markRead();
-  }, [conversationId]);
+    if (conversationId) {
+      markRead();
+    }
+  }, [conversationId, markRead]);
 
   useEffect(() => {
-    getConversations(user._id).then((res) => {
-      dispatch(setConversations(res.data.data));
-    });
-  }, []);
+    bottomRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, typing]);
 
   return (
-    <div className="h-full flex flex-col">
-      <div className="flex-1 overflow-auto p-4">
-        {messages.map((msg) => (
-          <div
-            key={msg._id || Math.random()}
-            className={`${
-              msg.sender?.toString() === user._id?.toString()
-                ? "text-right"
-                : "text-left"
-            } mb-3`}
-          >
-            <span className="px-3 py-2 bg-gray-200 rounded-xl inline-block">
-              {msg.text}
-            </span>
-          </div>
-        ))}
+   <div className="h-full flex flex-col bg-background border-l overflow-hidden">
+
+      {/* Messages area */}
+     <div className="flex-1 overflow-y-auto p-3 space-y-2 scrollbar-thin scrollbar-thumb-gray-400 scrollbar-track-transparent hover:scrollbar-thumb-gray-500">
+
+        {messages.map((msg) => {
+          const senderId = getSenderId(msg);
+          const isMe = String(senderId) === String(user._id);
+
+          return (
+            <div
+              key={msg._id || `${senderId}-${msg.createdAt}-${Math.random()}`}
+              className={`flex mb-1 ${
+                isMe ? "justify-end" : "justify-start"
+              }`}
+            >
+              <div
+                className={`max-w-[75%] px-3 py-2 text-sm rounded-lg border ${
+                  isMe
+                    ? "bg-primary text-white border-primary"
+                    : "bg-card text-foreground border-border"
+                }`}
+              >
+                {msg.text}
+              </div>
+            </div>
+          );
+        })}
 
         {typing && (
-          <div className="text-left text-sm text-gray-500">typing...</div>
+          <div className="text-xs text-muted-foreground mt-2">
+            {receiver?.userName || "User"} is typing…
+          </div>
         )}
+
+        <div ref={bottomRef} />
       </div>
 
+      {/* Input */}
       <MessageInput
         onSend={sendMessage}
         onTyping={sendTyping}

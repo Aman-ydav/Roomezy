@@ -9,7 +9,7 @@ export default function SidebarCoachmark({ targetRef }) {
     const seen = localStorage.getItem("seenSidebarCoachmark");
     if (seen) return;
 
-    // 🚫 DO NOT RUN ON DESKTOP
+    // DO NOT RUN ON DESKTOP
     if (window.innerWidth >= 1024) return;
 
     if (targetRef?.current) {

@@ -3,7 +3,7 @@ import { createSlice } from "@reduxjs/toolkit";
 const chatSlice = createSlice({
   name: "chat",
   initialState: {
-    conversations: [],   // inbox list
+    conversations: [],
   },
   reducers: {
     setConversations(state, action) {
@@ -11,22 +11,28 @@ const chatSlice = createSlice({
     },
 
     newMessageAlert(state, action) {
-      const { conversationId, from } = action.payload;
+      const { conversationId, from, lastMessage } = action.payload;
 
-      const convo = state.conversations.find(
-        (c) => c._id === conversationId
-      );
+      const convo = state.conversations.find((c) => c._id === conversationId);
 
       if (convo) {
-        // update last message preview
+        convo.lastMessage = lastMessage;
         convo.lastMessageSender = from;
-        convo.unreadCount[from] =
-          (convo.unreadCount[from] || 0) + 1;
 
-        // move to top
+        // Unread count only for the OTHER person
+        // Not for sender
+        if (from !== state.currentUserId) {
+          convo.unreadCount = {
+            ...convo.unreadCount,
+            [state.currentUserId]:
+              (convo.unreadCount[state.currentUserId] || 0) + 1,
+          };
+        }
+
+        // Move conversation to top
         state.conversations = [
           convo,
-          ...state.conversations.filter((x) => x._id !== convo._id)
+          ...state.conversations.filter((x) => x._id !== conversationId),
         ];
       }
     },

@@ -42,24 +42,32 @@ io.on("connection", (socket) => {
     socket.on("send-message", async (data) => {
         const { conversationId, senderId, receiverId, text } = data;
 
-        // Emit to receiver if they are online
-        const receiverSocketId = onlineUsers.get(receiverId);
-
-        // Emit to specific conversation room
-        io.to(conversationId).emit("receive-message", {
+        // SEND TO EVERYONE EXCEPT SENDER
+        socket.to(conversationId).emit("receive-message", {
             conversationId,
-            sender: senderId, // FIXED
-            receiver: receiverId, // optional but correct
+            sender: senderId,
+            receiver: receiverId,
             text,
             read: false,
             createdAt: new Date(),
         });
 
-        // If receiver is online, inform them about new unread count
+        // If receiver is online, notify them
+        const receiverSocketId = onlineUsers.get(receiverId);
         if (receiverSocketId) {
             io.to(receiverSocketId).emit("new-message-alert", {
                 conversationId,
                 from: senderId,
+                lastMessage: text,
+            });
+        }
+
+        const senderSocketId = onlineUsers.get(senderId);
+        if (senderSocketId) {
+            io.to(senderSocketId).emit("new-message-alert", {
+                conversationId,
+                from: senderId,
+                lastMessage: text,
             });
         }
     });
