@@ -66,7 +66,6 @@ export default function InboxPage() {
 
       const convo = res.data.data;
 
-      // ensure it's in redux list (simple merge)
       const exists = conversations.find((c) => c._id === convo._id);
       if (!exists) {
         dispatch(setConversations([convo, ...conversations]));
@@ -74,8 +73,8 @@ export default function InboxPage() {
 
       setActiveConversation(convo);
     })();
-  }, [fromUserId, user]); // eslint-disable-line
-
+  }, [fromUserId, user, conversations]); 
+  
   // For simple devices we detect width with CSS: mobile shows one panel at a time
   const isMobile = window.innerWidth < 768;
 
@@ -133,7 +132,9 @@ export default function InboxPage() {
                 className="w-11 h-11 rounded-full border border-border object-cover shadow-sm"
               />
               <div>
-                <p className="text-base font-semibold text-foreground">{partner.userName}</p>
+                <p className="text-base font-semibold text-foreground">
+                  {partner.userName}
+                </p>
                 <p className="text-xs text-green-600 font-medium">Online</p>
               </div>
             </div>
@@ -159,7 +160,10 @@ export default function InboxPage() {
         <div className="fixed top-14 left-0 rigth-0 inset-0 z-10 bg-background flex flex-col overflow-hidden md:hidden shadow-lg">
           {/* FIXED HEADER MOBILE */}
           <div className="px-6 py-5 border-b border-border bg-card/95 backdrop-blur-sm shrink-0 flex items-center gap-4 shadow-sm">
-            <button onClick={() => setActiveConversation(null)} className="p-1 rounded-full hover:bg-muted/20">
+            <button
+              onClick={() => setActiveConversation(null)}
+              className="p-1 rounded-full hover:bg-muted/20"
+            >
               <ArrowLeft size={20} className="text-foreground" />
             </button>
             <img
@@ -170,7 +174,9 @@ export default function InboxPage() {
               className="w-10 h-10 rounded-full border border-border object-cover shadow-sm"
             />
             <div>
-              <p className="text-sm font-semibold text-foreground">{partner.userName}</p>
+              <p className="text-sm font-semibold text-foreground">
+                {partner.userName}
+              </p>
               <p className="text-xs text-green-600 font-medium">Online</p>
             </div>
           </div>
