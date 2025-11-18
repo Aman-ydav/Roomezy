@@ -28,75 +28,74 @@ const generateAccessAndRefreshToken = async (userId) => {
 };
 
 const registerUser = asyncHandler(async (req, res, next) => {
-  const {
-    userName,
-    email,
-    password,
-    age,
-    phone,
-    gender,
-    preferredLocations,
-    accountType, // NEW
-  } = req.body;
+    const {
+        userName,
+        email,
+        password,
+        age,
+        phone,
+        gender,
+        preferredLocations,
+        accountType, // NEW
+    } = req.body;
 
-  // validate required fields
-  const requiredFields = [userName, email, password, gender, accountType];
+    // validate required fields
+    const requiredFields = [userName, email, password, gender, accountType];
 
-  if (
-    requiredFields.some((f) => !f || String(f).trim() === "") ||
-    !age // ensure age is present
-  ) {
-    cleanupLocalFiles(req.files);
-    throw new ApiError(
-      400,
-      "Required fields missing: userName, email, password, age, gender, accountType"
+    if (
+        requiredFields.some((f) => !f || String(f).trim() === "") ||
+        !age // ensure age is present
+    ) {
+        cleanupLocalFiles(req.files);
+        throw new ApiError(
+            400,
+            "Required fields missing: userName, email, password, age, gender, accountType"
+        );
+    }
+
+    // Check if user already exists
+    const existedUser = await User.findOne({ $or: [{ email }] });
+    if (existedUser) {
+        cleanupLocalFiles(req.files);
+        throw new ApiError(409, "User already exists with this email");
+    }
+
+    // if avatar is there then
+    let avatarUrl = "";
+    if (req.file && req.file.path) {
+        avatarUrl = req.file.path;
+    }
+
+    const avatar = await uploadOnCloudinary(avatarUrl);
+
+    // Create user in DB
+    const newUser = await User.create({
+        userName: userName.toLowerCase(),
+        email,
+        password,
+        age,
+        phone,
+        avatar: avatar?.url,
+        gender,
+        accountType, // NEW
+        preferredLocations: preferredLocations ? preferredLocations : [],
+    });
+
+    // Fetch user without sensitive fields
+    const createdUser = await User.findById(newUser._id).select(
+        "-password -refreshToken"
     );
-  }
+    if (!createdUser) {
+        cleanupLocalFiles(req.files);
+        throw new ApiError(500, "User registration failed");
+    }
 
-  // Check if user already exists
-  const existedUser = await User.findOne({ $or: [{ email }] });
-  if (existedUser) {
-    cleanupLocalFiles(req.files);
-    throw new ApiError(409, "User already exists with this email");
-  }
-
-  // if avatar is there then
-  let avatarUrl = "";
-  if (req.file && req.file.path) {
-    avatarUrl = req.file.path;
-  }
-
-  const avatar = await uploadOnCloudinary(avatarUrl);
-
-  // Create user in DB
-  const newUser = await User.create({
-    userName: userName.toLowerCase(),
-    email,
-    password,
-    age,
-    phone,
-    avatar: avatar?.url,
-    gender,
-    accountType, // NEW
-    preferredLocations: preferredLocations ? preferredLocations : [],
-  });
-
-  // Fetch user without sensitive fields
-  const createdUser = await User.findById(newUser._id).select(
-    "-password -refreshToken"
-  );
-  if (!createdUser) {
-    cleanupLocalFiles(req.files);
-    throw new ApiError(500, "User registration failed");
-  }
-
-  return res
-    .status(201)
-    .json(
-      new ApiResponse(201, createdUser, "User registered successfully")
-    );
+    return res
+        .status(201)
+        .json(
+            new ApiResponse(201, createdUser, "User registered successfully")
+        );
 });
-
 
 const loginUser = asyncHandler(async (req, res, next) => {
     // get the data from frontend
@@ -143,7 +142,9 @@ const loginUser = asyncHandler(async (req, res, next) => {
     const cookieOptions = {
         httpOnly: true,
         secure: true,
-        sameSite: "none", // allows cross-origin cookies
+        sameSite: "none",
+        path: "/", // REQUIRED FOR SAFARI
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     };
 
     return res
@@ -171,7 +172,9 @@ const logoutUser = asyncHandler(async (req, res, next) => {
     const cookieOptions = {
         httpOnly: true,
         secure: true,
-        sameSite: "none", // allows cross-origin cookies
+        sameSite: "none",
+        path: "/", // REQUIRED FOR SAFARI
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
     };
 
     return res
@@ -217,7 +220,9 @@ const refreshAccessToken = asyncHandler(async (req, res, next) => {
         const cookieOptions = {
             httpOnly: true,
             secure: true,
-            sameSite: "none", // allows cross-origin cookies
+            sameSite: "none",
+            path: "/", // REQUIRED FOR SAFARI
+            maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
         };
 
         return res
@@ -256,37 +261,36 @@ const refreshAccessToken = asyncHandler(async (req, res, next) => {
 // });
 
 const changeCurrentPassword = asyncHandler(async (req, res, next) => {
-  const { oldPassword, newPassword } = req.body;
+    const { oldPassword, newPassword } = req.body;
 
-  const user = await User.findById(req.user?._id);
-  if (!user) throw new ApiError(404, "User not found");
+    const user = await User.findById(req.user?._id);
+    if (!user) throw new ApiError(404, "User not found");
 
-  const isPasswordValid = await user.isPasswordCorrect(oldPassword);
-  if (!isPasswordValid) throw new ApiError(401, "Old password is incorrect");
+    const isPasswordValid = await user.isPasswordCorrect(oldPassword);
+    if (!isPasswordValid) throw new ApiError(401, "Old password is incorrect");
 
-  user.password = newPassword;
-  await user.save();
+    user.password = newPassword;
+    await user.save();
 
-  // ⭐ FIX — regenerate tokens after password change
-  const { accessToken, refreshToken } =
-    await generateAccessAndRefreshToken(user._id);
-
-  const cookieOptions = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    path: "/"
-  };
-
-  return res
-    .status(200)
-    .cookie("accessToken", accessToken, cookieOptions)
-    .cookie("refreshToken", refreshToken, cookieOptions)
-    .json(
-      new ApiResponse(200, {}, "Password changed successfully")
+    // FIX — regenerate tokens after password change
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+        user._id
     );
-});
 
+    const cookieOptions = {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/", // REQUIRED FOR SAFARI
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    };
+
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, cookieOptions)
+        .cookie("refreshToken", refreshToken, cookieOptions)
+        .json(new ApiResponse(200, {}, "Password changed successfully"));
+});
 
 const forgotPassword = asyncHandler(async (req, res) => {
     const { email } = req.body;
@@ -409,69 +413,69 @@ const getCurrentUser = asyncHandler(async (req, res, next) => {
 //         );
 // });
 
-
 const updateAccountDetails = asyncHandler(async (req, res, next) => {
-  const { userName, age, gender, preferredLocations } = req.body;
+    const { userName, age, gender, preferredLocations } = req.body;
 
-  if (
-    !userName &&
-    !age &&
-    !gender &&
-    (!preferredLocations || preferredLocations.length === 0)
-  ) {
-    throw new ApiError(
-      400,
-      "At least one field (name, age, gender, or preferred locations) is required"
-    );
-  }
-
-  const updateFields = {};
-
-  if (userName?.trim()) updateFields.userName = userName.trim();
-  if (age) updateFields.age = age;
-  if (gender) updateFields.gender = gender;
-
-  if (preferredLocations) {
-    if (typeof preferredLocations === "string") {
-      updateFields.preferredLocations = [preferredLocations];
-    } else if (Array.isArray(preferredLocations)) {
-      updateFields.preferredLocations = preferredLocations.filter(
-        (loc) => typeof loc === "string" && loc.trim().length > 0
-      );
+    if (
+        !userName &&
+        !age &&
+        !gender &&
+        (!preferredLocations || preferredLocations.length === 0)
+    ) {
+        throw new ApiError(
+            400,
+            "At least one field (name, age, gender, or preferred locations) is required"
+        );
     }
-  }
 
-  const updatedUser = await User.findByIdAndUpdate(
-    req.user._id,
-    { $set: updateFields },
-    { new: true }
-  ).select("-password");
+    const updateFields = {};
 
-  if (!updatedUser) throw new ApiError(404, "User not found");
+    if (userName?.trim()) updateFields.userName = userName.trim();
+    if (age) updateFields.age = age;
+    if (gender) updateFields.gender = gender;
 
-  // ⭐ REGENERATE TOKENS AFTER UPDATE
-  const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
-    updatedUser._id
-  );
+    if (preferredLocations) {
+        if (typeof preferredLocations === "string") {
+            updateFields.preferredLocations = [preferredLocations];
+        } else if (Array.isArray(preferredLocations)) {
+            updateFields.preferredLocations = preferredLocations.filter(
+                (loc) => typeof loc === "string" && loc.trim().length > 0
+            );
+        }
+    }
 
-  const cookieOptions = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    path: "/",
-  };
+    const updatedUser = await User.findByIdAndUpdate(
+        req.user._id,
+        { $set: updateFields },
+        { new: true }
+    ).select("-password");
 
-  return res
-    .status(200)
-    .cookie("accessToken", accessToken, cookieOptions)
-    .cookie("refreshToken", refreshToken, cookieOptions)
-    .json(
-      new ApiResponse(
-        200,
-        updatedUser,
-        "Account details updated successfully"
-      )
+    if (!updatedUser) throw new ApiError(404, "User not found");
+
+    // ⭐ REGENERATE TOKENS AFTER UPDATE
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+        updatedUser._id
     );
+
+    const cookieOptions = {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/", // REQUIRED FOR SAFARI
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    };
+
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, cookieOptions)
+        .cookie("refreshToken", refreshToken, cookieOptions)
+        .json(
+            new ApiResponse(
+                200,
+                updatedUser,
+                "Account details updated successfully"
+            )
+        );
 });
 
 const getUserProfileById = asyncHandler(async (req, res) => {
@@ -519,47 +523,46 @@ const getUserProfileById = asyncHandler(async (req, res) => {
 // });
 
 const updateUserAvatar = asyncHandler(async (req, res) => {
-  const avatarLocalPath = req.file?.path;
-  if (!avatarLocalPath) throw new ApiError(400, "Avatar file is required");
+    const avatarLocalPath = req.file?.path;
+    if (!avatarLocalPath) throw new ApiError(400, "Avatar file is required");
 
-  const avatar = await uploadOnCloudinary(avatarLocalPath);
-  if (!avatar) throw new ApiError(500, "Error uploading avatar");
+    const avatar = await uploadOnCloudinary(avatarLocalPath);
+    if (!avatar) throw new ApiError(500, "Error uploading avatar");
 
-  const userId = req.user?._id;
-  const user = await User.findById(userId);
-  if (!user) throw new ApiError(404, "User not found");
+    const userId = req.user?._id;
+    const user = await User.findById(userId);
+    if (!user) throw new ApiError(404, "User not found");
 
-  const oldAvatarUrl = user.avatar;
+    const oldAvatarUrl = user.avatar;
 
-  user.avatar = avatar.url;
-  await user.save();
+    user.avatar = avatar.url;
+    await user.save();
 
-  if (oldAvatarUrl) {
-    await deleteFromCloudinary(oldAvatarUrl).catch(() => {});
-  }
+    if (oldAvatarUrl) {
+        await deleteFromCloudinary(oldAvatarUrl).catch(() => {});
+    }
 
-  const updatedUser = await User.findById(userId).select("-password");
+    const updatedUser = await User.findById(userId).select("-password");
 
-  // ⭐ FIX — regenerate login cookies
-  const { accessToken, refreshToken } =
-    await generateAccessAndRefreshToken(updatedUser._id);
-
-  const cookieOptions = {
-    httpOnly: true,
-    secure: true,
-    sameSite: "none",
-    path: "/"
-  };
-
-  return res
-    .status(200)
-    .cookie("accessToken", accessToken, cookieOptions)
-    .cookie("refreshToken", refreshToken, cookieOptions)
-    .json(
-      new ApiResponse(200, updatedUser, "Avatar updated successfully")
+    // ⭐ FIX — regenerate login cookies
+    const { accessToken, refreshToken } = await generateAccessAndRefreshToken(
+        updatedUser._id
     );
-});
 
+    const cookieOptions = {
+        httpOnly: true,
+        secure: true,
+        sameSite: "none",
+        path: "/", // REQUIRED FOR SAFARI
+        maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+    };
+
+    return res
+        .status(200)
+        .cookie("accessToken", accessToken, cookieOptions)
+        .cookie("refreshToken", refreshToken, cookieOptions)
+        .json(new ApiResponse(200, updatedUser, "Avatar updated successfully"));
+});
 
 // Delete Account Controller (with Cloudinary cleanup)
 const deleteAccount = asyncHandler(async (req, res) => {

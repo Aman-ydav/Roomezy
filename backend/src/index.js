@@ -16,8 +16,18 @@ const server = http.createServer(app);
 // Attach socket.io to server
 const io = new Server(server, {
     cors: {
-        origin: "*",
-        methods: ["GET", "POST"],
+        origin: [
+      "https://roomezy.vercel.app",
+      "http://localhost:5173",
+    ],
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+        credentials: true,
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+            "X-Requested-With",
+            "Accept",
+        ],
     },
 });
 

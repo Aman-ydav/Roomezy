@@ -5,4 +5,9 @@ const api = axios.create({
   withCredentials: true, // cookies/JWT
 });
 
+api.defaults.headers.common["Content-Type"] = "application/json";
+api.defaults.withCredentials = true;
+
+axios.defaults.withCredentials = true;
+
 export default api;
