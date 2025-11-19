@@ -6,6 +6,8 @@ import "./config.js";
 
 const app = express();
 
+app.set("trust proxy", 1);
+
 
 const allowedOrigins = process.env.CORS_ALLOWED_ORIGINS
   ? process.env.CORS_ALLOWED_ORIGINS.split(",").map((origin) => origin.trim())
@@ -26,6 +28,14 @@ app.use(
       }
     },
     credentials: true,
+    exposedHeaders: ["set-cookie"],
+        allowedHeaders: [
+            "Content-Type",
+            "Authorization",
+            "X-Requested-With",
+            "Accept",
+        ],
+        methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
   })
 );
 

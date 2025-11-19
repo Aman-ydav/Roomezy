@@ -22,6 +22,7 @@ const io = new Server(server, {
     ],
         methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
         credentials: true,
+         exposedHeaders: ["set-cookie"],
         allowedHeaders: [
             "Content-Type",
             "Authorization",
