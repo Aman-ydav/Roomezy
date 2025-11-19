@@ -34,20 +34,33 @@ export const loginUser = createAsyncThunk(
     try {
       const res = await api.post("/users/login", data, { withCredentials: true });
 
-      const user = res.data?.data?.user;
-      if (!user) throw new Error("No user returned from backend");
+      const payload = res.data?.data;
+      const user = payload?.user;
+      const accessToken = payload?.accessToken;
+      const refreshToken = payload?.refreshToken;
 
+      if (!user || !accessToken) {
+        throw new Error("Login response missing user or tokens");
+      }
+
+      // Save user
       localStorage.setItem("user", JSON.stringify(user));
+
+      // Save tokens (for axios Authorization header)
+      localStorage.setItem(
+        "roomezy_tokens",
+        JSON.stringify({ accessToken, refreshToken })
+      );
+
       return user;
-    } catch (err) {
-      const message =
-        err.response?.data?.message ||
-        err.message ||
-        "Something went wrong. Please try again.";
-      return rejectWithValue(message);
+    } catch (error) {
+      return rejectWithValue(
+        error.response?.data?.message || "Login failed"
+      );
     }
   }
 );
+
 
 export const fetchCurrentUser = createAsyncThunk(
   "auth/fetchCurrentUser",
@@ -134,12 +147,15 @@ const authSlice = createSlice({
       state.user = action.payload;
     },
 
+    // in forceLogout reducer (you already have it)
     forceLogout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
       state.error = null;
       localStorage.removeItem("user");
+      localStorage.removeItem("roomezy_tokens"); // 👈 add this
     },
+
   },
   extraReducers: (builder) => {
     builder
