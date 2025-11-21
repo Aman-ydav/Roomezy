@@ -152,7 +152,6 @@ html, body {
   }
 }
 
-/* Hide scrollbar for all elements with class .scrollbar-hide */
 .scrollbar-hide::-webkit-scrollbar {
   display: none;
 }
@@ -184,7 +183,7 @@ body {
   scroll-behavior: smooth;
 }
 
-/* Custom Scrollbar */
+
 ::-webkit-scrollbar {
   width: 4px;
 }
