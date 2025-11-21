@@ -2,20 +2,20 @@ import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/utils/axiosInterceptor";
 import { toast } from "sonner";
 
-
+// ------------------------- REGISTER -------------------------
 export const registerUser = createAsyncThunk(
   "auth/registerUser",
   async (formData, thunkAPI) => {
     try {
-      // Send FormData directly
       const res = await api.post("/users/register", formData, {
-        // Don't set Content-Type manually — axios will set it with boundary
         withCredentials: true,
       });
 
-      // Optional auto-login
       const email = formData.get ? formData.get("email") : formData.email;
-      const password = formData.get ? formData.get("password") : formData.password;
+      const password = formData.get
+        ? formData.get("password")
+        : formData.password;
+
       await thunkAPI.dispatch(loginUser({ email, password }));
 
       return res.data?.data;
@@ -27,12 +27,13 @@ export const registerUser = createAsyncThunk(
   }
 );
 
-
 export const loginUser = createAsyncThunk(
   "auth/loginUser",
   async (data, { rejectWithValue }) => {
     try {
-      const res = await api.post("/users/login", data, { withCredentials: true });
+      const res = await api.post("/users/login", data, {
+        withCredentials: true,
+      });
 
       const payload = res.data?.data;
       const user = payload?.user;
@@ -43,10 +44,8 @@ export const loginUser = createAsyncThunk(
         throw new Error("Login response missing user or tokens");
       }
 
-      // Save user
       localStorage.setItem("user", JSON.stringify(user));
 
-      // Save tokens (for axios Authorization header)
       localStorage.setItem(
         "roomezy_tokens",
         JSON.stringify({ accessToken, refreshToken })
@@ -61,7 +60,6 @@ export const loginUser = createAsyncThunk(
   }
 );
 
-
 export const fetchCurrentUser = createAsyncThunk(
   "auth/fetchCurrentUser",
   async (_, thunkAPI) => {
@@ -69,6 +67,7 @@ export const fetchCurrentUser = createAsyncThunk(
       const res = await api.get("/users/get-current-user", {
         withCredentials: true,
       });
+
       return res.data?.data?.user;
     } catch (error) {
       return thunkAPI.rejectWithValue("Failed to fetch user");
@@ -81,6 +80,7 @@ export const forgotPassword = createAsyncThunk(
   async (email, { rejectWithValue }) => {
     try {
       const { data } = await api.post("/users/forgot-password", { email });
+      toast.success("Reset link sent to email");
       return data;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message || "Error occurred");
@@ -92,10 +92,16 @@ export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async ({ token, password }, { rejectWithValue }) => {
     try {
-      const response = await api.post(`/users/reset-password/${token}`, { password });
-      return response.data;
+      const res = await api.post(`/users/reset-password/${token}`, {
+        password,
+      });
+
+      toast.success("Password reset successfully!");
+      return res.data;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message || "Failed to reset password");
+      return rejectWithValue(
+        err.response?.data?.message || "Failed to reset password"
+      );
     }
   }
 );
@@ -104,12 +110,14 @@ export const logoutUser = createAsyncThunk(
   "auth/logoutUser",
   async (_, thunkAPI) => {
     try {
-      // Clear backend cookies
       await api.post("/users/logout", {}, { withCredentials: true });
 
       // Clear localStorage
       localStorage.removeItem("user");
+      localStorage.removeItem("roomezy_tokens");
+
       toast.success("Logged out successfully!");
+
       return true;
     } catch (error) {
       return thunkAPI.rejectWithValue(error.message);
@@ -118,10 +126,8 @@ export const logoutUser = createAsyncThunk(
 );
 
 export const updateUserData = (userData) => (dispatch) => {
-  dispatch({
-    type: "auth/updateUser",
-    payload: userData,
-  });
+  dispatch(updateUser(userData));
+
   if (userData) {
     localStorage.setItem("user", JSON.stringify(userData));
   } else {
@@ -135,45 +141,53 @@ const initialState = {
   user: savedUser ? JSON.parse(savedUser) : null,
   loading: false,
   error: null,
-  status: "idle",
   isAuthenticated: !!savedUser,
 };
 
 const authSlice = createSlice({
   name: "auth",
   initialState,
+
   reducers: {
+    // Update user after profile/avatar updates
     updateUser: (state, action) => {
       state.user = action.payload;
+
+      if (action.payload) {
+        localStorage.setItem("user", JSON.stringify(action.payload));
+      } else {
+        localStorage.removeItem("user");
+      }
     },
 
-    // in forceLogout reducer (you already have it)
+    // Force logout (used in axios interceptor)
     forceLogout: (state) => {
       state.user = null;
       state.isAuthenticated = false;
       state.error = null;
-      localStorage.removeItem("user");
-      localStorage.removeItem("roomezy_tokens"); // 👈 add this
-    },
 
+      localStorage.removeItem("user");
+      localStorage.removeItem("roomezy_tokens");
+    },
   },
+
   extraReducers: (builder) => {
     builder
-      /* REGISTER */
+      // REGISTER
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
       })
       .addCase(registerUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
-        state.isAuthenticated = true;
+        state.user = action.payload || state.user;
+        state.isAuthenticated = !!state.user;
       })
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
       })
 
-      /* LOGIN */
+      // LOGIN
       .addCase(loginUser.pending, (state) => {
         state.loading = true;
       })
@@ -187,7 +201,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* LOGOUT */
+      // LOGOUT
       .addCase(logoutUser.pending, (state) => {
         state.loading = true;
       })
@@ -201,7 +215,7 @@ const authSlice = createSlice({
         state.error = action.payload;
       })
 
-      /* FETCH CURRENT USER */
+      // FETCH CURRENT USER
       .addCase(fetchCurrentUser.pending, (state) => {
         state.loading = true;
       })
@@ -216,7 +230,7 @@ const authSlice = createSlice({
         state.isAuthenticated = false;
       })
 
-      /* PASSWORD RESET / FORGOT */
+      // FORGOT / RESET
       .addCase(forgotPassword.pending, (state) => {
         state.loading = true;
       })

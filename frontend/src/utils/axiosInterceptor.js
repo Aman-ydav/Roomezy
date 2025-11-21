@@ -1,4 +1,3 @@
-// src/utils/axiosInterceptor.js
 import api from "./api";
 import { store } from "@/app/store";
 import { forceLogout } from "@/features/auth/authSlice";
@@ -6,16 +5,16 @@ import { toast } from "sonner";
 
 console.log("Interceptor file loaded!");
 
-// ✅ REQUEST INTERCEPTOR — attach Authorization header
+// REQUEST INTERCEPTOR
 api.interceptors.request.use(
   (config) => {
+    // Read tokens from localStorage
     try {
       const raw = localStorage.getItem("roomezy_tokens");
       if (raw) {
         const { accessToken } = JSON.parse(raw);
         if (accessToken) {
           config.headers = config.headers || {};
-          // Only set if not already provided manually
           if (!config.headers.Authorization) {
             config.headers.Authorization = `Bearer ${accessToken}`;
           }
@@ -25,23 +24,21 @@ api.interceptors.request.use(
       console.warn("Failed to read tokens from localStorage", e);
     }
 
-    // keep sending cookies too (for refresh, etc.)
-    config.withCredentials = true;
+    config.withCredentials = true; // keep sending cookies
     return config;
   },
   (error) => Promise.reject(error)
 );
 
-// ✅ RESPONSE INTERCEPTOR — handle 401
+// RESPONSE INTERCEPTOR
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
     const status = error.response?.status;
-    const message = error.response?.data?.message?.toLowerCase() || "";
 
-    console.log("Interceptor caught an error:", status, message);
+    console.log("Interceptor caught an error:", status);
 
-    // You can either check message or just any 401
+    // simple behaviour: if 401 => force logout
     if (status === 401) {
       store.dispatch(forceLogout());
       toast.info("Session expired. Please log in again.");
