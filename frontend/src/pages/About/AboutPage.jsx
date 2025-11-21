@@ -18,6 +18,8 @@ import {
   Mail,
   Zap,
   MessageCircle,
+  MapPin,
+  Calendar,
 } from "lucide-react";
 
 import ScrollToTop from "@/components/layout/ScrollToTop";
@@ -38,36 +40,36 @@ const AboutPage = () => {
 
   const journey = [
     {
-      phase: "The Spark",
+      phase: "Problem Discovery",
       icon: MessageCircle,
       description:
-        "It all started in college WhatsApp groups — endless messages like 'Need a room near campus' or 'Looking for a roommate who doesn’t smoke.' The chaos, the confusion, the uncertainty… something had to change.",
+        "It all started in college WhatsApp groups — endless messages like 'Need a room near campus' or 'Looking for a roommate who doesn't smoke.' The chaos, the confusion, the uncertainty… something had to change.",
       highlight: "Inspired by real struggles",
-      color: "from-red-600 to-pink-500",
+      color: "bg-gradient-to-br from-red-500 to-pink-600",
     },
     {
-      phase: "The Vision",
+      phase: "Vision Crafting",
       icon: Target,
       description:
         "I wanted Roomezy to be more than a listing app — a trusted space where people could match based on habits, lifestyle, and comfort. A platform that values people, not just properties.",
       highlight: "Building trust in shared living",
-      color: "from-purple-500 to-indigo-600",
+      color: "bg-gradient-to-br from-purple-500 to-indigo-600",
     },
     {
-      phase: "The Creation",
+      phase: "Solution Development",
       icon: Code,
       description:
         "Every feature — from filters to chat to verification — was built based on real user problems. Roomezy was shaped by community stories and powered by modern web technologies.",
       highlight: "Code meets real problems",
-      color: "from-green-500 to-emerald-700",
+      color: "bg-gradient-to-br from-green-500 to-emerald-600",
     },
     {
-      phase: "The Launch & Growth",
-      icon: Rocket,
+      phase: "Community Growth",
+      icon: Users,
       description:
         "From beta feedback to real users finding their roommates — Roomezy grew into a community. A place where safety, clarity, and comfort lead the experience.",
       highlight: "From idea to reality",
-      color: "from-orange-500 to-red-600",
+      color: "bg-gradient-to-br from-orange-500 to-red-600",
     },
   ];
 
@@ -79,245 +81,265 @@ const AboutPage = () => {
     "Tailwind CSS",
     "Framer Motion",
     "Redux Toolkit",
-   
+  ];
+
+  const stats = [
+    { label: "User Focused", value: "100%", icon: Users },
+    { label: "Secure Platform", value: "Verified", icon: Shield },
+    { label: "Modern Tech", value: "Cutting Edge", icon: Zap },
+    { label: "Community Driven", value: "Growing", icon: Heart },
   ];
 
   return (
     <div className="min-h-screen bg-background text-foreground scrollbar-hide">
-      {/* HERO */}
-      <section className="py-16 px-4 bg-linear-to-br from-primary/10 to-accent/10">
-        <div className="max-w-6xl mx-auto text-center">
-          <h1 className="text-4xl md:text-6xl font-bold text-primary mb-4">
-            About Roomezy
+      {/* HERO SECTION - Modern Gradient */}
+      <section className="relative py-20 px-4 overflow-hidden">
+        <div className="absolute inset-0 bg-linear-to-br from-primary/20 via-accent/10 to-primary/5"></div>
+        <div className="absolute top-10 left-10 w-20 h-20 bg-primary/10 rounded-full blur-xl"></div>
+        <div className="absolute bottom-10 right-10 w-32 h-32 bg-accent/10 rounded-full blur-2xl"></div>
+        
+        <div className="max-w-6xl mx-auto text-center relative z-10">
+          <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-6 border border-primary/20">
+            <MapPin className="h-4 w-4 text-primary" />
+            <span className="text-sm font-medium text-primary">About Roomezy</span>
+          </div>
+          
+          <h1 className="text-4xl md:text-6xl font-bold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent mb-6">
+            Redefining Roommate Finding
           </h1>
           <p className="text-muted-foreground text-lg md:text-xl max-w-3xl mx-auto leading-relaxed">
-            Roomezy makes finding roommates simple, safe, and transparent.
-            Built to connect people, not just listings.
+            Where modern technology meets human connection. Roomezy makes finding roommates simple, safe, and transparent.
           </p>
         </div>
       </section>
 
-      {/* CREATOR */}
-      <section className="py-14 px-4">
-        <div className="max-w-3xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-primary mb-3">
-            Meet the Creator
-          </h2>
-          <p className="text-muted-foreground mb-8">The mind behind Roomezy</p>
+      {/* CREATOR SECTION - Modern Card Layout */}
+      <section className="py-16 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-primary mb-3">Meet the Creator</h2>
+            <p className="text-muted-foreground">The visionary behind Roomezy</p>
+          </div>
 
-          {/* Avatar — Mobile optimized */}
-          <div className="relative flex justify-center mb-8">
-            <div className="absolute inset-0 bg-primary/20 rounded-full blur-2xl animate-pulse"></div>
+          <div className="grid md:grid-cols-2 gap-8 items-center">
+            {/* Avatar Section */}
+            <div className="relative flex justify-center">
+              <div className="relative">
+                <div className="absolute -inset-4 bg-linear-to-r from-primary to-accent rounded-3xl blur-lg opacity-30"></div>
+                <Avatar className="w-48 h-48 border-4 border-background shadow-2xl relative z-10">
+                  <AvatarImage
+                    src={developerInfo.avatarUrl}
+                    alt={developerInfo.name}
+                    className="object-cover"
+                  />
+                  <AvatarFallback className="text-2xl bg-muted text-muted-foreground font-bold">
+                    AY
+                  </AvatarFallback>
+                </Avatar>
+              </div>
+            </div>
 
-            <Avatar className="w-40 h-40 md:w-48 md:h-48 border-8 border-primary/30 shadow-2xl relative z-10 rounded-full">
-              <AvatarImage
-                src={developerInfo.avatarUrl}
-                alt={developerInfo.name}
-                className="object-cover"
-              />
-              <AvatarFallback className="text-4xl md:text-5xl bg-muted text-muted-foreground font-bold">
-                AY
-              </AvatarFallback>
-            </Avatar>
+            {/* Info Section */}
+            <div className="space-y-6">
+              <div>
+                <h3 className="text-2xl font-bold">{developerInfo.name}</h3>
+                <p className="text-muted-foreground text-lg mt-1">
+                  {developerInfo.role}
+                </p>
+              </div>
 
-            <div className="absolute -bottom-3 -right-3 bg-accent text-accent-foreground rounded-full p-3 shadow-xl scale-90 md:scale-100">
-              <Smile className="h-6 w-6 md:h-8 md:w-8" />
+              <Card className="bg-card border shadow-lg">
+                <CardContent className="p-6">
+                  <p className="text-muted-foreground leading-relaxed">
+                    I created Roomezy to fix the chaos of finding roommates. Every feature is crafted to make shared living safer, simpler, and more comfortable.
+                  </p>
+                </CardContent>
+              </Card>
+
+              {/* Social Links - Modern */}
+              <div className="flex flex-wrap gap-3">
+                {[
+                  { icon: Code, href: developerInfo.github, label: "GitHub" },
+                  { icon: Linkedin, href: developerInfo.linkedin, label: "LinkedIn" },
+                  { icon: Globe, href: developerInfo.portfolio, label: "Portfolio" },
+                  { icon: Mail, href: developerInfo.email, label: "Email" },
+                ].map((item, index) => (
+                  <Button
+                    key={index}
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.open(item.href, "_blank")}
+                    className="rounded-lg gap-2"
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Button>
+                ))}
+              </div>
             </div>
           </div>
+        </div>
+      </section>
 
-          <h3 className="text-3xl font-bold">{developerInfo.name}</h3>
-          <p className="text-muted-foreground text-lg mt-1">
-            {developerInfo.role}
-          </p>
-
-          <Card className="mt-8 bg-card/80 backdrop-blur border shadow-xl">
-            <CardContent className="p-6">
-              <p className="text-muted-foreground leading-relaxed">
-                I created Roomezy to fix the chaos of finding roommates. Every
-                feature is crafted to make shared living safer, simpler, and
-                more comfortable.
-              </p>
-            </CardContent>
-          </Card>
-
-          {/* SOCIAL BUTTONS */}
-          <div className="flex flex-wrap justify-center gap-4 mt-8">
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => window.open(developerInfo.github, "_blank")}
-              className="rounded-full px-6"
-            >
-              <Code className="h-5 w-5 mr-2" /> GitHub
-            </Button>
-
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => window.open(developerInfo.linkedin, "_blank")}
-              className="rounded-full px-6"
-            >
-              <Linkedin className="h-5 w-5 mr-2" /> LinkedIn
-            </Button>
-
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => window.open(developerInfo.portfolio, "_blank")}
-              className="rounded-full px-6"
-            >
-              <Globe className="h-5 w-5 mr-2" /> Portfolio
-            </Button>
-
-            <Button
-              variant="outline"
-              size="lg"
-              onClick={() => window.open(developerInfo.email, "_blank")}
-              className="rounded-full px-6"
-            >
-              <Mail className="h-5 w-5 mr-2" /> Email
-            </Button>
+      {/* STATS SECTION */}
+      <section className="py-12 px-4 bg-muted/30">
+        <div className="max-w-6xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+            {stats.map((stat, index) => {
+              const Icon = stat.icon;
+              return (
+                <div key={index} className="text-center p-6 bg-background rounded-2xl shadow-sm border">
+                  <div className="w-12 h-12 mx-auto mb-4 bg-primary/10 rounded-xl flex items-center justify-center">
+                    <Icon className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="text-2xl font-bold text-primary mb-1">{stat.value}</div>
+                  <div className="text-sm text-muted-foreground">{stat.label}</div>
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* JOURNEY — NEW MOBILE + DESKTOP BALANCE */}
-      <section className="py-20 px-4 bg-muted/20">
-        <div className="max-w-5xl mx-auto">
-          <h2 className="text-4xl font-bold text-primary text-center mb-10">
-            The Roomezy Journey
-          </h2>
+      {/* JOURNEY SECTION - Modern Timeline */}
+      <section className="py-20 px-4">
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-16">
+            <div className="inline-flex items-center gap-2 bg-primary/10 px-4 py-2 rounded-full mb-4 border border-primary/20">
+              <Rocket className="h-4 w-4 text-primary" />
+              <span className="text-sm font-semibold text-primary">BUILDING ROOMEZY</span>
+            </div>
+            <h2 className="text-4xl font-bold text-primary mb-4">
+              The Evolution of an Idea
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              How real problems sparked a revolution in roommate finding
+            </p>
+          </div>
 
-          <div className="relative">
-            {/* CENTRAL LINE FOR DESKTOP */}
-            <div className="hidden md:block absolute left-1/2 w-1 bg-linear-to-b from-primary via-accent to-primary h-full -translate-x-1/2"></div>
-
-            {journey.map((item, i) => {
+          <div className="space-y-8">
+            {journey.map((item, index) => {
               const Icon = item.icon;
-              const left = i % 2 === 0;
-
               return (
-                <div
-                  key={i}
-                  className={`flex flex-col md:flex-row items-center gap-8 mb-14 ${
-                    left ? "md:flex-row" : "md:flex-row-reverse"
-                  }`}
-                >
-                  {/* TIMELINE DOT (Desktop) */}
-                  <div className="hidden md:block absolute left-1/2 -translate-x-1/2 w-6 h-6 bg-primary rounded-full border-4 border-background shadow-xl"></div>
+                <div key={index} className="flex gap-6 group">
+                  {/* Timeline Dot */}
+                  <div className="flex flex-col items-center">
+                    <div className={`w-4 h-4 rounded-full ${item.color.replace('bg-linear-to-br', 'bg-primary')} group-hover:scale-125 transition-transform`}></div>
+                    {index !== journey.length - 1 && (
+                      <div className="w-0.5 h-full bg-muted-foreground/20 mt-2"></div>
+                    )}
+                  </div>
 
-                  {/* CARD */}
-                  <Card
-                    className={`w-full md:w-5/12 shadow-xl border backdrop-blur hover:scale-[1.02] transition-all duration-300 ${
-                      left ? "md:mr-auto" : "md:ml-auto"
-                    }`}
-                  >
-                    <CardHeader
-                      className={`bg-linear-to-r ${item.color} text-white rounded-t-lg`}
-                    >
-                      <CardTitle className="flex items-center gap-2 text-xl">
-                        <Icon className="h-6 w-6" />
-                        {item.phase}
-                      </CardTitle>
-                      <Badge className="bg-white/20 text-white border-white/30 w-fit">
-                        {item.highlight}
-                      </Badge>
+                  {/* Content */}
+                  <Card className="flex-1 shadow-lg border-l-4 border-l-primary hover:shadow-xl transition-all duration-300">
+                    <CardHeader className="pb-3">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${item.color} text-white`}>
+                          <Icon className="h-5 w-5" />
+                        </div>
+                        <div>
+                          <CardTitle className="text-xl">{item.phase}</CardTitle>
+                          <Badge variant="secondary" className="mt-1">
+                            {item.highlight}
+                          </Badge>
+                        </div>
+                      </div>
                     </CardHeader>
-                    <CardContent className="p-6">
+                    <CardContent>
                       <p className="text-muted-foreground leading-relaxed">
                         {item.description}
                       </p>
                     </CardContent>
                   </Card>
-
-                  {/* SPACER */}
-                  <div className="hidden md:block w-1/12"></div>
                 </div>
               );
             })}
           </div>
 
-          {/* QUOTE */}
-          <Card className="max-w-3xl mx-auto mt-14 bg-linear-to-r from-primary/10 to-accent/10 border">
+          {/* QUOTE CARD */}
+          <Card className="mt-12 bg-linear-to-r from-primary/5 to-accent/5 border-primary/20">
             <CardContent className="p-8 text-center">
-              <MessageCircle className="h-10 w-10 text-primary mx-auto mb-3" />
-              <p className="italic text-lg">
-                "Every idea begins with frustration. Roomezy was born from the
-                chaos of college room-hunting — and shaped into something
-                meaningful."
+              <div className="w-12 h-12 bg-primary/10 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Lightbulb className="h-6 w-6 text-primary" />
+              </div>
+              <p className="italic text-lg text-muted-foreground mb-4">
+                "Great solutions don't come from technology alone—they come from understanding real human problems."
               </p>
-              <p className="text-primary font-semibold mt-2">
-                – Aman Yadav, Creator of Roomezy
-              </p>
+              <p className="text-primary font-semibold">– Aman Yadav, Creator of Roomezy</p>
             </CardContent>
           </Card>
         </div>
       </section>
 
-      {/* TECH STACK */}
+      {/* TECH STACK - Modern Grid */}
       <section className="py-16 px-4 bg-muted/10">
-        <div className="max-w-6xl mx-auto text-center">
-          <h2 className="text-3xl font-bold text-primary flex justify-center items-center gap-2 mb-4">
-            <Code className="h-6 w-6" /> Built with Modern Technology
-          </h2>
-
-          <div className="flex flex-wrap justify-center gap-3 mt-6 mb-8">
-            {techStack.map((tech) => (
-              <Badge key={tech} className="px-4 py-2 text-sm">
-                {tech}
-              </Badge>
-            ))}
+        <div className="max-w-4xl mx-auto">
+          <div className="text-center mb-12">
+            <h2 className="text-3xl font-bold text-primary flex justify-center items-center gap-3 mb-3">
+              <Code className="h-6 w-6" /> 
+              Built With Modern Technology
+            </h2>
+            <p className="text-muted-foreground">Powered by cutting-edge tools and frameworks</p>
           </div>
 
-          <p className="text-muted-foreground max-w-xl mx-auto">
-            Roomezy uses the reliable MERN stack to ensure fast, secure, and
-            seamless performance.
-          </p>
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            {techStack.map((tech, index) => (
+              <div
+                key={tech}
+                className="bg-background p-4 rounded-xl border shadow-sm hover:shadow-md transition-shadow text-center group hover:border-primary/50"
+              >
+                <div className="font-medium text-foreground group-hover:text-primary transition-colors">
+                  {tech}
+                </div>
+              </div>
+            ))}
+          </div>
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="py-14 px-4">
+      {/* CTA SECTION - Modern Gradient */}
+      <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
-          <Card className="bg-primary text-primary-foreground shadow-xl">
-            <CardContent className="p-10 text-center">
-              <h2 className="text-4xl font-bold mb-4">
-                Join the Roomezy Community
+          <div className="relative overflow-hidden rounded-3xl bg-linear-to-r from-primary to-accent text-primary-foreground shadow-2xl">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -translate-y-16 translate-x-16"></div>
+            <div className="absolute bottom-0 left-0 w-40 h-40 bg-white/10 rounded-full translate-y-20 -translate-x-20"></div>
+            
+            <div className="relative z-10 p-10 text-center">
+              <h2 className="text-3xl md:text-4xl font-bold mb-4">
+                Ready to Find Your Perfect Match?
               </h2>
               <p className="text-lg mb-8 opacity-90 max-w-2xl mx-auto">
-                Roomezy is where smart living begins. Find your next roommate or
-                your next home with confidence.
+                Join thousands who've found their ideal roommates and homes through Roomezy.
               </p>
 
               <div className="flex flex-col sm:flex-row justify-center gap-4">
                 <Button
                   size="lg"
                   variant="secondary"
-                  className="bg-background text-foreground"
+                  className="bg-background text-foreground hover:bg-background/90"
                   onClick={() => navigate("/register")}
                 >
-                  Get Started
+                  Get Started Free
                 </Button>
 
                 <Button
                   size="lg"
                   variant="outline"
-                  className="border-white bg-primary text-background hover:bg-white hover:text-primary"
+                  className="border-white text-white hover:bg-white hover:text-primary"
                   onClick={() => navigate("/")}
                 >
-                  Explore Listings
+                  Browse Listings
                 </Button>
               </div>
 
-              <p className="text-sm mt-6 opacity-90">
-                Let’s make shared living smarter and safer — together.
+              <p className="text-sm mt-6 opacity-80">
+                No credit card required • Simple setup • Find matches in minutes
               </p>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* SCROLL TO TOP BUTTON */}
       <ScrollToTop />
     </div>
   );

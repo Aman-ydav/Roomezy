@@ -14,7 +14,7 @@ import {
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { useEffect } from "react";
+import { use, useEffect } from "react";
 import { getAllPosts } from "@/features/post/postSlice";
 import { logoutUser } from "@/features/auth/authSlice";
 import UserDetails from "@/components/Dashboard/UserDetails";
@@ -33,6 +33,10 @@ export default function Dashboard() {
   const handleNavigate = (path) => navigate(path);
 
   const totalPosts = posts.filter((p) => p.user?._id === user?._id).length;
+
+  const { saved, loading } = useSelector((s) => s.savedPosts);
+
+  const totalSavedPosts = saved.length;
 
   const recentActivities = posts
     .filter((p) => p.user?._id === user?._id)
@@ -53,10 +57,10 @@ export default function Dashboard() {
       onClick: () => handleNavigate("/my-posts"),
     },
     {
-      title: "Coming Soon",
-      icon: Bookmark,
-      color: "text-secondary-foreground",
-      onClick: () => toast.info("Saved Posts feature coming soon!"),
+    title: "Saved Posts",
+    icon: Bookmark,
+    color: "text-primary",
+    onClick: () => handleNavigate("/saved"),
     },
     {
       title: "Edit Profile",
@@ -109,7 +113,7 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Saved Posts</p>
-              <h2 className="text-2xl font-semibold text-foreground">0</h2>
+              <h2 className="text-2xl font-semibold text-foreground">{totalSavedPosts}</h2>
             </div>
             <Bookmark className="w-6 h-6 text-accent" />
           </div>

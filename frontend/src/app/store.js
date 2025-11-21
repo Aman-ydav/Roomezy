@@ -4,6 +4,7 @@ import themeReducer from "@/features/theme/themeSlice";
 import profileReducer from "@/features/profile/profileSlice";
 import postReducer from "@/features/post/postSlice";
 import chatReducer from "@/features/chat/chatSlice";
+import savedPostsReducer from "@/features/savedPosts/savedPostSlice";
 
 export const store = configureStore({
   reducer: {
@@ -11,6 +12,7 @@ export const store = configureStore({
     theme: themeReducer,
     profile: profileReducer,
     post: postReducer,
-    chat: chatReducer, 
+    chat: chatReducer,
+    savedPosts: savedPostsReducer, 
   },
 });

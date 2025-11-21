@@ -19,7 +19,6 @@ const chatSlice = createSlice({
         convo.lastMessage = lastMessage;
         convo.lastMessageSender = from;
 
-        // Unread count only for the OTHER person
         // Not for sender
         if (from !== state.currentUserId) {
           convo.unreadCount = {

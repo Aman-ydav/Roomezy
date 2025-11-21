@@ -1,7 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/utils/axiosInterceptor";
-
-
+import { toggleSavePost } from "../savedPosts/savedPostSlice";
 
 export const createPost = createAsyncThunk(
   "post/createPost",
@@ -22,8 +21,7 @@ export const createPost = createAsyncThunk(
 
       return res.data.data;
     } catch (err) {
-      const message =
-        err.response?.data?.message || "Failed to create post.";
+      const message = err.response?.data?.message || "Failed to create post.";
       return rejectWithValue(message);
     }
   }
@@ -55,7 +53,6 @@ export const getPostById = createAsyncThunk(
   }
 );
 
-
 export const toggleArchivePost = createAsyncThunk(
   "post/toggleArchivePost",
   async (id, { rejectWithValue }) => {
@@ -68,7 +65,6 @@ export const toggleArchivePost = createAsyncThunk(
     }
   }
 );
-
 
 export const togglePostStatus = createAsyncThunk(
   "post/togglePostStatus",
@@ -84,7 +80,6 @@ export const togglePostStatus = createAsyncThunk(
   }
 );
 
-
 export const ratePost = createAsyncThunk(
   "post/ratePost",
   async ({ id, value }, { rejectWithValue }) => {
@@ -97,7 +92,6 @@ export const ratePost = createAsyncThunk(
     }
   }
 );
-
 
 export const deletePost = createAsyncThunk(
   "post/deletePost",
@@ -119,7 +113,8 @@ export const updatePostBasic = createAsyncThunk(
       const res = await api.patch(`/posts/${id}/basic`, updatedData);
       return res.data.data;
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to update basic information.";
+      const message =
+        err.response?.data?.message || "Failed to update basic information.";
       return rejectWithValue(message);
     }
   }
@@ -132,7 +127,8 @@ export const updatePostPreferences = createAsyncThunk(
       const res = await api.patch(`/posts/${id}/preferences`, updatedData);
       return res.data.data;
     } catch (err) {
-      const message = err.response?.data?.message || "Failed to update preferences.";
+      const message =
+        err.response?.data?.message || "Failed to update preferences.";
       return rejectWithValue(message);
     }
   }
@@ -161,7 +157,6 @@ export const updatePostImages = createAsyncThunk(
   }
 );
 
-
 const postSlice = createSlice({
   name: "post",
   initialState: {
@@ -170,9 +165,9 @@ const postSlice = createSlice({
     loading: false,
     creating: false,
     updating: false,
-    updatingBasic: false, 
+    updatingBasic: false,
     updatingPreferences: false,
-    updatingImages: false, 
+    updatingImages: false,
     error: null,
   },
   reducers: {
@@ -295,12 +290,15 @@ const postSlice = createSlice({
       .addCase(updatePostImages.rejected, (state, action) => {
         state.updatingImages = false;
         state.error = action.payload;
+      })
+      .addCase(toggleSavePost.fulfilled, (state, action) => {
+        const { postId } = action.payload;
+        if (state.selectedPost && state.selectedPost._id === postId) {
+          state.selectedPost.isSaved = !state.selectedPost.isSaved;
+        }
       });
-
-      
   },
 });
 
 export const { clearSelectedPost } = postSlice.actions;
 export default postSlice.reducer;
-

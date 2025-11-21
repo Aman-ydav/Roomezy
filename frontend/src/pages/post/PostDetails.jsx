@@ -24,10 +24,11 @@ import {
   ChevronLeft,
   ChevronRight,
   X,
-  Trash2,
+  Bookmark,
   Edit2,
   Archive,
   Star,
+  ArrowLeft,
   StarHalf,
   MessageCircle,
   Info,
@@ -35,10 +36,10 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { toast } from "sonner";
-import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import MiniChatWidget from "@/components/chat/MiniChatWidget";
 import Loader from "@/components/layout/Loader";
+import { toggleSavePost } from "@/features/savedPosts/savedPostSlice";
 
 export default function PostDetails() {
   const { id } = useParams();
@@ -83,10 +84,7 @@ export default function PostDetails() {
     if (post) setLocalRating(0);
   }, [post]);
 
-  if (loading || !post)
-    return (
-      <Loader/>
-    );
+  if (loading || !post) return <Loader />;
 
   const images = [post.main_image, ...(post.additional_images || [])].filter(
     Boolean
@@ -220,12 +218,45 @@ export default function PostDetails() {
       animate={{ opacity: 1 }}
     >
       <div className="max-w-4xl w-full space-y-8">
-        {/* ---------------- TITLE + STATUS ---------------- */}
+        <div className="w-full flex items-center justify-between mb-4">
+          {/* BACK BUTTON */}
+          <motion.button
+            onClick={() => navigate(-1)}
+            whileTap={{ scale: 0.9 }}
+            className="px-3 py-1.5 rounded-lg border border-border bg-muted text-foreground hover:bg-muted/70 font-medium transition-all"
+          >
+            <ArrowLeft className="w-5 h-5 inline"/> Back
+          </motion.button>
+
+          {/* SAVE / UNSAVE BUTTON */}
+          {authUser && !isOwner && (
+            <motion.button
+              onClick={() => dispatch(toggleSavePost(post._id))}
+              whileTap={{ scale: 0.9 }}
+              transition={{ duration: 0.2 }}
+              className={`flex items-center gap-2 px-3 py-1.5 rounded-lg border font-medium transition-all duration-300
+        ${
+          post.isSaved
+            ? "bg-primary text-white border-primary shadow-md shadow-primary/30"
+            : "bg-muted text-foreground border-border hover:bg-muted/70"
+        }`}
+            >
+              <Bookmark
+                className={`w-5 h-5 transition-all duration-300 ${
+                  post.isSaved ? "fill-white text-white" : "text-foreground"
+                }`}
+              />
+              {post.isSaved ? "Saved" : "Save Post"}
+            </motion.button>
+          )}
+        </div>
+
         <Card className="p-6 border border-border bg-card rounded-2xl shadow-md">
           {/* Closed / Archived Notices */}
-          <div className="max-w-7xl mb-6">
+
+          <div className="max-w-7xl">
             {post.status_badge === "closed" && (
-              <div className="flex items-center gap-2 p-4 bg-red-100 border border-red-300 text-red-800 rounded-xl shadow-sm">
+              <div className="flex items-center mb-5 gap-2 p-4 bg-red-100 border border-red-300 text-red-800 rounded-xl shadow-sm">
                 <AlertTriangle className="w-5 h-5" />
                 <p className="text-sm font-medium">
                   This post has been temporarily closed by the user.
@@ -233,7 +264,7 @@ export default function PostDetails() {
               </div>
             )}
             {isOwner && post.archived && (
-              <div className="flex items-center gap-2 p-4 bg-amber-100 border border-amber-300 text-amber-800 rounded-xl shadow-sm">
+              <div className="flex items-center mb-5 gap-2 p-4 bg-amber-100 border border-amber-300 text-amber-800 rounded-xl shadow-sm">
                 <Info className="w-5 h-5" />
                 <p className="text-sm font-medium">
                   You have archived this post. It’s hidden from other users. You
@@ -246,7 +277,7 @@ export default function PostDetails() {
           {/* Title section */}
           <div className="flex flex-wrap items-center justify-between gap-4">
             <div className="flex items-center gap-3 flex-wrap">
-              <h1 className="text-2xl font-bold">{post.title}</h1>
+              <h1 className="text-3xl font-bold">{post.title}</h1>
 
               <Badge className={`${typeColor} text-sm font-semibold px-3 py-1`}>
                 {postTypeDescription}
@@ -408,8 +439,7 @@ export default function PostDetails() {
             </div>
           </Card>
         </div>
-  
-      
+
         {!isOwner && (
           <Card className="p-6 border border-border bg-card rounded-xl shadow-sm">
             <h3 className="font-semibold text-lg flex items-center gap-3 text-foreground">
@@ -478,7 +508,6 @@ export default function PostDetails() {
             </Button>
           </Card>
         )}
-
 
         {/* ---------------- POSTED BY ---------------- */}
         <Card className="p-5 border border-border/50 bg-card/70 backdrop-blur-md rounded-2xl shadow-lg hover:shadow-xl transition-all duration-300">

@@ -86,9 +86,33 @@ export const getAllPosts = asyncHandler(async (req, res) => {
 });
 
 export const getPostById = asyncHandler(async (req, res) => {
-  const post = await Post.findById(req.params.id).populate("user", "userName avatar rating age");
+  const postId = req.params.id;
+  const userId = req.user?._id;
+
+  const post = await Post.findById(postId)
+    .populate("user", "userName avatar rating age");
+
   if (!post) throw new ApiError(404, "Post not found");
-  return res.status(200).json(new ApiResponse(200, post, "Post details fetched"));
+
+  // Check if saved by user
+  let isSaved = false;
+  if (userId) {
+    const saved = await SavedPost.findOne({
+      user: userId,
+      post: postId,
+    });
+
+    isSaved = !!saved;
+  }
+
+  const postWithSaveFlag = {
+    ...post.toObject(),
+    isSaved,
+  };
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, postWithSaveFlag, "Post details fetched"));
 });
 
 export const toggleArchivePost = asyncHandler(async (req, res) => {

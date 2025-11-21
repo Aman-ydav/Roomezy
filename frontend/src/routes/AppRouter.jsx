@@ -22,7 +22,7 @@ import TermsOfServicePage from "@/pages/About/TermsOfServicePage";
 import PrivacyPolicyPage from "@/pages/About/PrivacyPolicyPage";
 import ListRoom from "@/pages/About/ListRoom";
 import FindRoom from "@/pages/About/FindRoom";
-import ScrollToTop from "@/components/layout/ScrollToTop";
+import SavedPosts from "@/pages/saved/SavedPosts";
 import ChatPage from "@/pages/chat/ChatPage";
 import InboxPage from "@/pages/chat/InboxPage";
 
@@ -61,7 +61,7 @@ export default function AppRouter() {
           <Route path="/post/:id/edit" element={<EditPost />} />
           <Route path="/chat/:id" element={<ChatPage />} />
           <Route path="/inbox" element={<InboxPage />} />
-
+          <Route path="/saved" element={<SavedPosts />} />
       </Route>
       </Route>
     </Routes>
