@@ -26,7 +26,7 @@ export default function ConversationItem({
   const isOnline = useUserStatus(partner?._id);
 
   // FIX: Use updatedAt for last message time
-  const lastMessageTime = conversation.updatedAt;
+  const lastMessageTime = conversation.createdAt;
 
   const formatTime = (timestamp) => {
     if (!timestamp) return "";

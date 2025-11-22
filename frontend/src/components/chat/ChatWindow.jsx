@@ -115,8 +115,9 @@ export default function ChatWindow({ conversation, onBack, currentUser }) {
               getSenderId={getSenderId}
               partner={partner}
             />
+
             {typing && (
-              <div className="mt-1 mb-3">
+              <div className="pt-1">
                 <TypingIndicator
                   show={typing}
                   partnerName={partner?.userName}
@@ -124,6 +125,7 @@ export default function ChatWindow({ conversation, onBack, currentUser }) {
               </div>
             )}
 
+            {/* Scroll anchor should ALWAYS be last */}
             <div ref={messagesEndRef} />
           </div>
         )}

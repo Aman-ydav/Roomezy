@@ -157,15 +157,21 @@ export default function ConversationList({
             )}
           </div>
         ) : (
-          filteredConversations.map((conversation) => (
-            <ConversationItem
-              key={conversation._id}
-              conversation={conversation}
-              currentUserId={user._id}
-              isSelected={selectedConversation?._id === conversation._id}
-              onClick={() => handleConversationClick(conversation)}
-            />
-          ))
+          filteredConversations
+            .sort(
+              (a, b) =>
+                new Date(b?.createdAt) -
+                new Date(a?.createdAt)
+            )
+            .map((conversation) => (
+              <ConversationItem
+                key={conversation._id}
+                conversation={conversation}
+                currentUserId={user._id}
+                isSelected={selectedConversation?._id === conversation._id}
+                onClick={() => handleConversationClick(conversation)}
+              />
+            ))
         )}
       </div>
     </div>

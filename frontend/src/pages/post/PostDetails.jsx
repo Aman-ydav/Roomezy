@@ -7,10 +7,8 @@ import {
   ratePost,
   toggleArchivePost,
   togglePostStatus,
-  deletePost,
 } from "@/features/post/postSlice";
 import { Badge } from "@/components/ui/badge";
-import { Card } from "@/components/ui/card";
 import { createConversation } from "@/utils/chatApi";
 import {
   IndianRupee,
@@ -19,7 +17,6 @@ import {
   CigaretteOff,
   Rainbow,
   Cat,
-  Send,
   Dog,
   DoorOpen,
   ChevronLeft,
@@ -104,41 +101,26 @@ export default function PostDetails() {
 
   const handleChatClick = async () => {
     if (!authUser) {
-      toast.info("Please login to start chatting");
       navigate("/login");
       return;
     }
-
-    if (isOwner) {
-      toast.error("You cannot chat with yourself");
-      return;
-    }
+    if (isOwner) return;
 
     setChatLoading(true);
+
     try {
-      const response = await createConversation({
+      await createConversation({
         senderId: authUser._id,
         receiverId: post.user._id,
       });
 
-      const conversation = response.data.data;
-
       navigate("/inbox", {
-        state: {
-          forceOpen: true,
-          receiverId: post.user._id,
-          openConversationId: conversation._id,
-        },
+        state: { openChatWith: post.user._id },
       });
     } catch (error) {
       console.error("Failed to create conversation:", error);
-      toast.error("Failed to start conversation");
-
       navigate("/inbox", {
-        state: {
-          forceOpen: true,
-          receiverId: post.user._id,
-        },
+        state: { openChatWith: post.user._id },
       });
     } finally {
       setChatLoading(false);
@@ -326,18 +308,18 @@ export default function PostDetails() {
           {/* Title and Badges */}
           <div className="text-center sm:text-left">
             <div className="flex flex-wrap gap-2 justify-start sm:justify-start">
-                <Badge className={`${typeColor} text-sm font-semibold px-2 py-1`}>
-                  {postTypeDescription}
+              <Badge className={`${typeColor} text-sm font-semibold px-2 py-1`}>
+                {postTypeDescription}
+              </Badge>
+              <Badge className={`${statusColor} text-sm px-2 py-1`}>
+                {post.status_badge}
+              </Badge>
+              {post.archived && (
+                <Badge className="bg-amber-500/10 text-amber-700 border border-amber-400/30 px-4 py-2">
+                  Archived
                 </Badge>
-                <Badge className={`${statusColor} text-sm px-2 py-1`}>
-                  {post.status_badge}
-                </Badge>
-                {post.archived && (
-                  <Badge className="bg-amber-500/10 text-amber-700 border border-amber-400/30 px-4 py-2">
-                    Archived
-                  </Badge>
-                )}
-              </div>
+              )}
+            </div>
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
               <div>
                 <h1 className="text-3xl sm:text-4xl font-bold text-foreground mb-3">
@@ -346,7 +328,7 @@ export default function PostDetails() {
                 <p className="text-lg text-muted-foreground max-w-3xl">
                   {post.description}
                 </p>
-              </div>   
+              </div>
             </div>
 
             {/* Owner Actions */}
@@ -408,7 +390,7 @@ export default function PostDetails() {
                       transition={{ duration: 0.3, ease: "easeInOut" }}
                     />
                   </AnimatePresence>
-                  
+
                   {images.length > 1 && (
                     <>
                       <button
@@ -445,14 +427,16 @@ export default function PostDetails() {
                 <DoorOpen className="w-6 h-6 text-primary" />
                 Property Information
               </h2>
-              
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-4">
                   <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/20 border border-border">
                     <MapPin className="w-6 h-6 text-primary" />
                     <div>
                       <p className="text-sm text-muted-foreground">Location</p>
-                      <p className="font-semibold text-foreground">{post.location}</p>
+                      <p className="font-semibold text-foreground">
+                        {post.location}
+                      </p>
                     </div>
                   </div>
 
@@ -461,9 +445,13 @@ export default function PostDetails() {
                       <IndianRupee className="w-6 h-6 text-primary" />
                       <div>
                         <p className="text-sm text-muted-foreground">
-                          {post.badge_type === "looking-for-room" ? "Budget" : "Monthly Rent"}
+                          {post.badge_type === "looking-for-room"
+                            ? "Budget"
+                            : "Monthly Rent"}
                         </p>
-                        <p className="font-semibold text-foreground">₹{post.rent}</p>
+                        <p className="font-semibold text-foreground">
+                          ₹{post.rent}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -474,17 +462,23 @@ export default function PostDetails() {
                     <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/20 border border-border">
                       <DoorOpen className="w-6 h-6 text-primary" />
                       <div>
-                        <p className="text-sm text-muted-foreground">Room Type</p>
-                        <p className="font-semibold text-foreground">{post.room_type}</p>
+                        <p className="text-sm text-muted-foreground">
+                          Room Type
+                        </p>
+                        <p className="font-semibold text-foreground">
+                          {post.room_type}
+                        </p>
                       </div>
                     </div>
                   )}
-                  
+
                   {/* Additional space for future details */}
                   <div className="flex items-center gap-4 p-4 rounded-xl bg-muted/10 border border-border/50">
                     <User className="w-6 h-6 text-muted-foreground" />
                     <div>
-                      <p className="text-sm text-muted-foreground">Availability</p>
+                      <p className="text-sm text-muted-foreground">
+                        Availability
+                      </p>
                       <p className="font-semibold text-foreground">Immediate</p>
                     </div>
                   </div>
@@ -494,17 +488,18 @@ export default function PostDetails() {
 
             {/* Lifestyle Preferences */}
             <div className="bg-card/50 backdrop-blur-sm rounded-2xl border border-border p-6 shadow-sm">
-              <h2 className="text-2xl font-bold text-foreground mb-4">Lifestyle & Preferences</h2>
+              <h2 className="text-2xl font-bold text-foreground mb-4">
+                Lifestyle & Preferences
+              </h2>
               <p className="text-muted-foreground mb-6">
-                {post.badge_type === "looking-for-room" 
+                {post.badge_type === "looking-for-room"
                   ? "My personal preferences and habits for a comfortable living environment"
                   : post.badge_type === "roommate-share"
                   ? "Preferences I'm looking for in a potential roommate"
                   : "Owner's expectations and preferences for tenants"}
               </p>
-              
+
               <div className="flex flex-wrap gap-3">
-                {/* PREVIOUS COLORS FOR PREFERENCES */}
                 {post.non_smoker && (
                   <Badge className="bg-green-100 text-green-800 px-3 py-2 border border-green-300">
                     <CigaretteOff className="w-4 h-4 mr-1" />
@@ -547,7 +542,7 @@ export default function PostDetails() {
                 <User className="w-5 h-5 text-primary" />
                 Posted By
               </h3>
-              
+
               <div className="flex items-center gap-4 mb-4">
                 <div className="relative">
                   <img
@@ -572,13 +567,16 @@ export default function PostDetails() {
                   </div>
                 </div>
               </div>
-              
+
               <div className="flex items-center gap-2 text-sm text-muted-foreground mb-4">
                 <Calendar className="w-4 h-4" />
-                Joined {new Date(post?.user?.createdAt || Date.now()).toLocaleDateString()}
+                Joined{" "}
+                {new Date(
+                  post?.user?.createdAt || Date.now()
+                ).toLocaleDateString()}
               </div>
 
-              <Button
+              {/* <Button
                 variant="outline"
                 size="sm"
                 className="w-full bg-card/50 backdrop-blur-sm border-border text-foreground hover:bg-card"
@@ -586,7 +584,7 @@ export default function PostDetails() {
               >
                 <MessageCircle className="w-4 h-4 mr-2" />
                 View Full Profile
-              </Button>
+              </Button> */}
             </div>
 
             {/* Chat Action */}
@@ -597,9 +595,10 @@ export default function PostDetails() {
                   Interested in this room?
                 </h3>
                 <p className="text-sm text-muted-foreground mb-4">
-                  Connect with the owner to discuss details, schedule a visit, or ask questions.
+                  Connect with the owner to discuss details, schedule a visit,
+                  or ask questions.
                 </p>
-                
+
                 <Button
                   onClick={handleChatClick}
                   disabled={chatLoading}
@@ -619,13 +618,16 @@ export default function PostDetails() {
             {/* Rating Section - UPDATED WITH EDIT FUNCTIONALITY */}
             <div className="bg-card/80 backdrop-blur-sm rounded-2xl border border-border p-6 shadow-lg">
               <h3 className="font-semibold text-lg mb-4">Community Rating</h3>
-              
+
               <div className="text-center mb-4">
                 <div className="flex justify-center mb-2">
                   {renderStars(post.averageRating ?? 0)}
                 </div>
                 <div className="flex items-center justify-center gap-2 text-sm text-muted-foreground">
-                  <span>Average: {post.averageRating ? post.averageRating.toFixed(1) : "0.0"}</span>
+                  <span>
+                    Average:{" "}
+                    {post.averageRating ? post.averageRating.toFixed(1) : "0.0"}
+                  </span>
                   <span>•</span>
                   <span>{post.rating?.length ?? 0} ratings</span>
                 </div>
@@ -647,7 +649,9 @@ export default function PostDetails() {
                 <div className="space-y-3 text-center">
                   <div className="flex items-center justify-center gap-2 text-success mb-2">
                     <CheckCircle className="w-5 h-5" />
-                    <span className="font-medium">Your Rating: {userRating} ★</span>
+                    <span className="font-medium">
+                      Your Rating: {userRating} ★
+                    </span>
                   </div>
                   <div className="flex justify-center gap-1 mb-3">
                     {[1, 2, 3, 4, 5].map((star) => (
@@ -701,7 +705,7 @@ export default function PostDetails() {
                       </motion.button>
                     ))}
                   </div>
-                  
+
                   {userRating > 0 && isEditingRating && (
                     <div className="flex gap-2 justify-center">
                       <Button
@@ -714,16 +718,19 @@ export default function PostDetails() {
                       </Button>
                     </div>
                   )}
-                  
+
                   {submittingRating && (
                     <p className="text-xs text-muted-foreground text-center">
-                      {userRating > 0 ? "Updating rating..." : "Submitting rating..."}
+                      {userRating > 0
+                        ? "Updating rating..."
+                        : "Submitting rating..."}
                     </p>
                   )}
-                  
+
                   {localRating > 0 && !submittingRating && (
                     <p className="text-xs text-muted-foreground text-center">
-                      Click a star to {userRating > 0 ? 'update' : 'submit'} your rating
+                      Click a star to {userRating > 0 ? "update" : "submit"}{" "}
+                      your rating
                     </p>
                   )}
                 </div>

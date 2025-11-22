@@ -47,7 +47,6 @@ export function useChat(conversationId, currentUser, partner) {
         await markAsRead(conversationId, currentUser._id);
         dispatch(resetUnreadForConversation(conversationId));
       } catch (err) {
-        console.error("Failed to load messages", err);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -92,7 +91,6 @@ export function useChat(conversationId, currentUser, partner) {
     };
 
     const handleTyping = (data) => {
-      console.log("📝 Typing event received:", data);
       if (
         data.conversationId === conversationId &&
         data.userId !== currentUser._id
@@ -101,14 +99,12 @@ export function useChat(conversationId, currentUser, partner) {
         clearTypingTimeout();
 
         typingTimeoutRef.current = setTimeout(() => {
-          console.log("🕒 Auto-hiding typing indicator");
           setTyping(false);
         }, 3000);
       }
     };
 
     const handleStopTyping = (data) => {
-      console.log("🛑 Stop typing event received:", data);
       if (
         data.conversationId === conversationId &&
         data.userId !== currentUser._id
@@ -165,13 +161,11 @@ export function useChat(conversationId, currentUser, partner) {
   // In useChat hook, enhance the markRead function
   const sendTyping = useCallback(() => {
     if (!conversationId || !currentUser?._id) return;
-    console.log("📤 Sending typing event");
     socket.emit("typing", { conversationId, userId: currentUser._id });
   }, [conversationId, currentUser?._id]);
 
   const stopTyping = useCallback(() => {
     if (!conversationId || !currentUser?._id) return;
-    console.log("📤 Sending stop typing event");
     socket.emit("stop-typing", { conversationId, userId: currentUser._id });
   }, [conversationId, currentUser?._id]);
 

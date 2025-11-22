@@ -3,12 +3,31 @@ import { useSelector } from "react-redux";
 import { motion, AnimatePresence } from "framer-motion";
 import ConversationList from "./ConversationList";
 import ChatWindow from "./ChatWindow";
-import { Button } from "@/components/ui/button";
 import { MessageCircle, X } from "lucide-react";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
 
 export default function ChatLayout() {
   const [selectedConversation, setSelectedConversation] = useState(null);
   const user = useSelector((s) => s.auth.user);
+
+   const { state } = useLocation();
+  const openChatWith = state?.openChatWith;
+
+  const conversations = useSelector((s) => s.chat.conversations);
+
+  useEffect(() => {
+    if (!openChatWith || conversations.length === 0) return;
+
+    const target = conversations.find((c) =>
+      c.participants.some((p) => String(p._id) === String(openChatWith))
+    );
+
+    if (target) {
+      setSelectedConversation(target);
+    }
+  }, [openChatWith, conversations]);
+
 
   if (!user) {
     return (

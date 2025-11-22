@@ -28,15 +28,55 @@ import {
   DropdownMenuSeparator,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import logo from "../../assets/logo.png";
+import { useRef, useEffect } from "react";
 
-export default function Navbar({ onToggleSidebar, isSidebarOpen,sidebarIconRef  }) {
+export default function Navbar({
+  onToggleSidebar,
+  isSidebarOpen,
+  sidebarIconRef,
+}) {
   const { user } = useAuth();
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
   const [searchQuery, setSearchQuery] = useState("");
   const [showSearch, setShowSearch] = useState(false);
+
+  const mobileSearchRef = useRef(null);
+  const mobileSearchButtonRef = useRef(null);
+
+
+ useEffect(() => {
+  if (!showSearch) return;
+
+  const handleClickOutside = (e) => {
+    const searchBox = mobileSearchRef.current;
+    const searchBtn = mobileSearchButtonRef.current;
+
+    // If click is on search button → DO NOTHING (toggle will handle it)
+    if (searchBtn && searchBtn.contains(e.target)) return;
+
+    // If click is outside search container → close it
+    if (searchBox && !searchBox.contains(e.target)) {
+      setShowSearch(false);
+    }
+  };
+
+  const handleEsc = (e) => {
+    if (e.key === "Escape") {
+      setShowSearch(false);
+    }
+  };
+
+  document.addEventListener("mousedown", handleClickOutside);
+  document.addEventListener("keydown", handleEsc);
+
+  return () => {
+    document.removeEventListener("mousedown", handleClickOutside);
+    document.removeEventListener("keydown", handleEsc);
+  };
+}, [showSearch]);
+
 
   const handleLogout = () => {
     dispatch(logoutUser());
@@ -78,7 +118,6 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen,sidebarIconRef  
 
           {/* Brand */}
           <Link to="/" className="flex items-center gap-2 cursor-pointer group">
-            
             <span
               className="
               text-2xl font-extrabold 
@@ -145,7 +184,7 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen,sidebarIconRef  
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-56 bg-card dark:bg-card border border-border/40 shadow-xl rounded-xl"
+                className="w-56 bg-card dark:bg-card border border-border/40 shadow-xl rounded-xl mt-3"
               >
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
@@ -192,11 +231,11 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen,sidebarIconRef  
       </div>
 
       {/* ---------------- Mobile Navbar ---------------- */}
-      <div className="flex md:hidden justify-between items-center px-4 py-3 bg-card/90 backdrop-blur-md border-b border-border fixed top-0 left-0 right-0 z-50">
+      <div className="flex md:hidden justify-between items-center px-4 py-3 pb-4 bg-card/90 backdrop-blur-md border-b border-border fixed top-0 left-0 right-0 z-50">
         <div className="flex items-center gap-2">
           {/* Sidebar Toggle Button */}
           <div
-          ref={sidebarIconRef} 
+            ref={sidebarIconRef}
             onClick={onToggleSidebar}
             data-sidebar-toggle="true"
             className="flex items-center justify-center cursor-pointer rounded-md hover:bg-accent/30 p-2 transition-transform duration-200"
@@ -211,13 +250,9 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen,sidebarIconRef  
 
           {/* Brand */}
           <Link to="/" className="flex items-center gap-2 cursor-pointer group">
-            
-            <span
-              className="text-xl font-extrabold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight"
-            >
+            <span className="text-xl font-extrabold bg-linear-to-r from-primary to-accent bg-clip-text text-transparent tracking-tight">
               Roomezy
             </span>
-            
           </Link>
         </div>
 
@@ -234,11 +269,13 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen,sidebarIconRef  
             </button>
           )}
           <button
+            ref={mobileSearchButtonRef}
             onClick={() => setShowSearch((prev) => !prev)}
             className="p-2 rounded-full hover:bg-muted transition-colors"
           >
             <Search className="h-5 w-5 text-muted-foreground" />
           </button>
+
           {user ? (
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -253,7 +290,7 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen,sidebarIconRef  
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-48 bg-card/60 dark:bg-card/40 backdrop-blur-xl border border-border/40 shadow-xl rounded-xl"
+                className="w-48 bg-card dark:bg-card border border-border/40 shadow-xl rounded-xl mt-5"
               >
                 <DropdownMenuLabel>
                   <div className="flex flex-col">
@@ -286,15 +323,19 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen,sidebarIconRef  
               to="/login"
               className="p-2 rounded-lg hover:bg-muted transition-colors text-sm font-medium"
             >
-              <User className="h-5 w-5 text-muted-foreground"/>
+              <User className="h-5 w-5 text-muted-foreground" />
             </Link>
           )}
         </div>
       </div>
 
-      {/* Mobile Search Bar */}
+      {/* Mobile Search */}
       {showSearch && (
-        <div className="md:hidden px-4 py-3 bg-card border-t border-border backdrop-blur-md animate-in fade-in slide-in-from-top-2 fixed top-16 left-0 right-0 z-40">
+        <div
+          ref={mobileSearchRef}
+          className="md:hidden px-4 py-3 bg-card border-t border-border backdrop-blur-md
+               animate-in fade-in slide-in-from-top-2 fixed top-16 left-0 right-0 z-40"
+        >
           <form
             onSubmit={(e) => {
               handleSearch(e);
