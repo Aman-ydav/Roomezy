@@ -115,7 +115,7 @@ const ProfileCard = ({ user }) => {
         variants={cardVariants}
         initial="hidden"
         animate="visible"
-        whileHover={{ y: -3, boxShadow: "0 18px 40px rgba(0,0,0,0.18)" }}
+        whileHover={{ scale: 1.00 }}
       >
         {/* Decorative bubbles */}
         <div className="pointer-events-none absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-10" />
@@ -131,7 +131,7 @@ const ProfileCard = ({ user }) => {
               flex items-center justify-center p-5 rounded-2xl
               bg-card shadow-lg border-2
               ${borderColor} ${iconBg}
-              group-hover:scale-105 transition-transform duration-300
+               transition-transform duration-300
             `}
           >
             <div className={`${accentText}`}>{icon}</div>
@@ -157,7 +157,7 @@ const ProfileCard = ({ user }) => {
                   scale: 1,
                   transition: { delay: 0.25, duration: 0.25 },
                 }}
-                whileHover={{ scale: 1.05 }}
+                whileHover={{ scale: 1.00 }}
               >
                 {tag}
               </motion.div>

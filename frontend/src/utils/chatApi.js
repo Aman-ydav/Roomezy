@@ -19,3 +19,4 @@ export const sendMessageApi = (data) =>
 // Mark messages as read
 export const markAsRead = (conversationId, userId) =>
   axios.patch(`/chat/read/${conversationId}/${userId}`);
+

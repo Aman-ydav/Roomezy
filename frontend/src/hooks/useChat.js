@@ -1,42 +1,74 @@
-import { useEffect, useState, useCallback } from "react";
-import { socket } from "../socket/socket";
+// src/features/chat/hooks/useChat.js
+import { useEffect, useState, useCallback, useRef } from "react";
+import { useDispatch } from "react-redux";
+import { socket } from "@/socket/socket";
 import { getMessages, sendMessageApi, markAsRead } from "@/utils/chatApi";
+import {
+  newMessageAlert,
+  resetUnreadForConversation,
+} from "@/features/chat/chatSlice";
 
 export function useChat(conversationId, currentUser, partner) {
+  const dispatch = useDispatch();
   const [messages, setMessages] = useState([]);
   const [typing, setTyping] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const typingTimeoutRef = useRef(null);
 
-  // helper: normalize sender id for alignment
-  const getSenderId = (msg) => {
+  // Clear typing timeout
+  const clearTypingTimeout = useCallback(() => {
+    if (typingTimeoutRef.current) {
+      clearTimeout(typingTimeoutRef.current);
+      typingTimeoutRef.current = null;
+    }
+  }, []);
+
+  const getSenderId = useCallback((msg) => {
     if (!msg) return null;
     if (msg.sender?._id) return msg.sender._id;
     if (msg.sender) return msg.sender;
     if (msg.senderId) return msg.senderId;
     return null;
-  };
+  }, []);
 
-  // 1) Load messages + join room
+  // Load messages + join room
   useEffect(() => {
-    if (!conversationId || !currentUser) return;
+    if (!conversationId || !currentUser?._id) return;
+
+    let cancelled = false;
 
     (async () => {
-      const res = await getMessages(conversationId);
-      setMessages(res.data.data || []);
+      try {
+        setLoading(true);
+        const res = await getMessages(conversationId);
+        if (!cancelled) {
+          setMessages(res.data.data || []);
+        }
+        await markAsRead(conversationId, currentUser._id);
+        dispatch(resetUnreadForConversation(conversationId));
+      } catch (err) {
+        console.error("Failed to load messages", err);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
     })();
 
     socket.emit("join-conversation", conversationId);
 
     return () => {
+      cancelled = true;
       socket.emit("leave-conversation", conversationId);
+      clearTypingTimeout();
     };
-  }, [conversationId, currentUser]);
+  }, [conversationId, currentUser?._id, dispatch, clearTypingTimeout]);
 
-  // 2) Socket listeners: new messages + typing
+  // Socket listeners
   useEffect(() => {
+    if (!conversationId || !currentUser?._id) return;
+
     const handleReceiveMessage = (msg) => {
       if (msg.conversationId !== conversationId) return;
 
-      //  Prevent double message for sender
       if (String(msg.senderId) === String(currentUser._id)) return;
 
       const normalized = {
@@ -46,17 +78,43 @@ export function useChat(conversationId, currentUser, partner) {
       };
 
       setMessages((prev) => [...prev, normalized]);
+      dispatch(
+        newMessageAlert({
+          conversationId,
+          from: msg.senderId,
+          lastMessage: msg,
+        })
+      );
+
+      // Hide typing when message is received
+      setTyping(false);
+      clearTypingTimeout();
     };
 
-    const handleTyping = ({ conversationId: cid, userId }) => {
-      if (cid === conversationId && userId === partner?._id) {
+    const handleTyping = (data) => {
+      console.log("📝 Typing event received:", data);
+      if (
+        data.conversationId === conversationId &&
+        data.userId !== currentUser._id
+      ) {
         setTyping(true);
+        clearTypingTimeout();
+
+        typingTimeoutRef.current = setTimeout(() => {
+          console.log("🕒 Auto-hiding typing indicator");
+          setTyping(false);
+        }, 3000);
       }
     };
 
-    const handleStopTyping = ({ conversationId: cid, userId }) => {
-      if (cid === conversationId && userId === partner?._id) {
+    const handleStopTyping = (data) => {
+      console.log("🛑 Stop typing event received:", data);
+      if (
+        data.conversationId === conversationId &&
+        data.userId !== currentUser._id
+      ) {
         setTyping(false);
+        clearTypingTimeout();
       }
     };
 
@@ -68,65 +126,74 @@ export function useChat(conversationId, currentUser, partner) {
       socket.off("receive-message", handleReceiveMessage);
       socket.off("typing", handleTyping);
       socket.off("stop-typing", handleStopTyping);
+      clearTypingTimeout();
     };
-  }, [conversationId, partner]);
+  }, [conversationId, currentUser?._id, dispatch, clearTypingTimeout]);
 
-  // 3) Send message
   const sendMessage = useCallback(
     async (text) => {
-      if (!text.trim()) return;
-      if (!partner?._id || !conversationId || !currentUser?._id) {
-        console.warn("Missing fields, cannot send message yet.");
-        return;
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      if (!partner?._id || !conversationId || !currentUser?._id) return;
+
+      try {
+        const res = await sendMessageApi({
+          senderId: currentUser._id,
+          receiverId: partner._id,
+          conversationId,
+          text: trimmed,
+        });
+
+        const saved = res.data.data;
+        setMessages((prev) => [...prev, saved]);
+
+        socket.emit("send-message", {
+          conversationId,
+          senderId: currentUser._id,
+          receiverId: partner._id,
+          text: trimmed,
+        });
+
+        await markAsRead(conversationId, currentUser._id);
+      } catch (err) {
+        console.error("Failed to send message", err);
       }
-
-      // Save in DB
-      const res = await sendMessageApi({
-        senderId: currentUser._id,
-        receiverId: partner._id,
-        conversationId,
-        text,
-      });
-
-      const saved = res.data.data;
-
-      setMessages((prev) => [...prev, saved]);
-
-      // Emit real-time event for receiver
-      socket.emit("send-message", {
-        conversationId,
-        senderId: currentUser._id,
-        receiverId: partner._id,
-        text,
-      });
     },
-    [conversationId, currentUser, partner]
+    [conversationId, currentUser?._id, partner?._id]
   );
 
-  // 4) Typing indicator
-  const sendTyping = () => {
-    if (!conversationId || !currentUser) return;
+  // In useChat hook, enhance the markRead function
+  const sendTyping = useCallback(() => {
+    if (!conversationId || !currentUser?._id) return;
+    console.log("📤 Sending typing event");
     socket.emit("typing", { conversationId, userId: currentUser._id });
-  };
+  }, [conversationId, currentUser?._id]);
 
-  const stopTyping = () => {
-    if (!conversationId || !currentUser) return;
+  const stopTyping = useCallback(() => {
+    if (!conversationId || !currentUser?._id) return;
+    console.log("📤 Sending stop typing event");
     socket.emit("stop-typing", { conversationId, userId: currentUser._id });
-  };
+  }, [conversationId, currentUser?._id]);
 
-  // 5) Mark as read
-  const markRead = useCallback(() => {
-    if (!conversationId || !currentUser) return;
-    markAsRead(conversationId, currentUser._id);
-  }, [conversationId, currentUser]);
+const markRead = useCallback(async () => {
+  if (!conversationId || !currentUser?._id) return;
+  try {
+    await markAsRead(conversationId, currentUser._id);
+    dispatch(resetUnreadForConversation(conversationId));
+  } catch (error) {
+    console.error("Failed to mark as read:", error);
+  }
+}, [conversationId, currentUser?._id, dispatch]);
+
 
   return {
     messages,
     typing,
+    loading,
     sendMessage,
     sendTyping,
     stopTyping,
     markRead,
-    getSenderId, // so UI can decide left/right
+    getSenderId,
   };
 }

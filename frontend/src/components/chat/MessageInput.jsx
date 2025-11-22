@@ -1,45 +1,120 @@
-import { useState } from "react";
-import { Send } from "lucide-react";
+// src/features/chat/components/MessageInput.jsx
+import { useState, useRef, useCallback } from "react";
+import { Send, Smile, Paperclip, Mic } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { debounce } from "lodash";
 
-export default function MessageInput({ onSend, onTyping, onStopTyping }) {
-  const [text, setText] = useState("");
+export default function MessageInput({ 
+  onSendMessage, 
+  onTypingStart, 
+  onTypingStop, 
+  disabled 
+}) {
+  const [message, setMessage] = useState("");
+  const [isTyping, setIsTyping] = useState(false);
+  const typingTimeoutRef = useRef(null);
 
-  const handleSend = () => {
-    if (!text.trim()) return;
-    onSend(text);
-    setText("");
-    onStopTyping();
+  // Debounced stop typing function
+  const debouncedStopTyping = useCallback(
+    debounce(() => {
+      onTypingStop();
+      setIsTyping(false);
+    }, 1000),
+    [onTypingStop]
+  );
+
+  const handleInputChange = (e) => {
+    const value = e.target.value;
+    setMessage(value);
+
+    // Start typing if not already typing
+    if (value.trim() && !isTyping) {
+      setIsTyping(true);
+      onTypingStart();
+    }
+
+    // Reset the typing timeout
+    if (value.trim()) {
+      debouncedStopTyping();
+    } else {
+      // If input is empty, stop typing immediately
+      onTypingStop();
+      setIsTyping(false);
+      debouncedStopTyping.cancel();
+    }
   };
 
-  const handleKeyDown = (e) => {
-    if (e.key === "Enter") {
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    if (message.trim() && !disabled) {
+      onSendMessage(message);
+      setMessage("");
+      
+      // Stop typing when message is sent
+      onTypingStop();
+      setIsTyping(false);
+      debouncedStopTyping.cancel();
+    }
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      handleSend();
+      handleSubmit(e);
+    }
+  };
+
+  // Cleanup on unmount
+  const handleBlur = () => {
+    if (isTyping) {
+      onTypingStop();
+      setIsTyping(false);
+      debouncedStopTyping.cancel();
     }
   };
 
   return (
-    <div className="p-4 border-t border-border bg-card/50 backdrop-blur-sm flex gap-3 items-center">
-      <input
-        type="text"
-        className="flex-1 px-4 py-3 text-sm border border-border rounded-lg outline-none bg-background focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
-        value={text}
-        onChange={(e) => {
-          setText(e.target.value);
-          onTyping();
-        }}
-        onBlur={onStopTyping}
-        onKeyDown={handleKeyDown}
-        placeholder="Type a message..."
-      />
-      <button
-        onClick={handleSend}
-        className="px-4 py-3 bg-primary text-white rounded-lg border border-primary hover:bg-primary/90 transition-colors flex items-center gap-2 shadow-sm"
-        aria-label="Send message"
-      >
-        <Send size={18} />
-        <span className="hidden sm:inline text-sm font-medium">Send</span>
-      </button>
+    <div className="border-t border-border bg-card p-4">
+      <form onSubmit={handleSubmit} className="flex items-end gap-2">
+        {/* Attachment Button */}
+        <Button type="button" variant="ghost" size="icon" disabled={disabled}>
+          <Paperclip size={18} />
+        </Button>
+
+        {/* Emoji Button */}
+        <Button type="button" variant="ghost" size="icon" disabled={disabled}>
+          <Smile size={18} />
+        </Button>
+
+        {/* Message Input */}
+        <div className="flex-1">
+          <Input
+            value={message}
+            onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
+            onBlur={handleBlur}
+            placeholder="Type a message..."
+            disabled={disabled}
+            className="bg-background"
+          />
+        </div>
+
+        {/* Voice Message */}
+        <Button type="button" variant="ghost" size="icon" disabled={disabled}>
+          <Mic size={18} />
+        </Button>
+
+        {/* Send Button */}
+        <Button 
+          type="submit" 
+          size="icon" 
+          disabled={!message.trim() || disabled}
+          className="shrink-0"
+        >
+          <Send size={18} />
+        </Button>
+      </form>
     </div>
   );
 }

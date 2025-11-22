@@ -23,8 +23,8 @@ import PrivacyPolicyPage from "@/pages/About/PrivacyPolicyPage";
 import ListRoom from "@/pages/About/ListRoom";
 import FindRoom from "@/pages/About/FindRoom";
 import SavedPosts from "@/pages/saved/SavedPosts";
-import ChatPage from "@/pages/chat/ChatPage";
 import InboxPage from "@/pages/chat/InboxPage";
+import ChatLayout from "@/components/chat/ChatLayout";
 
 export default function AppRouter() {
   return (
@@ -59,8 +59,7 @@ export default function AppRouter() {
           <Route path="/create-post" element={<CreatePost />} />
           <Route path="/my-posts" element={<MyPosts />} />
           <Route path="/post/:id/edit" element={<EditPost />} />
-          <Route path="/chat/:id" element={<ChatPage />} />
-          <Route path="/inbox" element={<InboxPage />} />
+          <Route path="/inbox" element={<ChatLayout />} />
           <Route path="/saved" element={<SavedPosts />} />
       </Route>
       </Route>

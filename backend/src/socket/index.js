@@ -33,7 +33,18 @@ export const initSocketServer = (server) => {
       onlineUsers.set(userId, socket.id);
       socket.userId = userId; // store user id inside socket instance
 
+      // Broadcast to all other users that this user is online
+      socket.broadcast.emit("user-online", userId);
+      
       console.log(`User Online: ${userId}`);
+    });
+
+    // --------------------------
+    // CHECK USER STATUS
+    // --------------------------
+    socket.on("check-user-status", (userId) => {
+      const isOnline = onlineUsers.has(userId);
+      socket.emit("user-status", { userId, isOnline });
     });
 
     // --------------------------
@@ -44,14 +55,19 @@ export const initSocketServer = (server) => {
       console.log(`User (${socket.userId}) joined room: ${conversationId}`);
     });
 
+    socket.on("leave-conversation", (conversationId) => {
+      socket.leave(conversationId);
+      console.log(`User (${socket.userId}) left room: ${conversationId}`);
+    });
+
     // --------------------------
     // SEND MESSAGE
     // --------------------------
     socket.on("send-message", ({ conversationId, senderId, receiverId, text }) => {
       const messagePayload = {
         conversationId,
-        sender: senderId,
-        receiver: receiverId,
+        senderId,
+        receiverId,
         text,
         read: false,
         createdAt: new Date(),
@@ -66,30 +82,31 @@ export const initSocketServer = (server) => {
         io.to(receiverSocket).emit("new-message-alert", {
           conversationId,
           from: senderId,
-          lastMessage: text,
+          lastMessage: { text, createdAt: new Date() },
         });
       }
-
-      // Notify sender as well (last message UI update)
-      const senderSocket = onlineUsers.get(senderId);
-      if (senderSocket) {
-        io.to(senderSocket).emit("new-message-alert", {
-          conversationId,
-          from: senderId,
-          lastMessage: text,
-        });
-      }
+     
     });
 
     // --------------------------
-    //  LIVE TYPING EVENTS
+    //  LIVE TYPING EVENTS - FIXED
     // --------------------------
     socket.on("typing", ({ conversationId, userId }) => {
-      socket.to(conversationId).emit("typing", { userId });
+      console.log(`User ${userId} typing in ${conversationId}`);
+      // Send to everyone in conversation except the sender
+      socket.to(conversationId).emit("typing", { 
+        conversationId, 
+        userId 
+      });
     });
 
     socket.on("stop-typing", ({ conversationId, userId }) => {
-      socket.to(conversationId).emit("stop-typing", { userId });
+      console.log(`User ${userId} stopped typing in ${conversationId}`);
+      // Send to everyone in conversation except the sender
+      socket.to(conversationId).emit("stop-typing", { 
+        conversationId, 
+        userId 
+      });
     });
 
     // --------------------------
@@ -98,8 +115,19 @@ export const initSocketServer = (server) => {
     socket.on("disconnect", () => {
       if (socket.userId) {
         onlineUsers.delete(socket.userId);
+        // Broadcast that user went offline
+        socket.broadcast.emit("user-offline", socket.userId);
         console.log(` User disconnected: ${socket.userId}`);
       }
+    });
+
+    // --------------------------
+    // MANUALLY SET OFFLINE
+    // --------------------------
+    socket.on("user-offline", (userId) => {
+      onlineUsers.delete(userId);
+      socket.broadcast.emit("user-offline", userId);
+      console.log(`User manually went offline: ${userId}`);
     });
   });
 
