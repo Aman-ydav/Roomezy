@@ -2,7 +2,7 @@
 import { useEffect, useRef } from "react";
 import MessageBubble from "./MessageBubble";
 
-export default function MessageList({ messages, currentUserId, getSenderId, partner }) {
+export default function MessageList({ messages, currentUserId, getSenderId, partner, loading }) {
   const listRef = useRef(null);
 
   // Add date separators to messages
@@ -55,15 +55,23 @@ export default function MessageList({ messages, currentUserId, getSenderId, part
       }
     };
 
-    scrollToBottom();
-  }, [messages]);
+    // Use setTimeout to ensure DOM is updated before scrolling
+    setTimeout(scrollToBottom, 100);
+  }, [messages, loading]);
 
   return (
     <div 
       ref={listRef}
       className="h-full overflow-y-auto p-4 space-y-1 scroll-smooth"
     >
-      {groupedMessages.length === 0 && !loading ? (
+      {loading ? (
+        <div className="flex items-center justify-center h-full">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
+            <p className="text-sm text-muted-foreground">Loading messages...</p>
+          </div>
+        </div>
+      ) : groupedMessages.length === 0 ? (
         <div className="flex items-center justify-center h-full text-center">
           <div>
             <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">

@@ -11,6 +11,7 @@ import {
 } from "@/features/post/postSlice";
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
+import { createConversation } from "@/utils/chatApi"; 
 import {
   IndianRupee,
   MapPin,
@@ -225,7 +226,7 @@ export default function PostDetails() {
             whileTap={{ scale: 0.9 }}
             className="px-3 py-1.5 rounded-lg border border-border bg-muted text-foreground hover:bg-muted/70 font-medium transition-all"
           >
-            <ArrowLeft className="w-5 h-5 inline"/> Back
+            <ArrowLeft className="w-5 h-5 inline" /> Back
           </motion.button>
 
           {/* SAVE / UNSAVE BUTTON */}
@@ -446,12 +447,10 @@ export default function PostDetails() {
               <MessageSquare className="w-5 h-5 text-primary" />
               Start Chat With The Post Owner
             </h3>
-
             <p className="text-sm text-muted-foreground leading-relaxed mt-2">
               Have a question about rent, location, or room details? You can
               start a conversation right here or open the full chat inbox.
             </p>
-
             {/* Mini Fake Chat Window */}
             <div className="border border-border rounded-lg bg-background blur-[1.5px] p-4 mt-4 space-y-3">
               {/* Fake bubble */}
@@ -493,18 +492,50 @@ export default function PostDetails() {
                 Chat preview — open full chat to start messaging.
               </p>
             </div>
-
             {/* Main Action Button */}
+
             <Button
-              onClick={() =>
-                navigate("/inbox", {
-                  state: { openChatWith: post.user._id },
-                })
-              }
-              className="flex items-center gap-2 text-sm w-full sm:w-auto mt-4 bg-primary text-white border border-primary"
+              onClick={async () => {
+                if (!authUser) {
+                  toast.info("Please login to start chatting");
+                  navigate("/login");
+                  return;
+                }
+
+                if (isOwner) {
+                  toast.error("You cannot chat with yourself");
+                  return;
+                }
+
+                try {
+                  const response = await createConversation({
+                    senderId: authUser._id,
+                    receiverId: post.user._id,
+                  });
+
+                  const conversation = response.data.data;
+
+                  navigate("/inbox", {
+                    state: {
+                      openConversationId: conversation._id,
+                      receiverId: post.user._id,
+                    },
+                  });
+                } catch (error) {
+                  console.error("Failed to create conversation:", error);
+                  toast.error("Failed to start conversation");
+                  // Fallback - navigate to inbox anyway
+                  navigate("/inbox", {
+                    state: {
+                      openChatWith: post.user._id,
+                    },
+                  });
+                }
+              }}
+              className="flex items-center gap-2 text-sm w-full sm:w-auto mt-4 bg-primary text-white border border-primary hover:bg-primary/90"
             >
               <MessageCircle size={18} />
-              Open Full Chat
+              {authUser ? "Open Full Chat" : "Login to Chat"}
             </Button>
           </Card>
         )}
@@ -684,10 +715,9 @@ export default function PostDetails() {
         </AnimatePresence>
       </div>
 
-      {/* FLOATING MINI CHAT WIDGET (UNCHANGED) */}
       {!isOwner && (
         <div className="fixed bottom-4 right-6 z-50">
-          <MiniChatWidget user={authUser} receiverId={post.user._id} />
+          <MiniChatWidget receiverId={post.user._id} />
         </div>
       )}
     </motion.div>

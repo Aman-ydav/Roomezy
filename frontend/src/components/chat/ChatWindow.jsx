@@ -68,7 +68,7 @@ export default function ChatWindow({ conversation, onBack, currentUser }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-1">
+        {/* <div className="flex items-center gap-1">
           <Button variant="ghost" size="icon">
             <Phone size={18} />
           </Button>
@@ -81,7 +81,7 @@ export default function ChatWindow({ conversation, onBack, currentUser }) {
           <Button variant="ghost" size="icon">
             <MoreVertical size={18} />
           </Button>
-        </div>
+        </div> */}
       </div>
 
       {/* Messages Area */}

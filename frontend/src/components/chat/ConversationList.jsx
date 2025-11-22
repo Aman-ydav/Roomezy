@@ -1,21 +1,25 @@
-// src/features/chat/components/ConversationList.jsx
 import { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";
-import { Search, Plus, ChevronLeft } from "lucide-react";
-import { setConversations, resetUnreadForConversation, newMessageAlert } from "@/features/chat/chatSlice";
-import { getConversations, markAsRead } from "@/utils/chatApi"; 
+import { Search, ChevronLeft } from "lucide-react";
+import {
+  setConversations,
+  resetUnreadForConversation,
+  newMessageAlert,
+} from "@/features/chat/chatSlice";
+import { getConversations, markAsRead } from "@/utils/chatApi";
 import ConversationItem from "./ConversationItem";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import Loader from "@/components/layout/Loader";
 import { socket } from "@/socket/socket";
 import { setCurrentUserId } from "@/features/chat/chatSlice";
+import { useLocation } from "react-router-dom";
 
-export default function ConversationList({ 
-  onSelectConversation, 
+export default function ConversationList({
+  onSelectConversation,
   selectedConversation,
   isMobile,
-  onBack 
+  onBack,
 }) {
   const dispatch = useDispatch();
   const conversations = useSelector((s) => s.chat.conversations);
@@ -23,13 +27,25 @@ export default function ConversationList({
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
 
-   // Set currentUserId when component mounts
+  const location = useLocation();
+
+  useEffect(() => {
+    if (location.state?.openChatWith) {
+      const existingConvo = conversations.find((convo) =>
+        convo.participants.some((p) => p._id === location.state.openChatWith)
+      );
+
+      if (existingConvo) {
+        onSelectConversation(existingConvo);
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state, conversations, onSelectConversation]);
   useEffect(() => {
     if (user?._id) {
       dispatch(setCurrentUserId(user._id));
     }
   }, [user?._id, dispatch]);
-
 
   useEffect(() => {
     if (!user?._id) return;
@@ -38,10 +54,9 @@ export default function ConversationList({
       try {
         setLoading(true);
         const res = await getConversations(user._id);
-        // The API should return conversations with proper unreadCount from database
         dispatch(setConversations(res.data.data || []));
       } catch (error) {
-        console.error("Failed to load conversations:", error);
+        console.error(error);
       } finally {
         setLoading(false);
       }
@@ -50,45 +65,40 @@ export default function ConversationList({
     loadConversations();
   }, [user?._id, dispatch]);
 
-  // Listen for new message alerts from socket
   useEffect(() => {
     if (!user?._id) return;
 
     const handleNewMessageAlert = (data) => {
-      console.log('New message alert received:', data);
       dispatch(newMessageAlert(data));
     };
 
-    socket.on('new-message-alert', handleNewMessageAlert);
+    socket.on("new-message-alert", handleNewMessageAlert);
 
     return () => {
-      socket.off('new-message-alert', handleNewMessageAlert);
+      socket.off("new-message-alert", handleNewMessageAlert);
     };
   }, [user?._id, dispatch]);
 
-  const filteredConversations = conversations.filter(convo => {
+  const filteredConversations = conversations.filter((convo) => {
     if (!searchTerm) return true;
-    
-    const partner = convo.participants.find(p => p._id !== user._id);
+
+    const partner = convo.participants.find((p) => p._id !== user._id);
     if (!partner) return false;
-    
+
     return partner.userName.toLowerCase().includes(searchTerm.toLowerCase());
   });
 
   const handleConversationClick = async (conversation) => {
     onSelectConversation(conversation);
-    
-    // Reset unread count in Redux state
+
     dispatch(resetUnreadForConversation(conversation._id));
-    
-    // Also mark as read in database if there are unread messages
+
     const unreadCount = conversation.unreadCount?.[user._id] || 0;
     if (unreadCount > 0) {
       try {
         await markAsRead(conversation._id, user._id);
-        console.log('Marked conversation as read in database');
       } catch (error) {
-        console.error('Failed to mark conversation as read:', error);
+        console.error(error);
       }
     }
   };
@@ -99,19 +109,24 @@ export default function ConversationList({
       <div className="p-4 border-b border-border">
         <div className="flex items-center justify-between mb-4">
           {isMobile && (
-            <Button variant="ghost" size="icon" onClick={onBack} className="mr-2">
+            <Button
+              variant="ghost"
+              size="icon"
+              onClick={onBack}
+              className="mr-2"
+            >
               <ChevronLeft size={20} />
             </Button>
           )}
           <h2 className="text-xl font-semibold flex-1">Messages</h2>
-          <Button variant="ghost" size="icon">
-            <Plus size={20} />
-          </Button>
         </div>
-        
+
         {/* Search */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground" size={16} />
+          <Search
+            className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground"
+            size={16}
+          />
           <Input
             placeholder="Search conversations..."
             value={searchTerm}

@@ -77,10 +77,7 @@ export default function MessageInput({
   return (
     <div className="border-t border-border bg-card p-4">
       <form onSubmit={handleSubmit} className="flex items-end gap-2">
-        {/* Attachment Button */}
-        <Button type="button" variant="ghost" size="icon" disabled={disabled}>
-          <Paperclip size={18} />
-        </Button>
+
 
         {/* Emoji Button */}
         <Button type="button" variant="ghost" size="icon" disabled={disabled}>
@@ -99,11 +96,7 @@ export default function MessageInput({
             className="bg-background"
           />
         </div>
-
-        {/* Voice Message */}
-        <Button type="button" variant="ghost" size="icon" disabled={disabled}>
-          <Mic size={18} />
-        </Button>
+      
 
         {/* Send Button */}
         <Button 
