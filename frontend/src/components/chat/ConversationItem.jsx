@@ -17,8 +17,7 @@ export default function ConversationItem({
   const lastMessageRaw = conversation.lastMessage;
 
   // sender of last msg
-  const isLastMessageFromMe =
-    conversation.lastMessageSender === currentUserId;
+  const isLastMessageFromMe = conversation.lastMessageSender === currentUserId;
 
   // unread messages for current user
   const unreadCount = conversation.unreadCount?.[currentUserId] || 0;
@@ -56,7 +55,11 @@ export default function ConversationItem({
       className={`
         flex items-center p-4 border-b border-border cursor-pointer transition-colors
         ${isSelected ? "bg-muted" : "hover:bg-muted/50"}
-        ${unreadCount > 0 ? "bg-blue-50 dark:bg-blue-950/20 border-l-4 border-l-primary" : ""}
+        ${
+          unreadCount > 0
+            ? "bg-blue-50 dark:bg-blue-950/20 border-l-4 border-l-primary"
+            : ""
+        }
       `}
       onClick={onClick}
     >
@@ -67,7 +70,7 @@ export default function ConversationItem({
             partner?.avatar ||
             `https://ui-avatars.com/api/?name=${encodeURIComponent(
               partner?.userName || "User"
-            )}&background=primary&color=fff`
+            )}&background=6A1F2C&color=FFFFFF`
           }
           className="w-12 h-12 rounded-full border object-cover"
         />
@@ -88,8 +91,6 @@ export default function ConversationItem({
             {formatTime(lastMessageTime)}
           </span>
         </div>
-
-      
       </div>
 
       {/* UNREAD BADGE */}
