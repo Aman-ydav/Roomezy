@@ -18,7 +18,7 @@ import { useLocation } from "react-router-dom";
 export default function ConversationList({
   onSelectConversation,
   selectedConversation,
-  isMobile,
+  isMobile, 
   onBack,
 }) {
   const dispatch = useDispatch();
@@ -41,6 +41,7 @@ export default function ConversationList({
       }
     }
   }, [location.state, conversations, onSelectConversation]);
+  
   useEffect(() => {
     if (user?._id) {
       dispatch(setCurrentUserId(user._id));
@@ -79,7 +80,25 @@ export default function ConversationList({
     };
   }, [user?._id, dispatch]);
 
-  const filteredConversations = conversations.filter((convo) => {
+  // Sort conversations by last message timestamp (like WhatsApp)
+  const sortedConversations = [...conversations].sort((a, b) => {
+    const getTimestamp = (conversation) => {
+      // Use lastMessage timestamp if available
+      if (conversation.lastMessage?.createdAt) {
+        return new Date(conversation.lastMessage.createdAt).getTime();
+      }
+      // Use conversation creation date as fallback
+      return new Date(conversation.createdAt).getTime();
+    };
+
+    const timeA = getTimestamp(a);
+    const timeB = getTimestamp(b);
+    
+    // Sort in descending order (newest first)
+    return timeB - timeA;
+  });
+
+  const filteredConversations = sortedConversations.filter((convo) => {
     if (!searchTerm) return true;
 
     const partner = convo.participants.find((p) => p._id !== user._id);

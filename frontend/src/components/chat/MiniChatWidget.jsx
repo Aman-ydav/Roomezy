@@ -71,7 +71,7 @@ export default function MiniChatWidget({ receiverId }) {
             className="w-80 h-96 bg-card border border-border/50 shadow-2xl rounded-xl flex flex-col overflow-hidden backdrop-blur-sm"
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-card/95">
+            {/* <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-card/95">
               <div className="flex items-center gap-2">
                 <MessageCircle className="text-primary" size={18} />
                 <p className="font-semibold text-sm">Quick Chat</p>
@@ -94,13 +94,59 @@ export default function MiniChatWidget({ receiverId }) {
                   <X size={14} />
                 </button>
               </div>
-            </div>
+            </div> */}
+            <div className="flex items-center justify-between px-4 py-3 border-b border-border/50 bg-card/95">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="text-primary" size={18} />
+                <p className="font-semibold text-sm">Chat</p>
+              </div>
 
+              <div className="flex items-center gap-1">
+                {/* Add Open Full Chat Button Here */}
+                <Button
+                  asChild
+                  variant="outline"
+                  size="sm"
+                  className="text-xs h-7 px-2 mr-1 bg-primary text-background "
+                >
+                  <Link
+                    to="/inbox"
+                    state={{
+                      forceOpen: true,
+                      receiverId: receiverId,
+                      openConversationId: conversation?._id,
+                    }}
+                    onClick={() => setOpen(false)}
+                  >
+                    Full Chat
+                  </Link>
+                </Button>
+
+                <button
+                  onClick={() => setOpen(false)}
+                  className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <Minus size={14} />
+                </button>
+                <button
+                  onClick={() => {
+                    setOpen(false);
+                    setConversation(null);
+                  }}
+                  className="p-1.5 rounded-lg hover:bg-muted/50 transition-colors"
+                >
+                  <X size={14} />
+                </button>
+              </div>
+            </div>
             {/* Body */}
             <div className="flex-1 overflow-hidden">
               {!user && (
                 <div className="h-full flex flex-col items-center justify-center px-6 text-center">
-                  <MessageCircle size={32} className="text-muted-foreground mb-3" />
+                  <MessageCircle
+                    size={32}
+                    className="text-muted-foreground mb-3"
+                  />
                   <p className="text-sm text-muted-foreground mb-4">
                     Please login to start chatting
                   </p>

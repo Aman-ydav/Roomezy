@@ -1,14 +1,110 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useSelector } from "react-redux";
+import { useLocation, useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import ConversationList from "./ConversationList";
 import ChatWindow from "./ChatWindow";
 import { Button } from "@/components/ui/button";
-import { MessageCircle, X } from "lucide-react";
+import { MessageCircle } from "lucide-react";
+import { createConversation } from "@/utils/chatApi";
+import { toast } from "sonner";
 
 export default function ChatLayout() {
   const [selectedConversation, setSelectedConversation] = useState(null);
+  const [conversations, setConversations] = useState([]);
+  const [loading, setLoading] = useState(false);
   const user = useSelector((s) => s.auth.user);
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  // Handle force opening a chat from location state - SIMPLIFIED VERSION
+  useEffect(() => {
+    const handleForceOpen = async () => {
+      const { 
+        forceOpen, 
+        receiverId, 
+        openConversationId 
+      } = location.state || {};
+
+      console.log("Force open params:", { forceOpen, receiverId, openConversationId });
+
+      if (!forceOpen || !receiverId || !user) return;
+
+      // Don't open chat with self
+      if (receiverId === user._id) {
+        toast.error("Cannot chat with yourself");
+        navigate(location.pathname, { replace: true, state: {} });
+        return;
+      }
+
+      try {
+        setLoading(true);
+
+        // If we have a specific conversation ID, try to find it in existing conversations
+        if (openConversationId) {
+          const targetConversation = conversations.find(conv => conv._id === openConversationId);
+          if (targetConversation) {
+            console.log("Found existing conversation:", targetConversation);
+            setSelectedConversation(targetConversation);
+            navigate(location.pathname, { replace: true, state: {} });
+            return;
+          }
+        }
+
+        // Check if conversation already exists with this user
+        const existingConvo = conversations.find(conv => 
+          conv.participants.some(p => p._id === receiverId)
+        );
+
+        if (existingConvo) {
+          console.log("Found conversation with user:", existingConvo);
+          setSelectedConversation(existingConvo);
+        } else {
+          console.log("Creating new conversation with:", receiverId);
+          // Create a new conversation
+          const response = await createConversation({
+            senderId: user._id,
+            receiverId: receiverId,
+          });
+          
+          const newConversation = response.data.data;
+          console.log("Created new conversation:", newConversation);
+          setSelectedConversation(newConversation);
+          // Add to conversations list
+          setConversations(prev => [newConversation, ...prev]);
+        }
+
+        // Clear the state to prevent reopening
+        navigate(location.pathname, { replace: true, state: {} });
+
+      } catch (error) {
+        console.error("Failed to open chat:", error);
+        toast.error("Failed to open chat");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    // Only run if we have forceOpen in state
+    if (location.state?.forceOpen) {
+      console.log("Force open detected, processing...");
+      handleForceOpen();
+    }
+  }, [location.state, user, conversations, navigate, location.pathname]);
+
+  // Update conversations when ConversationList loads them
+  const handleConversationsUpdate = (conversationsList) => {
+    console.log("Conversations updated:", conversationsList);
+    setConversations(conversationsList);
+  };
+
+  const handleSelectConversation = (conversation) => {
+    setSelectedConversation(conversation);
+  };
+
+  const handleBack = () => {
+    setSelectedConversation(null);
+  };
 
   if (!user) {
     return (
@@ -25,15 +121,18 @@ export default function ChatLayout() {
   }
 
   return (
-    <div className="flex h-[calc(100vh-4rem)] bg-background"> {/* Subtract navbar height */}
+    <div className="flex h-[calc(100vh-4rem)] bg-background">
       {/* Conversation List - Always visible on desktop, conditional on mobile */}
       <div className={`
         ${selectedConversation ? 'hidden lg:flex' : 'flex'} 
         w-full lg:w-96 flex-col border-r border-border
       `}>
         <ConversationList
-          onSelectConversation={setSelectedConversation}
+          onSelectConversation={handleSelectConversation}
           selectedConversation={selectedConversation}
+          onConversationsUpdate={handleConversationsUpdate}
+          isMobile={false}
+          onBack={handleBack}
         />
       </div>
 
@@ -49,7 +148,7 @@ export default function ChatLayout() {
           >
             <ChatWindow
               conversation={selectedConversation}
-              onBack={() => setSelectedConversation(null)}
+              onBack={handleBack}
               currentUser={user}
             />
           </motion.div>
@@ -63,9 +162,14 @@ export default function ChatLayout() {
           >
             <div className="text-center p-8 max-w-md">
               <MessageCircle size={50} className="mx-auto text-muted-foreground mb-6" />
-              <h3 className="text-2xl font-semibold mb-4">Select a conversation</h3>
+              <h3 className="text-2xl font-semibold mb-4">
+                {loading ? "Opening Chat..." : "Select a conversation"}
+              </h3>
               <p className="text-muted-foreground text-lg">
-                Choose a chat from the sidebar to start messaging
+                {loading 
+                  ? "Please wait while we open your chat..." 
+                  : "Choose a chat from the sidebar to start messaging"
+                }
               </p>
             </div>
           </motion.div>
