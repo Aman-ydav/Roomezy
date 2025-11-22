@@ -145,7 +145,7 @@ export default function Navbar({ onToggleSidebar, isSidebarOpen,sidebarIconRef  
               </DropdownMenuTrigger>
               <DropdownMenuContent
                 align="end"
-                className="w-56 bg-card/60 dark:bg-card/40 backdrop-blur-xl border border-border/40 shadow-xl rounded-xl"
+                className="w-56 bg-card dark:bg-card border border-border/40 shadow-xl rounded-xl"
               >
                 <DropdownMenuLabel>
                   <div className="flex flex-col">

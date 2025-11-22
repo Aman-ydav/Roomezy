@@ -19,6 +19,7 @@ import { getAllPosts } from "@/features/post/postSlice";
 import { logoutUser } from "@/features/auth/authSlice";
 import UserDetails from "@/components/Dashboard/UserDetails";
 import ProfileCard from "@/components/Dashboard/ProfileCard";  
+import { getSavedPosts } from "@/features/savedPosts/savedPostSlice";
 
 export default function Dashboard() {
   const { user } = useSelector((state) => state.auth);
@@ -28,6 +29,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     dispatch(getAllPosts());
+    dispatch(getSavedPosts());
   }, [dispatch]);
 
   const handleNavigate = (path) => navigate(path);
