@@ -16,21 +16,18 @@ export function useUserStatus(userId) {
 
     const handleUserOnline = (onlineUserId) => {
       if (onlineUserId === userId) {
-        console.log(`User ${userId} is online`);
         setIsOnline(true);
       }
     };
 
     const handleUserOffline = (offlineUserId) => {
       if (offlineUserId === userId) {
-        console.log(`User ${userId} is offline`);
         setIsOnline(false);
       }
     };
 
     const handleUserStatus = (data) => {
       if (data.userId === userId) {
-        console.log(`User ${userId} status: ${data.isOnline ? 'online' : 'offline'}`);
         setIsOnline(data.isOnline);
       }
     };

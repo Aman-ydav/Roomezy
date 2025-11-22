@@ -11,7 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
 import { motion, AnimatePresence } from "framer-motion";
-import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
   ChevronDown,
@@ -134,7 +133,6 @@ export default function EditProfile() {
       const updatedUser = await dispatch(updateUserAvatar(selectedFile)).unwrap();
       dispatch(updateUser(updatedUser));
       localStorage.setItem("user", JSON.stringify(updatedUser));
-      toast.success("Avatar updated successfully.");
       setSelectedFile(null);
     } catch {
       setFormError("Failed to update avatar. Please try again.");
@@ -164,7 +162,6 @@ export default function EditProfile() {
       const updatedUser = await dispatch(updateAccountDetails(formData)).unwrap();
       dispatch(updateUser(updatedUser));
       localStorage.setItem("user", JSON.stringify(updatedUser));
-      toast.success("Profile details updated successfully.");
     } catch {
       setFormError("Failed to update details. Please try again.");
     } finally {
@@ -191,7 +188,6 @@ export default function EditProfile() {
     setLoadingPassword(true);
     try {
       await dispatch(changePassword(passwords)).unwrap();
-      toast.success("Password changed successfully.");
       setPasswords({ oldPassword: "", newPassword: "" });
     } catch (e) {
       setFormError(e || "Failed to change password. Please try again.");
@@ -394,7 +390,6 @@ export default function EditProfile() {
                     setLoadingDelete(true);
                     try {
                       await dispatch(deleteAccount()).unwrap();
-                      toast.success("Account deleted successfully.");
                       localStorage.removeItem("user");
                       dispatch(updateUser(null));
                       navigate("/login");
