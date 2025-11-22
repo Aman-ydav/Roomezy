@@ -1,109 +1,155 @@
 // src/features/chat/components/MessageInput.jsx
-import { useState, useRef, useCallback } from "react";
-import { Send, Smile, Paperclip, Mic } from "lucide-react";
+import { useState, useRef, useCallback, useEffect } from "react";
+import { Send, Smile } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import EmojiPicker from "emoji-picker-react";
 import { debounce } from "lodash";
 
-export default function MessageInput({ 
-  onSendMessage, 
-  onTypingStart, 
-  onTypingStop, 
-  disabled 
+export default function MessageInput({
+  onSendMessage,
+  onTypingStart,
+  onTypingStop,
+  disabled,
 }) {
   const [message, setMessage] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const typingTimeoutRef = useRef(null);
+  const [showEmojiPicker, setShowEmojiPicker] = useState(false);
 
-  // Debounced stop typing function
+  const textareaRef = useRef(null);
+  const emojiPickerRef = useRef(null);
+
+  // Debounced stop typing
   const debouncedStopTyping = useCallback(
     debounce(() => {
       onTypingStop();
       setIsTyping(false);
     }, 1000),
-    [onTypingStop]
+    []
   );
 
+  // --------------- Handle Input ------------------
   const handleInputChange = (e) => {
     const value = e.target.value;
     setMessage(value);
 
-    // Start typing if not already typing
+    // Typing logic
     if (value.trim() && !isTyping) {
       setIsTyping(true);
       onTypingStart();
     }
 
-    // Reset the typing timeout
     if (value.trim()) {
       debouncedStopTyping();
     } else {
-      // If input is empty, stop typing immediately
       onTypingStop();
       setIsTyping(false);
       debouncedStopTyping.cancel();
     }
   };
 
+  // --------------- Send Message ------------------
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (message.trim() && !disabled) {
-      onSendMessage(message);
-      setMessage("");
-      
-      // Stop typing when message is sent
-      onTypingStop();
-      setIsTyping(false);
-      debouncedStopTyping.cancel();
-    }
+    if (!message.trim() || disabled) return;
+
+    onSendMessage(message.trim());
+    setMessage("");
+
+    // Stop typing
+    onTypingStop();
+    setIsTyping(false);
+    debouncedStopTyping.cancel();
   };
 
+  // --------------- Enter to Send ------------------
   const handleKeyPress = (e) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
   };
 
-  // Cleanup on unmount
-  const handleBlur = () => {
-    if (isTyping) {
-      onTypingStop();
-      setIsTyping(false);
-      debouncedStopTyping.cancel();
-    }
+  // --------------- Emoji Insert at Cursor ------------------
+  const handleEmojiClick = (emojiData) => {
+    const emoji = emojiData.emoji;
+
+    if (!textareaRef.current) return;
+
+    const cursorPos = textareaRef.current.selectionStart;
+
+    const before = message.substring(0, cursorPos);
+    const after = message.substring(cursorPos);
+
+    const newMessage = before + emoji + after;
+    setMessage(newMessage);
+
+    // Restore cursor
+    setTimeout(() => {
+      textareaRef.current.focus();
+      textareaRef.current.selectionStart =
+        textareaRef.current.selectionEnd =
+        cursorPos + emoji.length;
+    }, 0);
   };
 
+  // Close emoji picker when clicking outside
+  useEffect(() => {
+    function handleClickOutside(e) {
+      if (
+        emojiPickerRef.current &&
+        !emojiPickerRef.current.contains(e.target)
+      ) {
+        setShowEmojiPicker(false);
+      }
+    }
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () =>
+      document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
   return (
-    <div className="border-t border-border bg-card p-4">
+    <div className="border-t border-border bg-card p-3 relative">
       <form onSubmit={handleSubmit} className="flex items-end gap-2">
 
-
-        {/* Emoji Button */}
-        <Button type="button" variant="ghost" size="icon" disabled={disabled}>
-          <Smile size={18} />
-        </Button>
-
-        {/* Message Input */}
-        <div className="flex-1">
-          <Input
-            value={message}
-            onChange={handleInputChange}
-            onKeyPress={handleKeyPress}
-            onBlur={handleBlur}
-            placeholder="Type a message..."
+        {/* Emoji Toggle */}
+        <div className="relative" ref={emojiPickerRef}>
+          <Button
+            type="button"
+            variant="ghost"
+            size="icon"
+            onClick={() => setShowEmojiPicker((prev) => !prev)}
             disabled={disabled}
-            className="bg-background"
-          />
+          >
+            <Smile size={22} />
+          </Button>
+
+          {showEmojiPicker && (
+            <div className="absolute bottom-12 left-0 z-50 shadow-lg border border-border rounded-xl">
+              <EmojiPicker onEmojiClick={handleEmojiClick} height={350} />
+            </div>
+          )}
         </div>
-      
+
+        {/* Textarea Message Box */}
+        <textarea
+          ref={textareaRef}
+          className="flex-1 rounded-xl border border-border bg-background px-3 py-2 text-sm  
+                     focus:ring-2 focus:ring-primary resize-none scrollbar-none"
+          rows={1}
+          placeholder="Type a message..."
+          value={message}
+          onChange={handleInputChange}
+          onKeyPress={handleKeyPress}
+          disabled={disabled}
+        />
 
         {/* Send Button */}
-        <Button 
-          type="submit" 
-          size="icon" 
+        <Button
+          type="submit"
+          size="icon"
           disabled={!message.trim() || disabled}
-          className="shrink-0"
+          className="rounded-full bg-primary hover:bg-primary/90"
         >
           <Send size={18} />
         </Button>
