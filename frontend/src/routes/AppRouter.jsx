@@ -23,7 +23,6 @@ import PrivacyPolicyPage from "@/pages/About/PrivacyPolicyPage";
 import ListRoom from "@/pages/About/ListRoom";
 import FindRoom from "@/pages/About/FindRoom";
 import SavedPosts from "@/pages/saved/SavedPosts";
-import InboxPage from "@/pages/chat/InboxPage";
 import ChatLayout from "@/components/chat/ChatLayout";
 
 export default function AppRouter() {

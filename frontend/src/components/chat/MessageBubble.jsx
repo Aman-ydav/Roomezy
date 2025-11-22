@@ -1,4 +1,3 @@
-// src/features/chat/components/MessageBubble.jsx
 import { CheckCheck, Check } from "lucide-react";
 import { useState, useEffect } from "react";
 

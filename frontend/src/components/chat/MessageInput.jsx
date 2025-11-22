@@ -126,7 +126,17 @@ export default function MessageInput({
 
           {showEmojiPicker && (
             <div className="absolute bottom-12 left-0 z-50 shadow-lg border border-border rounded-xl">
-              <EmojiPicker onEmojiClick={handleEmojiClick} height={350} />
+              <EmojiPicker 
+                onEmojiClick={handleEmojiClick} 
+                height={350}
+                searchDisabled={true}
+                skinTonesDisabled={true}
+                previewConfig={{
+                  showPreview: false
+                }}
+                suggestedEmojisMode={false}
+                width={300}
+              />
             </div>
           )}
         </div>
