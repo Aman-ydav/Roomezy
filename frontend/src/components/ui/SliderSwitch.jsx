@@ -65,7 +65,7 @@ export default function SliderSwitch() {
   };
 
   return (
-    <div className="w-full max-w-md mx-auto mb-6 px-6">
+    <div className="w-full max-w-4xl mx-auto mb-6 px-6">
       <motion.div
         className="relative bg-muted/30 rounded-2xl p-1 cursor-pointer select-none group"
         drag="x"
