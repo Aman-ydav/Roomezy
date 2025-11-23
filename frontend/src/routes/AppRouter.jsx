@@ -24,6 +24,7 @@ import ListRoom from "@/pages/About/ListRoom";
 import FindRoom from "@/pages/About/FindRoom";
 import SavedPosts from "@/pages/saved/SavedPosts";
 import ChatLayout from "@/components/chat/ChatLayout";
+import Feed from "@/pages/feed/Feed"; 
 
 export default function AppRouter() {
   return (
@@ -48,6 +49,7 @@ export default function AppRouter() {
       <Route path="/privacy" element={<PrivacyPolicyPage />} />
       <Route path="/how-posting-works" element={<ListRoom />} />
       <Route path="/find-room" element={<FindRoom />} />
+      <Route path="/feed" element={<Feed />} />
 
       <Route path="*" element={<NotFound />} />
 

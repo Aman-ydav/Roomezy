@@ -70,10 +70,16 @@ export const createMediaPost = asyncHandler(async (req, res) => {
       images,
       video,
     });
+
+    // Populate user data before sending response
+    const populatedMedia = await Media.findById(media._id)
+      .populate('user', 'userName avatar fullName')
+      .exec();
+
     cleanupLocalFiles(files);
     return res
       .status(201)
-      .json(new ApiResponse(201, media, "Media post created successfully"));
+      .json(new ApiResponse(201, populatedMedia, "Media post created successfully"));
 });
 
 export const toggleLikeMedia = asyncHandler(async (req, res) => {
@@ -197,13 +203,13 @@ export const getAllCommentsForMedia = asyncHandler(async (req, res) => {
       $project: {
         _id: 1,
         comment_text: 1,
-        created_at: 1,
+        createdAt: 1, // Fixed: changed from created_at to createdAt
         "user._id": 1,
         "user.userName": 1,
         "user.avatar": 1,
       },
     },
-    { $sort: { created_at: -1 } },
+    { $sort: { createdAt: -1 } }, // Fixed: changed from created_at to createdAt
   ]);
 
   return res
@@ -212,11 +218,13 @@ export const getAllCommentsForMedia = asyncHandler(async (req, res) => {
 });
 
 export const getAllMediaPosts = asyncHandler(async (req, res) => {
+  const userId = req.user._id; // Get current user ID
+
   const posts = await Media.aggregate([
-    // 1️⃣ Sort newest first
+    // Sort newest first
     { $sort: { createdAt: -1 } },
 
-    // 2️⃣ Lookup user details
+    //  Lookup user details
     {
       $lookup: {
         from: "users",
@@ -230,7 +238,7 @@ export const getAllMediaPosts = asyncHandler(async (req, res) => {
     },
     { $unwind: "$user" },
 
-    // 3️⃣ Lookup latest comments (limit to 2)
+    // Lookup latest comments (limit to 2)
     {
       $lookup: {
         from: "mediacomments",
@@ -239,7 +247,7 @@ export const getAllMediaPosts = asyncHandler(async (req, res) => {
         as: "recentComments",
         pipeline: [
           { $sort: { createdAt: -1 } },
-          { $limit: 2 },
+          { $limit: 10 },
           {
             $lookup: {
               from: "users",
@@ -256,7 +264,7 @@ export const getAllMediaPosts = asyncHandler(async (req, res) => {
       }
     },
 
-    // 4️⃣ Lookup total likes count
+    //  Lookup total likes count AND check if current user liked each post
     {
       $lookup: {
         from: "medialikes",
@@ -268,14 +276,18 @@ export const getAllMediaPosts = asyncHandler(async (req, res) => {
     {
       $addFields: {
         likes_count: { $size: "$likes" },
-        comments_count: { $size: "$recentComments" }
+        comments_count: { $size: "$recentComments" },
+        // Check if current user liked this post
+        isLiked: {
+          $in: [new mongoose.Types.ObjectId(userId), "$likes.user"]
+        }
       }
     },
 
-    // 5️⃣ Cleanup
+    //  Cleanup
     {
       $project: {
-        likes: 0
+        likes: 0 
       }
     }
   ]);
@@ -321,7 +333,9 @@ export const deleteMediaPost = asyncHandler(async (req, res) => {
       await deleteFromCloudinary(media.video);
     }
   } catch (err) {
-    console.error("⚠️ Cloudinary deletion failed:", err.message);
+    console.error("Cloudinary deletion failed:", err.message);
+  } finally {
+    console.log("Media files deleted from Cloudinary");
   }
 
   // Delete the media document

@@ -5,6 +5,7 @@ import profileReducer from "@/features/profile/profileSlice";
 import postReducer from "@/features/post/postSlice";
 import chatReducer from "@/features/chat/chatSlice";
 import savedPostsReducer from "@/features/savedPosts/savedPostSlice";
+import mediaReducer from "@/features/media/mediaSlice";
 
 export const store = configureStore({
   reducer: {
@@ -14,5 +15,6 @@ export const store = configureStore({
     post: postReducer,
     chat: chatReducer,
     savedPosts: savedPostsReducer, 
+    media: mediaReducer,
   },
 });

@@ -1,3 +1,4 @@
+// src/pages/home/Home.jsx
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, useAnimation, useInView } from "framer-motion";
@@ -8,8 +9,8 @@ import PostSkeleton from "@/components/home/PostSkeleton";
 import Filters from "@/components/home/Filters";  
 import { useNavigate } from "react-router-dom";
 import Footer from "@/components/layout/Footer";
-
 import ScrollToTop from "@/components/layout/ScrollToTop";
+import SliderSwitch from "@/components/ui/SliderSwitch";
 
 export default function Home() {
   const dispatch = useDispatch();
@@ -59,83 +60,81 @@ export default function Home() {
 
   return (
     <>
-    <motion.div
-      className="min-h-screen bg-background text-foreground py-8 px-4 md:px-8"
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      transition={{ duration: 0.4, ease: "easeOut" }}
-    >
-      <motion.div
-        initial={{ opacity: 0, y: -30 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: "easeOut" }}
-      >
-        <CreatePostBanner onClick={() => navigate("/dashboard")} />
-      </motion.div>
+      <div className="min-h-screen bg-background text-foreground">
+        <div className="pt-4 bg-linear-to-b from-background to-background/80 sticky top-16 z-20">
+          <SliderSwitch />
+        </div>
 
-      <Filters
-        filter={filter}
-        setFilter={setFilter}
-        search={search}
-        setSearch={setSearch}
-      />
+        <div className=" px-4 md:px-8">
+          <motion.div
+            initial={{ opacity: 0, y: -30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+          >
+            <CreatePostBanner onClick={() => navigate("/dashboard")} />
+          </motion.div>
 
-      {/* Post Grid */}
-      <motion.div
-        ref={containerRef}
-        initial="hidden"
-        animate={controls}
-        variants={{
-          visible: {
-            transition: { staggerChildren: 0.02 },
-          },
-        }}
-        className="max-w-6xl mx-auto"
-      >
-        <motion.h2
-          className="text-2xl font-bold mb-6 text-foreground"
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.4, delay: 0.2 }}
-        >
-          Explore Rooms and Roommates
-        </motion.h2>
+          <Filters
+            filter={filter}
+            setFilter={setFilter}
+            search={search}
+            setSearch={setSearch}
+          />
 
-        {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {[...Array(6)].map((_, i) => (
-              <PostSkeleton key={i} />
-            ))}
-          </div>
-        ) : filteredPosts?.length > 0 ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredPosts.map((post, i) => (
-              <motion.div
-                key={post._id}
-                custom={i}
-                variants={cardVariants}
-                // initial="hidden"
-                whileInView="visible"
-                viewport={{ once: true, margin: "-50px" }}
-              >
-                <PostCard post={post} />
-              </motion.div>
-            ))}
-          </div>
-        ) : (
-          <p className="text-center text-muted-foreground mt-12">
-            No posts found. Try adjusting your filters or search.
-          </p>
-        )}
-      </motion.div>
+          {/* Post Grid */}
+          <motion.div
+            ref={containerRef}
+            initial="hidden"
+            animate={controls}
+            variants={{
+              visible: {
+                transition: { staggerChildren: 0.02 },
+              },
+            }}
+            className="max-w-6xl mx-auto"
+          >
+            <motion.h2
+              className="text-2xl font-bold mb-6 text-foreground"
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.4, delay: 0.2 }}
+            >
+              Explore Rooms and Roommates
+            </motion.h2>
 
-      {/* Adjusted Footer with top margin for better spacing */}
+            {loading ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {[...Array(6)].map((_, i) => (
+                  <PostSkeleton key={i} />
+                ))}
+              </div>
+            ) : filteredPosts?.length > 0 ? (
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                {filteredPosts.map((post, i) => (
+                  <motion.div
+                    key={post._id}
+                    custom={i}
+                    variants={cardVariants}
+                    whileInView="visible"
+                    viewport={{ once: true, margin: "-50px" }}
+                  >
+                    <PostCard post={post} />
+                  </motion.div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-center text-muted-foreground mt-12">
+                No posts found. Try adjusting your filters or search.
+              </p>
+            )}
+          </motion.div>
+        </div>
+      </div>
       
-    </motion.div>
-     <ScrollToTop />
-    <div className="mt-16">
+      <ScrollToTop />
+      <div className="mt-16">
         <Footer />
-    </div>
+      </div>
     </>
   );
 }

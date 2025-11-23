@@ -18,6 +18,7 @@ import {
   Image,
   PanelLeftClose,
   PanelLeftOpen,
+  ImageDown,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -45,38 +46,36 @@ export default function Navbar({
   const mobileSearchRef = useRef(null);
   const mobileSearchButtonRef = useRef(null);
 
+  useEffect(() => {
+    if (!showSearch) return;
 
- useEffect(() => {
-  if (!showSearch) return;
+    const handleClickOutside = (e) => {
+      const searchBox = mobileSearchRef.current;
+      const searchBtn = mobileSearchButtonRef.current;
 
-  const handleClickOutside = (e) => {
-    const searchBox = mobileSearchRef.current;
-    const searchBtn = mobileSearchButtonRef.current;
+      // If click is on search button → DO NOTHING (toggle will handle it)
+      if (searchBtn && searchBtn.contains(e.target)) return;
 
-    // If click is on search button → DO NOTHING (toggle will handle it)
-    if (searchBtn && searchBtn.contains(e.target)) return;
+      // If click is outside search container → close it
+      if (searchBox && !searchBox.contains(e.target)) {
+        setShowSearch(false);
+      }
+    };
 
-    // If click is outside search container → close it
-    if (searchBox && !searchBox.contains(e.target)) {
-      setShowSearch(false);
-    }
-  };
+    const handleEsc = (e) => {
+      if (e.key === "Escape") {
+        setShowSearch(false);
+      }
+    };
 
-  const handleEsc = (e) => {
-    if (e.key === "Escape") {
-      setShowSearch(false);
-    }
-  };
+    document.addEventListener("mousedown", handleClickOutside);
+    document.addEventListener("keydown", handleEsc);
 
-  document.addEventListener("mousedown", handleClickOutside);
-  document.addEventListener("keydown", handleEsc);
-
-  return () => {
-    document.removeEventListener("mousedown", handleClickOutside);
-    document.removeEventListener("keydown", handleEsc);
-  };
-}, [showSearch]);
-
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("keydown", handleEsc);
+    };
+  }, [showSearch]);
 
   const handleLogout = () => {
     dispatch(logoutUser());
