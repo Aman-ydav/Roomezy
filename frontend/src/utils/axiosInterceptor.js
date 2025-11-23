@@ -38,11 +38,24 @@ api.interceptors.response.use(
 
     console.log("Interceptor caught an error:", status);
 
+    // FORCE LOGOUT CONDITIONS
+    const shouldForceLogout =
+      error?.response?.data?.message === "Invalid access token" ||
+      error?.response?.data?.error === "Invalid access token" ||
+      error?.response?.data?.message?.includes("Invalid access token");
+
+    if (shouldForceLogout) {
+      store.dispatch(forceLogout());
+      toast.error("Session expired. Please log in again.");
+    }
 
     // simple behaviour: if 401 => force logout
-    if (status === 401 && !error.response?.data?.message=="Old password is incorrect") {
+    if (
+      status === 401 &&
+      !error.response?.data?.message == "Old password is incorrect"
+    ) {
       store.dispatch(forceLogout());
-      toast.info("Session expired. Please log in again.");
+      toast.error("Session expired. Please log in again.");
     }
 
     return Promise.reject(error);
