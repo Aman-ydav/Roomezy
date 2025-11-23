@@ -35,7 +35,7 @@ export default function MediaCarousel({ images = [], video }) {
         <img
           src={media[currentIndex]}
           alt={`Post image ${currentIndex + 1}`}
-          className="w-full aspect-square object-cover"
+          className="w-full h-auto aspect-square object-cover"
         />
       )}
 

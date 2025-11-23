@@ -11,7 +11,7 @@ import {
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 const router = Router();
 
-router.route("/").get(verifyJWT, getAllMediaPosts);
+router.route("/").get(getAllMediaPosts);
 
 router.route("/").post(verifyJWT,
     upload.fields([

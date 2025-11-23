@@ -101,24 +101,25 @@ export default function CreateMediaPost() {
           New Post
         </Button>
       </DialogTrigger>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-[90vw] mx-auto">
         <DialogTitle className="sr-only">Create New Post</DialogTitle>
         <DialogDescription className="sr-only">
           Upload images or video and add a description to create a new post
         </DialogDescription>
-        
-        <form onSubmit={handleSubmit} className="space-y-4">
+         
+        <form onSubmit={handleSubmit} className="max-w-[90vw] space-y-4  mx-auto">
           <h2 className="text-xl font-bold">Create New Post</h2>
           
           {/* Media upload area */}
           <div className="border-2 border-dashed border-border rounded-lg p-8 text-center">
             {images.length === 0 && !video ? (
               <div className="space-y-4">
-                <div className="flex gap-4 justify-center">
+                <div className="flex-col justify-between ">
                   <Button
                     type="button"
                     variant="outline"
                     onClick={() => fileInputRef.current?.click()}
+                    className={"m-2"}
                   >
                     <Image className="h-4 w-4 mr-2" />
                     Add Images

@@ -1,6 +1,5 @@
 // src/pages/feed/Feed.jsx
 import React from "react";
-import Footer from "@/components/layout/Footer";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import MediaFeed from "@/components/media/MediaFeed";
 import SliderSwitch from "@/components/ui/SliderSwitch";
