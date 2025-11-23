@@ -24,7 +24,7 @@ import ListRoom from "@/pages/About/ListRoom";
 import FindRoom from "@/pages/About/FindRoom";
 import SavedPosts from "@/pages/saved/SavedPosts";
 import ChatLayout from "@/components/chat/ChatLayout";
-import Feed from "@/pages/feed/Feed"; 
+import Feed from "@/pages/feed/Feed.jsx"; 
 
 export default function AppRouter() {
   return (
