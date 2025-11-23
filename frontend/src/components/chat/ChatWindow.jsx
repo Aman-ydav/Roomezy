@@ -41,6 +41,7 @@ export default function ChatWindow({ conversation, onBack, currentUser }) {
   const handleSendMessage = (text) => {
     sendMessage(text);
   };
+   
 
   return (
     <div className="flex flex-col h-full bg-background">

@@ -8,6 +8,7 @@ export default function ConversationItem({
   isSelected,
   onClick,
 }) {
+  console.log(conversation)
   // partner user
   const partner = conversation.participants.find(
     (p) => p._id !== currentUserId

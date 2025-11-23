@@ -191,8 +191,8 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
   const isPasswordValid = await user.isPasswordCorrect(oldPassword);
   if (!isPasswordValid) throw new ApiError(401, "Old password is incorrect");
 
+
   user.password = newPassword;
-  user.refreshToken = undefined; // logout from all devices
   await user.save();
 
   return res

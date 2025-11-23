@@ -57,7 +57,11 @@ const Section = ({ title, icon: Icon, isOpen, toggle, children, variant }) => (
         <Icon className="w-5 h-5" />
         {title}
       </span>
-      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+      {isOpen ? (
+        <ChevronUp className="w-4 h-4" />
+      ) : (
+        <ChevronDown className="w-4 h-4" />
+      )}
     </button>
 
     <AnimatePresence initial={false}>
@@ -67,7 +71,9 @@ const Section = ({ title, icon: Icon, isOpen, toggle, children, variant }) => (
           animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className={`px-4 pb-6 ${variant === "danger" ? "bg-destructive/5" : ""}`}
+          className={`px-4 pb-6 ${
+            variant === "danger" ? "bg-destructive/5" : ""
+          }`}
         >
           {children}
         </motion.div>
@@ -96,8 +102,6 @@ export default function EditProfile() {
     userName: user?.userName || "",
     age: user?.age || "",
     gender: user?.gender || "",
-    preferredLocations: user?.preferredLocations || [],
-    newLocation: "",
   });
 
   const [passwords, setPasswords] = useState({
@@ -130,7 +134,9 @@ export default function EditProfile() {
 
     setLoadingAvatar(true);
     try {
-      const updatedUser = await dispatch(updateUserAvatar(selectedFile)).unwrap();
+      const updatedUser = await dispatch(
+        updateUserAvatar(selectedFile)
+      ).unwrap();
       dispatch(updateUser(updatedUser));
       localStorage.setItem("user", JSON.stringify(updatedUser));
       setSelectedFile(null);
@@ -144,7 +150,8 @@ export default function EditProfile() {
   // Validate Personal Info
   const validateDetails = () => {
     const newErrors = {};
-    if (!formData.userName.trim()) newErrors.userName = "Full name is required.";
+    if (!formData.userName.trim())
+      newErrors.userName = "Full name is required.";
     if (!formData.age) newErrors.age = "Age is required.";
     if (!formData.gender) newErrors.gender = "Gender is required.";
     setErrors(newErrors);
@@ -159,7 +166,9 @@ export default function EditProfile() {
 
     setLoadingDetails(true);
     try {
-      const updatedUser = await dispatch(updateAccountDetails(formData)).unwrap();
+      const updatedUser = await dispatch(
+        updateAccountDetails(formData)
+      ).unwrap();
       dispatch(updateUser(updatedUser));
       localStorage.setItem("user", JSON.stringify(updatedUser));
     } catch {
@@ -169,13 +178,17 @@ export default function EditProfile() {
     }
   };
 
-  // ✅ Change Password
+  //  Change Password
   const validatePassword = () => {
     const newErrors = {};
     if (!passwords.oldPassword.trim())
       newErrors.oldPassword = "Old password is required.";
     if (!passwords.newPassword.trim())
       newErrors.newPassword = "New password is required.";
+  if (passwords.newPassword.trim().length < 6)
+  newErrors.newPassword = "Password must be at least 6 characters.";
+
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -186,11 +199,24 @@ export default function EditProfile() {
     if (!validatePassword()) return;
 
     setLoadingPassword(true);
+
     try {
       await dispatch(changePassword(passwords)).unwrap();
       setPasswords({ oldPassword: "", newPassword: "" });
-    } catch (e) {
-      setFormError(e || "Failed to change password. Please try again.");
+    } catch (err) {
+      const msg = err ||
+        err?.message ||
+        err?.response?.data?.message ||
+        "Something went wrong. Try again.";
+
+      // Show special UI when old password is wrong
+      if (msg === "Old password is incorrect") {
+        setFormError(
+          "Old password is incorrect. If you forgot your password, log out and use 'Forgot Password' to reset."
+        );
+      } else {
+        setFormError(msg);
+      }
     } finally {
       setLoadingPassword(false);
     }
@@ -232,7 +258,9 @@ export default function EditProfile() {
           )}
 
           <div className="flex-1 space-y-3 text-center md:text-left">
-            <h2 className="text-2xl font-bold text-foreground">{user?.userName}</h2>
+            <h2 className="text-2xl font-bold text-foreground">
+              {user?.userName}
+            </h2>
             <p className="text-sm text-muted-foreground flex items-center justify-center md:justify-start gap-2">
               <Mail className="w-4 h-4 text-accent" /> {user?.email}
             </p>
@@ -271,21 +299,49 @@ export default function EditProfile() {
           isOpen={openSection === "avatar"}
           toggle={() => toggleSection("avatar")}
         >
-          <form onSubmit={handleAvatarSubmit} className="flex flex-col items-center py-4 space-y-4">
+          <form
+            onSubmit={handleAvatarSubmit}
+            className="flex flex-col items-center py-4 space-y-4"
+          >
             {preview && (
-              <img src={preview} alt="Avatar" className="w-28 h-28 rounded-full object-cover border-4 border-accent" />
+              <img
+                src={preview}
+                alt="Avatar"
+                className="w-28 h-28 rounded-full object-cover border-4 border-accent"
+              />
             )}
-            <label htmlFor="avatar" className="cursor-pointer text-sm font-medium text-primary hover:underline">
+            <label
+              htmlFor="avatar"
+              className="cursor-pointer text-sm font-medium text-primary hover:underline"
+            >
               Choose New Avatar
             </label>
-            <input id="avatar" type="file" accept="image/*" className="hidden" onChange={handleAvatarSelect} />
+            <input
+              id="avatar"
+              type="file"
+              accept="image/*"
+              className="hidden"
+              onChange={handleAvatarSelect}
+            />
 
             {selectedFile && (
-              <Button type="submit" className="w-full max-w-xs" disabled={loadingAvatar}>
-                {loadingAvatar ? <Loader text="Updating avatar..." /> : "Update Avatar"}
+              <Button
+                type="submit"
+                className="w-full max-w-xs"
+                disabled={loadingAvatar}
+              >
+                {loadingAvatar ? (
+                  <Loader text="Updating avatar..." />
+                ) : (
+                  "Update Avatar"
+                )}
               </Button>
             )}
-            {formError && <p className="text-destructive text-sm font-medium text-center">{formError}</p>}
+            {formError && (
+              <p className="text-destructive text-sm font-medium text-center">
+                {formError}
+              </p>
+            )}
           </form>
         </Section>
 
@@ -302,22 +358,36 @@ export default function EditProfile() {
               <Input
                 type="text"
                 value={formData.userName}
-                onChange={(e) => setFormData({ ...formData, userName: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, userName: e.target.value })
+                }
               />
+              {errors.userName && (
+                <p className="text-xs text-destructive mt-1">
+                  {errors.userName}
+                </p>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium">Age</label>
               <Input
                 type="number"
                 value={formData.age}
-                onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, age: e.target.value })
+                }
               />
+              {errors.age && (
+                <p className="text-xs text-destructive mt-1">{errors.age}</p>
+              )}
             </div>
             <div>
               <label className="text-sm font-medium">Gender</label>
               <select
                 value={formData.gender}
-                onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
+                onChange={(e) =>
+                  setFormData({ ...formData, gender: e.target.value })
+                }
                 className="w-full border border-input rounded-md px-3 py-2 bg-background text-foreground text-sm focus:ring-1 focus:ring-primary"
               >
                 <option value="">Select gender</option>
@@ -325,11 +395,23 @@ export default function EditProfile() {
                 <option value="Female">Female</option>
                 <option value="Other">Other</option>
               </select>
+              {errors.gender && (
+                <p className="text-xs text-destructive mt-1">{errors.gender}</p>
+              )}
             </div>
 
             <Button type="submit" className="w-full" disabled={loadingDetails}>
-              {loadingDetails ? <Loader text="Saving changes..." /> : "Save Changes"}
+              {loadingDetails ? (
+                <Loader text="Saving changes..." />
+              ) : (
+                "Save Changes"
+              )}
             </Button>
+            {formError.newErrors && (
+              <p className="text-destructive text-sm font-medium text-center">
+                {formError}
+              </p>
+            )}
           </form>
         </Section>
 
@@ -345,17 +427,40 @@ export default function EditProfile() {
               type="password"
               placeholder="Old Password"
               value={passwords.oldPassword}
-              onChange={(e) => setPasswords({ ...passwords, oldPassword: e.target.value })}
+              onChange={(e) =>
+                setPasswords({ ...passwords, oldPassword: e.target.value })
+              }
             />
+            {errors.oldPassword && (
+              <p className="text-xs text-destructive mt-1">
+                {errors.oldPassword}
+              </p>
+            )}
             <Input
               type="password"
               placeholder="New Password"
               value={passwords.newPassword}
-              onChange={(e) => setPasswords({ ...passwords, newPassword: e.target.value })}
+              onChange={(e) =>
+                setPasswords({ ...passwords, newPassword: e.target.value })
+              }
             />
+            {errors.newPassword && (
+              <p className="text-xs text-destructive mt-1">
+                {errors.newPassword}
+              </p>
+            )}
             <Button type="submit" className="w-full" disabled={loadingPassword}>
-              {loadingPassword ? <Loader text="Updating password..." /> : "Update Password"}
+              {loadingPassword ? (
+                <Loader text="Updating password..." />
+              ) : (
+                "Update Password"
+              )}
             </Button>
+            {formError && (
+              <p className="text-destructive text-sm font-medium text-center">
+                {formError}
+              </p>
+            )}
           </form>
         </Section>
 
@@ -369,8 +474,16 @@ export default function EditProfile() {
         >
           <AlertDialog>
             <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="w-full" disabled={loadingDelete}>
-                {loadingDelete ? <Loader text="Deleting..." /> : "Delete Account Permanently"}
+              <Button
+                variant="destructive"
+                className="w-full"
+                disabled={loadingDelete}
+              >
+                {loadingDelete ? (
+                  <Loader text="Deleting..." />
+                ) : (
+                  "Delete Account Permanently"
+                )}
               </Button>
             </AlertDialogTrigger>
             <AlertDialogContent className="border border-border bg-card text-foreground">
@@ -379,7 +492,8 @@ export default function EditProfile() {
                   Are you absolutely sure?
                 </AlertDialogTitle>
                 <AlertDialogDescription className="text-muted-foreground">
-                  This action <strong>cannot be undone.</strong> It will permanently delete your account and all your data.
+                  This action <strong>cannot be undone.</strong> It will
+                  permanently delete your account and all your data.
                 </AlertDialogDescription>
               </AlertDialogHeader>
               <AlertDialogFooter>
@@ -391,17 +505,24 @@ export default function EditProfile() {
                     try {
                       await dispatch(deleteAccount()).unwrap();
                       localStorage.removeItem("user");
+                      localStorage.removeItem("roomezy_tokens");
                       dispatch(updateUser(null));
                       navigate("/login");
                     } catch {
-                      setFormError("Failed to delete account. Please try again.");
+                      setFormError(
+                        "Failed to delete account. Please try again."
+                      );
                     } finally {
                       setLoadingDelete(false);
                     }
                   }}
                   className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                 >
-                  {loadingDelete ? <Loader text="Deleting..." /> : "Yes, Delete"}
+                  {loadingDelete ? (
+                    <Loader text="Deleting..." />
+                  ) : (
+                    "Yes, Delete"
+                  )}
                 </AlertDialogAction>
               </AlertDialogFooter>
             </AlertDialogContent>

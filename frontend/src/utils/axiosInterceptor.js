@@ -38,8 +38,9 @@ api.interceptors.response.use(
 
     console.log("Interceptor caught an error:", status);
 
+
     // simple behaviour: if 401 => force logout
-    if (status === 401) {
+    if (status === 401 && !error.response?.data?.message=="Old password is incorrect") {
       store.dispatch(forceLogout());
       toast.info("Session expired. Please log in again.");
     }

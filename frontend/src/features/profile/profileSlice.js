@@ -53,11 +53,10 @@ export const changePassword = createAsyncThunk(
       await api.post("/users/change-password", passwords, {
         withCredentials: true,
       });
-
       toast.success("Password changed successfully!");
       return true;
     } catch (err) {
-      return rejectWithValue(err.response?.data?.message);
+      return rejectWithValue(err?.response?.data?.message);
     }
   }
 );

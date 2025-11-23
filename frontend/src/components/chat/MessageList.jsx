@@ -11,6 +11,16 @@ export default function MessageList({
 }) {
   const listRef = useRef(null);
 
+  const scrollAnchorRef = useRef(null);
+
+// Scroll to bottom when chat window first opens
+useEffect(() => {
+  setTimeout(() => {
+    scrollAnchorRef.current?.scrollIntoView({ behavior: "auto" });
+  }, 100);
+}, []);
+
+
   // Add date separators to messages
   const messagesWithDateSeparators = messages.map((message, index) => {
     const currentDate = new Date(message.createdAt).toDateString();
@@ -93,6 +103,7 @@ export default function MessageList({
           />
         ))
       )}
+      <div ref={scrollAnchorRef} />
     </div>
   );
 }
