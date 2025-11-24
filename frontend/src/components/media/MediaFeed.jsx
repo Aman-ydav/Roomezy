@@ -105,7 +105,7 @@ export default function MediaFeed() {
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Mobile-First Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur-lg ">
+      <div className="sticky top-0 z-10 bg-background/95 backdrop-blur-lg ">
         <div className="max-w-2xl mx-auto px-4 sm:px-6">
           <div className="flex items-center justify-between py-4">
             {/* Brand Section - Mobile Optimized */}
