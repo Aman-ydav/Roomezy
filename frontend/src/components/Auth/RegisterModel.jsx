@@ -287,7 +287,7 @@ const RegisterModal = ({ isOpen, onClose }) => {
           className="
               sm:max-w-2xl w-[95%] max-h-[90vh] overflow-y-auto 
               scrollbar-hide rounded-2xl border border-border bg-card text-foreground 
-              shadow-xl sm:shadow-2xl transition-all duration-300
+              shadow-xl sm:shadow-2xl transition-all duration-300 mt-12
             "
         >
           <DialogHeader>

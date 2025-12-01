@@ -1,4 +1,3 @@
-// src/App.jsx - FIXED
 import React, { useEffect } from "react";
 import AppRouter from "./routes/AppRouter";
 import { SonnerToaster } from "./components/ui/sonner-toaster";
