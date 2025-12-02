@@ -190,7 +190,6 @@ export default function Dashboard() {
         </p>
       </div>
 
-      {/* Rest of your component remains exactly the same */}
       {/* User Role Highlight */}
       <ProfileCard user={user} />
 

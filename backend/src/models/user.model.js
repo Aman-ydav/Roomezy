@@ -30,6 +30,8 @@ const userSchema = new Schema(
       default: null,
     },
 
+    
+
     age: {
       type: Number,
       default: null,

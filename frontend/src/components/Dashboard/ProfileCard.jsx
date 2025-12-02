@@ -4,192 +4,150 @@ import { User, Users, Home, BadgeCheck, Star, Target } from "lucide-react";
 const ProfileCard = ({ user }) => {
   const cardVariants = {
     hidden: { opacity: 0, y: 20 },
-    visible: {
-      opacity: 1,
-      y: 0,
-      transition: { duration: 0.5, ease: "easeOut" },
-    },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.5 } },
   };
 
   const iconVariants = {
-    hidden: { opacity: 0, scale: 0.8, rotate: -10 },
-    visible: {
-      opacity: 1,
-      scale: 1,
-      rotate: 0,
-      transition: { delay: 0.2, duration: 0.5 },
+    hidden: { opacity: 0, scale: 0.85 },
+    visible: { opacity: 1, scale: 1, transition: { delay: 0.2 } },
+  };
+
+  const COLORS = {
+    sky: {
+      bgGlow: "bg-sky-500/5",
+      border: "border-sky-300",
+      ring: "ring-sky-200",
+      text: "text-sky-600",
+      chipBg: "bg-sky-500/10",
+      chipText: "text-sky-700",
+      chipBorder: "border-sky-500/30",
+    },
+    violet: {
+      bgGlow: "bg-violet-500/5",
+      border: "border-violet-300",
+      ring: "ring-violet-200",
+      text: "text-violet-600",
+      chipBg: "bg-violet-500/10",
+      chipText: "text-violet-700",
+      chipBorder: "border-violet-500/30",
+    },
+    emerald: {
+      bgGlow: "bg-emerald-500/5",
+      border: "border-emerald-300",
+      ring: "ring-emerald-200",
+      text: "text-emerald-600",
+      chipBg: "bg-emerald-500/10",
+      chipText: "text-emerald-700",
+      chipBorder: "border-emerald-500/30",
+    },
+    rose: {
+      bgGlow: "bg-rose-500/5",
+      border: "border-rose-300",
+      ring: "ring-rose-200",
+      text: "text-rose-600",
+      chipBg: "bg-rose-500/10",
+      chipText: "text-rose-700",
+      chipBorder: "border-rose-500/30",
     },
   };
 
-  const getAccountTypeConfig = () => {
+  const getConfig = () => {
     switch (user?.accountType) {
       case "lookingForRoom":
         return {
           icon: <User className="w-7 h-7" />,
           title: "Room Seeker",
-          description:
-            "You're actively looking for a room. Your profile is optimized to help you find perfect living spaces.",
-          tag: "Room Search Mode",
-          bgColor: "bg-primary/5",
-          borderColor: "border-primary/40",
-          accentText: "text-primary",
-          badgeBg: "bg-primary/10",
-          badgeText: "text-primary",
-          badgeBorder: "border-primary/30",
-          iconBg: "bg-primary/10 border-primary/30",
+          desc: "You're actively looking for a room. Your recommendations will be personalized for space discovery.",
+          tag: "Looking for Room",
+          palette: COLORS.sky,
         };
 
       case "lookingForRoommate":
         return {
           icon: <Users className="w-7 h-7" />,
           title: "Roommate Finder",
-          description:
-            "You're looking for someone to share your space. Connect with compatible roommates.",
-          tag: "Roommate Search",
-          bgColor: "bg-secondary/5",
-          borderColor: "border-secondary/40",
-          accentText: "text-secondary",
-          badgeBg: "bg-secondary/10",
-          badgeText: "text-secondary",
-          badgeBorder: "border-secondary/30",
-          iconBg: "bg-secondary/10 border-secondary/30",
+          desc: "You're searching for someone compatible to share your space.",
+          tag: "Looking for Roommate",
+          palette: COLORS.violet,
         };
 
       case "ownerLookingForRenters":
         return {
           icon: <Home className="w-7 h-7" />,
           title: "Property Owner",
-          description:
-            "You're listing properties for rent. Manage your listings and connect with potential tenants.",
-          tag: "Property Management",
-          bgColor: "bg-accent/5",
-          borderColor: "border-accent/40",
-          accentText: "text-accent",
-          badgeBg: "bg-accent/10",
-          badgeText: "text-accent",
-          badgeBorder: "border-accent/30",
-          iconBg: "bg-accent/10 border-accent/30",
+          desc: "You're renting out spaces. Manage listings and engage with tenants.",
+          tag: "Owner Account",
+          palette: COLORS.emerald,
         };
 
       default:
         return {
           icon: <User className="w-7 h-7" />,
           title: "General User",
-          description:
-            "Complete your profile setup to unlock all features and personalized recommendations.",
+          desc: "Complete your profile setup to unlock full features.",
           tag: "Setup Required",
-          bgColor: "bg-muted/40",
-          borderColor: "border-border",
-          accentText: "text-muted-foreground",
-          badgeBg: "bg-muted/60",
-          badgeText: "text-muted-foreground",
-          badgeBorder: "border-border",
-          iconBg: "bg-muted/60 border-border",
+          palette: COLORS.rose,
         };
     }
   };
 
-  const {
-    icon,
-    title,
-    description,
-    tag,
-    bgColor,
-    borderColor,
-    accentText,
-    badgeBg,
-    badgeText,
-    badgeBorder,
-    iconBg,
-  } = getAccountTypeConfig();
+  const { icon, title, desc, tag, palette } = getConfig();
 
   return (
     <div className="max-w-6xl mx-auto mb-8">
       <motion.div
-        className={`
-          relative p-8 rounded-2xl border-2
-          ${borderColor} ${bgColor}
-          shadow-lg transition-all duration-300
-          overflow-hidden group
-        `}
         variants={cardVariants}
         initial="hidden"
         animate="visible"
-        whileHover={{ scale: 1.00 }}
+        className={`relative p-8 rounded-2xl border shadow-md bg-card border-border`}
       >
-        {/* Decorative bubbles */}
-        <div className="pointer-events-none absolute top-0 right-0 w-24 h-24 bg-white/10 rounded-full -translate-y-12 translate-x-10" />
-        <div className="pointer-events-none absolute bottom-0 left-0 w-20 h-20 bg-white/10 rounded-full translate-y-10 -translate-x-8" />
+        {/* Glow background */}
+        <div className={`absolute inset-0 rounded-2xl pointer-events-none ${palette.bgGlow}`} />
 
-        <div className="relative flex flex-col lg:flex-row items-start lg:items-center gap-8">
-          {/* Icon */}
+        <div className="relative flex flex-col lg:flex-row items-start gap-8">
+          
+          {/* ICON BOX */}
           <motion.div
             variants={iconVariants}
-            initial="hidden"
-            animate="visible"
-            className={`
-              flex items-center justify-center p-5 rounded-2xl
-              bg-card shadow-lg border-2
-              ${borderColor} ${iconBg}
-               transition-transform duration-300
-            `}
+            className={`p-5 rounded-2xl border shadow-sm bg-white dark:bg-card flex items-center justify-center ${palette.border} ring-1 ${palette.ring}`}
           >
-            <div className={`${accentText}`}>{icon}</div>
+            <div className={palette.text}>{icon}</div>
           </motion.div>
 
-          {/* Content */}
+          {/* RIGHT SECTION */}
           <div className="flex-1 min-w-0">
-            <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4 mb-4">
+            
+            {/* HEADER */}
+            <div className="flex flex-col lg:flex-row justify-between mb-5 gap-4">
               <div className="flex items-center gap-3">
-                <h3 className={`text-2xl font-bold ${accentText}`}>{title}</h3>
-                <BadgeCheck className={`w-6 h-6 ${accentText} opacity-80`} />
+                <h3 className={`text-2xl font-bold ${palette.text}`}>{title}</h3>
+                <BadgeCheck className={`w-6 h-6 ${palette.text}`} />
               </div>
 
-              <motion.div
-                className={`
-                  px-5 py-2.5 rounded-full text-sm font-semibold
-                  border-2 whitespace-nowrap
-                  ${badgeBg} ${badgeText} ${badgeBorder}
-                `}
-                initial={{ opacity: 0, scale: 0.9 }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  transition: { delay: 0.25, duration: 0.25 },
-                }}
-                whileHover={{ scale: 1.00 }}
+              <div
+                className={`px-4 py-2 rounded-full text-sm font-semibold border whitespace-nowrap ${palette.chipBg} ${palette.chipText} ${palette.chipBorder}`}
               >
                 {tag}
-              </motion.div>
-            </div>
-
-            <p className="text-muted-foreground text-base md:text-lg leading-relaxed mb-6">
-              {description}
-            </p>
-
-            {/* Features */}
-            <div className="flex flex-wrap gap-6 text-sm md:text-base">
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <div className={`p-2 rounded-lg ${iconBg}`}>
-                  <Target className="w-4 h-4" />
-                </div>
-                <span>Personalized Matches</span>
-              </div>
-
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <div className={`p-2 rounded-lg ${iconBg}`}>
-                  <Star className="w-4 h-4" />
-                </div>
-                <span>Priority Visibility</span>
-              </div>
-
-              <div className="flex items-center gap-3 text-muted-foreground">
-                <div className={`p-2 rounded-lg ${iconBg}`}>
-                  <User className="w-4 h-4" />
-                </div>
-                <span>Verified Profile</span>
               </div>
             </div>
+
+            {/* DESCRIPTION */}
+            <p className="text-muted-foreground text-lg leading-relaxed mb-6">{desc}</p>
+
+            {/* FEATURES */}
+            <div className="flex flex-wrap gap-6">
+              {[
+                { icon: <Target className="w-4 h-4" />, text: "Personalized Matches" },
+                { icon: <Star className="w-4 h-4" />, text: "Priority Visibility" },
+                { icon: <User className="w-4 h-4" />, text: "Verified Profile" },
+              ].map((f, i) => (
+                <div key={i} className="flex items-center gap-3 text-muted-foreground">
+                  <div className={`p-2 rounded-lg ${palette.chipBg}`}>{f.icon}</div>
+                  {f.text}
+                </div>
+              ))}
+            </div>
+
           </div>
         </div>
       </motion.div>
