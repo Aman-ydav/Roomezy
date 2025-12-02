@@ -1,14 +1,7 @@
 import { motion } from "framer-motion";
 import { useSelector } from "react-redux";
 import { Card } from "@/components/ui/card";
-import {
-  User,
-  Calendar,
-  Mail,
-  Phone,
-  Venus,
-  MapPin,
-} from "lucide-react";
+import { User, Calendar, Mail, Phone, Venus, MapPin } from "lucide-react";
 
 const UserDetails = () => {
   const { user } = useSelector((state) => state.auth);
@@ -32,20 +25,32 @@ const UserDetails = () => {
       <Card className="p-4 sm:p-5 md:p-6 border border-border bg-card rounded-2xl shadow-sm hover:shadow-md transition-shadow duration-300">
         <div className="flex flex-col md:flex-row items-center md:items-start gap-5 md:gap-6">
           {/* Avatar */}
+          {/* Avatar with fallback on error */}
           {user?.avatar ? (
             <motion.img
               src={user.avatar}
               alt="Profile Avatar"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.style.display = "none";
+                const fallback = document.getElementById("fallback-avatar");
+                if (fallback) fallback.style.display = "flex";
+              }}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.4, delay: 0.1 }}
               className="w-30 h-30 sm:w-50 sm:h-50 rounded-full object-cover border-2 border-primary shadow-sm"
             />
-          ) : (
-            <div className="w-30 h-30 sm:w-50 sm:h-50 rounded-full bg-primary/10 flex items-center justify-center text-5xl font-bold text-primary border border-border shadow-sm">
-              {user?.userName?.[0]?.toUpperCase() || "U"}
-            </div>
-          )}
+          ) : null}
+
+          {/* Fallback circle (initial letter) */}
+          <div
+            id="fallback-avatar"
+            style={{ display: user?.avatar ? "none" : "flex" }}
+            className="w-30 h-30 sm:w-50 sm:h-50 rounded-full bg-primary/10 flex items-center justify-center text-5xl font-bold text-primary border border-border shadow-sm"
+          >
+            {user?.userName?.[0]?.toUpperCase() || "U"}
+          </div>
 
           {/* User Info */}
           <div className="flex-1 w-full space-y-3 text-center md:text-left">
@@ -106,8 +111,6 @@ const UserDetails = () => {
                   </div>
                 </motion.div>
               )}
-
-             
 
               {user?.createdAt && (
                 <motion.div

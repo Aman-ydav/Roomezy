@@ -8,6 +8,7 @@ import { registerUser,loginUser,
   changeCurrentPassword,
   resetPassword,
   getUserProfileById,
+  updateAccountType,
   deleteAccount} from "../controllers/user.controller.js"; 
 import { upload } from "../middlewares/multer.middleware.js";
 import {verifyJWT}  from '../middlewares/auth.middleware.js';
@@ -45,6 +46,7 @@ router.route("/change-password").post(verifyJWT, changeCurrentPassword);
 
 router.route("/update-account-details").patch(verifyJWT, updateAccountDetails);
 
+router.route("/update-account-type").patch(verifyJWT, updateAccountType);
 
 router.route("/forgot-password").post(forgotPassword);
 

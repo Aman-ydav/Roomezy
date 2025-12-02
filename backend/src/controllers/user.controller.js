@@ -312,6 +312,24 @@ const updateAccountDetails = asyncHandler(async (req, res) => {
     );
 });
 
+const updateAccountType = asyncHandler(async (req, res) => {
+  const { accountType } = req.body;
+
+  if (!accountType) {
+    throw new ApiError(400, "Account type is required");
+  }
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { $set: { accountType } },
+    { new: true }
+  ).select("-password -refreshToken");
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, updatedUser, "Account type updated"));
+});
+
 
 const getUserProfileById = asyncHandler(async (req, res) => {
     const user = await User.findById(req.params.id).select(
@@ -383,6 +401,7 @@ export {
     changeCurrentPassword,
     getCurrentUser,
     updateAccountDetails,
+    updateAccountType,
     updateUserAvatar,
     forgotPassword,
     resetPassword,

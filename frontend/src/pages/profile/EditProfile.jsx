@@ -92,7 +92,7 @@ export default function EditProfile() {
   const [formError, setFormError] = useState("");
   const [errors, setErrors] = useState({});
 
-  // ✅ Loader states
+  // Loader states
   const [loadingAvatar, setLoadingAvatar] = useState(false);
   const [loadingDetails, setLoadingDetails] = useState(false);
   const [loadingPassword, setLoadingPassword] = useState(false);
@@ -123,7 +123,7 @@ export default function EditProfile() {
     }
   };
 
-  // ✅ Update Avatar
+  //
   const handleAvatarSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
@@ -158,7 +158,7 @@ export default function EditProfile() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ✅ Update Account Details
+  // Update Account Details
   const handleDetailsSubmit = async (e) => {
     e.preventDefault();
     setFormError("");
@@ -185,9 +185,8 @@ export default function EditProfile() {
       newErrors.oldPassword = "Old password is required.";
     if (!passwords.newPassword.trim())
       newErrors.newPassword = "New password is required.";
-  if (passwords.newPassword.trim().length < 6)
-  newErrors.newPassword = "Password must be at least 6 characters.";
-
+    if (passwords.newPassword.trim().length < 6)
+      newErrors.newPassword = "Password must be at least 6 characters.";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -204,7 +203,8 @@ export default function EditProfile() {
       await dispatch(changePassword(passwords)).unwrap();
       setPasswords({ oldPassword: "", newPassword: "" });
     } catch (err) {
-      const msg = err ||
+      const msg =
+        err ||
         err?.message ||
         err?.response?.data?.message ||
         "Something went wrong. Try again.";
@@ -242,20 +242,35 @@ export default function EditProfile() {
       <div className="w-full max-w-3xl space-y-5">
         {/* Header Card */}
         <Card className="p-6 flex flex-col md:flex-row items-center gap-6 border border-border bg-card shadow-md">
-          {preview ? (
+          {/* Avatar with error fallback */}
+          <div className="relative">
             <motion.img
               src={preview}
               alt="Profile Avatar"
+              onError={(e) => {
+                e.target.onerror = null;
+                e.target.style.display = "none";
+                const fallback = document.getElementById(
+                  "edit-fallback-avatar"
+                );
+                if (fallback) fallback.style.display = "flex";
+              }}
               initial={{ scale: 0.9, opacity: 0 }}
               animate={{ scale: 1, opacity: 1 }}
               transition={{ duration: 0.4 }}
               className="w-28 h-28 rounded-full object-cover border-4 border-accent shadow-md"
+              style={{ display: preview ? "block" : "none" }}
             />
-          ) : (
-            <div className="w-28 h-28 rounded-full border-4 border-accent bg-accent/10 flex items-center justify-center text-3xl font-bold text-accent shadow-md">
+
+            {/* fallback avatar */}
+            <div
+              id="edit-fallback-avatar"
+              className="w-28 h-28 rounded-full border-4 border-accent bg-accent/10 flex items-center justify-center text-3xl font-bold text-accent shadow-md"
+              style={{ display: preview ? "none" : "flex" }}
+            >
               {user?.userName?.[0]?.toUpperCase() || "U"}
             </div>
-          )}
+          </div>
 
           <div className="flex-1 space-y-3 text-center md:text-left">
             <h2 className="text-2xl font-bold text-foreground">

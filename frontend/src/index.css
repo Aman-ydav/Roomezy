@@ -90,6 +90,9 @@
   --sidebar-accent-foreground: #1C1C1C;
   --sidebar-border: #E0E0E0;
   --sidebar-ring: #C6A15B;
+
+  --warning: #f5d78e;
+  --warning-foreground: #8a6221;
 }
 
 .dark {
@@ -131,6 +134,9 @@
   --sidebar-accent-foreground: #f7f5f4;
   --sidebar-border: #2f2f32;
   --sidebar-ring: #cda26a;
+
+  --warning: #7a6229;
+  --warning-foreground: #ffe9b3;
 }
 
 * {
@@ -275,3 +281,20 @@ body {
   animation: slideUp 0.35s ease;
 }
 
+.warning-box {
+  background: var(--warning);
+  color: var(--warning-foreground);
+  border: 1px solid color-mix(in srgb, var(--warning-foreground), transparent 70%);
+  padding: 1rem;
+  border-radius: 0.75rem;
+}
+
+.warning-icon-circle {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: color-mix(in srgb, var(--warning), transparent 50%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}

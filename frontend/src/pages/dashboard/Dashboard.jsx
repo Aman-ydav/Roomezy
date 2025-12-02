@@ -10,15 +10,17 @@ import {
   LogOut,
   PlusCircle,
   Activity,
-   User, Users, Home
+  AlertTriangle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { use, useEffect } from "react";
+import React, { useEffect, useState } from "react"; // Added useState import
 import { getAllPosts } from "@/features/post/postSlice";
 import { logoutUser } from "@/features/auth/authSlice";
+import { updateAccountType } from "@/features/profile/profileSlice";
+import { updateUser } from "@/features/auth/authSlice";
 import UserDetails from "@/components/Dashboard/UserDetails";
-import ProfileCard from "@/components/Dashboard/ProfileCard";  
+import ProfileCard from "@/components/Dashboard/ProfileCard";
 import { getSavedPosts } from "@/features/savedPosts/savedPostSlice";
 
 export default function Dashboard() {
@@ -27,23 +29,59 @@ export default function Dashboard() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
 
+  // Local state for account type selection
+  const [selectedAccountType, setSelectedAccountType] = useState("");
+  const [showAccountTypePrompt, setShowAccountTypePrompt] = useState(false);
+
   useEffect(() => {
     dispatch(getAllPosts());
     dispatch(getSavedPosts());
   }, [dispatch]);
+
+  // Check if we should show the account type prompt
+  useEffect(() => {
+    if (user?.provider === "google" && !user?.accountType) {
+      setShowAccountTypePrompt(true);
+    } else {
+      setShowAccountTypePrompt(false);
+    }
+  }, [user]);
 
   const handleNavigate = (path) => navigate(path);
 
   const totalPosts = posts.filter((p) => p.user?._id === user?._id).length;
 
   const { saved, loading } = useSelector((s) => s.savedPosts);
-
   const totalSavedPosts = saved.length;
 
   const recentActivities = posts
     .filter((p) => p.user?._id === user?._id)
     .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
     .slice(0, 3);
+
+  const handleAccountTypeSubmit = async () => {
+    if (!selectedAccountType) {
+      toast.error("Please select an account type");
+      return;
+    }
+
+    try {
+      const updatedUser = await dispatch(
+        updateAccountType(selectedAccountType)
+      ).unwrap();
+      dispatch(updateUser(updatedUser));
+      toast.success("Account type saved!");
+      setShowAccountTypePrompt(false);
+    } catch (error) {
+      toast.error("Failed to save account type");
+    }
+  };
+
+  const accountTypeOptions = [
+    { label: "Looking for Room", value: "lookingForRoom" },
+    { label: "Looking for Roommate", value: "lookingForRoommate" },
+    { label: "Owner Looking for Renters", value: "ownerLookingForRenters" },
+  ];
 
   const quickActions = [
     {
@@ -59,10 +97,10 @@ export default function Dashboard() {
       onClick: () => handleNavigate("/my-posts"),
     },
     {
-    title: "Saved Posts",
-    icon: Bookmark,
-    color: "text-primary",
-    onClick: () => handleNavigate("/saved"),
+      title: "Saved Posts",
+      icon: Bookmark,
+      color: "text-primary",
+      onClick: () => handleNavigate("/saved"),
     },
     {
       title: "Edit Profile",
@@ -81,6 +119,69 @@ export default function Dashboard() {
     >
       {/* Header */}
       <div className="max-w-6xl mx-auto mb-10 text-center">
+        {/* Account type prompt - Only shown for Google OAuth users without accountType */}
+        {showAccountTypePrompt && (
+          <div className="max-w-6xl mx-auto mb-6 px-3">
+            <div className="p-5 bg-amber-100 border border-amber-300 text-amber-800 rounded-xl">
+              <div className="flex items-center justify-center gap-2">
+                <AlertTriangle className="w-5 h-5 text-amber-700" />
+                <p className="text-sm font-semibold">
+                  Choose your role to continue
+                </p>
+              </div>
+              <p className="text-xs sm:text-sm mt-1 text-amber-900/90 text-center">
+                Select what best describes you to complete your setup.
+              </p>
+
+              {/* Option Cards */}
+              <div className="mt-4 grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {accountTypeOptions.map((opt) => (
+                  <button
+                    key={opt.value}
+                    onClick={() => setSelectedAccountType(opt.value)}
+                    className={`
+                      w-full h-10 
+                      rounded-xl border text-sm 
+                      flex items-center justify-center 
+                      transition-all duration-200
+                      ${
+                        selectedAccountType === opt.value
+                          ? "border-amber-600 bg-amber-300/40 font-medium shadow-md scale-[1.02]"
+                          : "border-amber-300 bg-white hover:bg-amber-50"
+                      }
+                    `}
+                  >
+                    <div className="flex items-center gap-2">
+                      {selectedAccountType === opt.value && (
+                        <span className="w-3 h-3 rounded-full bg-amber-700"></span>
+                      )}
+                      {opt.label}
+                    </div>
+                  </button>
+                ))}
+              </div>
+
+              {/* Submit Button */}
+              {selectedAccountType && (
+                <div className="mt-5 flex justify-center">
+                  <button
+                    onClick={handleAccountTypeSubmit}
+                    className="
+                      px-6 py-2 rounded-lg 
+                      bg-amber-800 text-white 
+                      hover:bg-amber-900
+                      transition-all text-sm shadow
+                    "
+                  >
+                    Submit
+                  </button>
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Main Header */}
         <h1 className="text-3xl md:text-4xl font-bold text-foreground">
           Welcome, <span className="text-primary">{user?.userName}</span>
         </h1>
@@ -89,8 +190,9 @@ export default function Dashboard() {
         </p>
       </div>
 
+      {/* Rest of your component remains exactly the same */}
       {/* User Role Highlight */}
-    <ProfileCard user={user} />
+      <ProfileCard user={user} />
 
       {/* User Details Card */}
       <div className="max-w-6xl mx-auto mb-10">
@@ -115,7 +217,9 @@ export default function Dashboard() {
           <div className="flex items-center justify-between">
             <div>
               <p className="text-sm text-muted-foreground">Saved Posts</p>
-              <h2 className="text-2xl font-semibold text-foreground">{totalSavedPosts}</h2>
+              <h2 className="text-2xl font-semibold text-foreground">
+                {totalSavedPosts}
+              </h2>
             </div>
             <Bookmark className="w-6 h-6 text-accent" />
           </div>
@@ -149,6 +253,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Recent Activity */}
       <div className="max-w-6xl mx-auto mb-10">
         <h2 className="text-xl font-semibold mb-4 text-foreground flex items-center gap-2">
           <Activity className="w-5 h-5" />
@@ -188,6 +293,7 @@ export default function Dashboard() {
         </Card>
       </div>
 
+      {/* Analytics Overview */}
       <div className="max-w-6xl mx-auto">
         <h2 className="text-xl font-semibold mb-4 text-foreground">
           Analytics Overview
@@ -248,6 +354,7 @@ export default function Dashboard() {
         </div>
       </div>
 
+      {/* Footer Buttons */}
       <div className="max-w-6xl mx-auto mt-10 flex flex-wrap justify-between gap-4">
         <Button
           onClick={() => handleNavigate("/edit-profile")}

@@ -63,7 +63,7 @@ const userSchema = new Schema(
         "lookingForRoommate",
         "ownerLookingForRenters",
       ],
-      default: null,     // allow null safely ✔
+      default: null,    
     },
 
     googleId: {
