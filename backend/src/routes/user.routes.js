@@ -11,6 +11,8 @@ import { registerUser,loginUser,
   deleteAccount} from "../controllers/user.controller.js"; 
 import { upload } from "../middlewares/multer.middleware.js";
 import {verifyJWT}  from '../middlewares/auth.middleware.js';
+import { googleLogin } from "../controllers/googleAuth.controller.js";
+
 
 const router = Router();
 
@@ -33,6 +35,8 @@ router.route("/update-avatar").patch(
     upload.single("avatar"),
     updateUserAvatar
 );
+
+router.post("/google", googleLogin);
 
 
 router.route("/get-current-user").get(verifyJWT, getCurrentUser);

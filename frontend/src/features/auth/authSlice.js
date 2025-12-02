@@ -53,9 +53,7 @@ export const loginUser = createAsyncThunk(
 
       return user;
     } catch (error) {
-      return rejectWithValue(
-        error.response?.data?.message || "Login failed"
-      );
+      return rejectWithValue(error.response?.data?.message || "Login failed");
     }
   }
 );
@@ -125,6 +123,35 @@ export const logoutUser = createAsyncThunk(
   }
 );
 
+export const googleLogin = createAsyncThunk(
+  "auth/googleLogin",
+  async (id_token, thunkAPI) => {
+    try {
+      const res = await api.post("/users/google", { id_token }, {
+        withCredentials: true,
+      });
+
+      const payload = res.data?.data;
+      const user = payload?.user;
+      const accessToken = payload?.accessToken;
+      const refreshToken = payload?.refreshToken;
+
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem(
+        "roomezy_tokens",
+        JSON.stringify({ accessToken, refreshToken })
+      );
+
+      return payload;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(
+        err.response?.data?.message || "Google login failed"
+      );
+    }
+  }
+);
+
+
 export const updateUserData = (userData) => (dispatch) => {
   dispatch(updateUser(userData));
 
@@ -160,6 +187,19 @@ const authSlice = createSlice({
       }
     },
 
+    googleLoginSuccess: (state, action) => {
+      const { user, accessToken, refreshToken } = action.payload;
+
+      state.user = user;
+      state.isAuthenticated = true;
+
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem(
+        "roomezy_tokens",
+        JSON.stringify({ accessToken, refreshToken })
+      );
+    },
+
     // Force logout (used in axios interceptor)
     forceLogout: (state) => {
       state.user = null;
@@ -168,6 +208,19 @@ const authSlice = createSlice({
 
       localStorage.removeItem("user");
       localStorage.removeItem("roomezy_tokens");
+    },
+
+    googleLoginSuccess: (state, action) => {
+      const { user, accessToken, refreshToken } = action.payload;
+
+      state.user = user;
+      state.isAuthenticated = true;
+
+      localStorage.setItem("user", JSON.stringify(user));
+      localStorage.setItem(
+        "roomezy_tokens",
+        JSON.stringify({ accessToken, refreshToken })
+      );
     },
   },
 
@@ -254,5 +307,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { updateUser, forceLogout } = authSlice.actions;
+export const { updateUser, forceLogout, googleLoginSuccess } =
+  authSlice.actions;
 export default authSlice.reducer;

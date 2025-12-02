@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, Link } from "react-router-dom";
-import { registerUser } from "@/features/auth/authSlice";
+import { registerUser, googleLogin, googleLoginSuccess } from "@/features/auth/authSlice";
 import {
   Dialog,
   DialogContent,
@@ -280,6 +280,55 @@ const RegisterModal = ({ isOpen, onClose }) => {
     if (user && !loading) navigate("/");
   }, [user, loading, navigate]);
 
+    useEffect(() => {
+      if (!isOpen) return;
+  
+      const interval = setInterval(() => {
+        const div = document.getElementById("googleLoginBtn");
+  
+        if (window.google && div) {
+          window.google.accounts.id.initialize({
+            client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+            callback: handleGoogleResponse,
+          });
+  
+          window.google.accounts.id.renderButton(div, {
+            theme: "outline",
+            size: "large",
+            width: "100%",
+          });
+  
+          clearInterval(interval);
+        }
+      }, 200);
+  
+      return () => clearInterval(interval);
+    }, [isOpen]);
+  
+    const handleGoogleResponse = async (response) => {
+    try {
+      const id_token = response.credential;
+  
+      // Call asyncThunk googleLogin
+      const result = await dispatch(googleLogin(id_token));
+  
+      // If Google login succeeded
+      if (googleLogin.fulfilled.match(result)) {
+        // Update Redux state using reducer
+        dispatch(googleLoginSuccess(result.payload));
+  
+        toast.success("Logged in with Google!");
+        handleClose();
+        navigate("/");
+      } else {
+        toast.error(result.payload || "Google login failed");
+      }
+    } catch (err) {
+      console.error("Google login error:", err);
+      toast.error("Google login failed");
+    }
+  };
+
   return (
     <MotionWrapper duration={0.7}>
       <Dialog open={isOpen} onOpenChange={handleClose}>
@@ -308,6 +357,20 @@ const RegisterModal = ({ isOpen, onClose }) => {
           {/* FORM */}
           <form onSubmit={handleSubmit} className="space-y-4 mt-4">
             {/* Avatar */}
+            <div className="mb-5">
+              <div id="googleLoginBtn" className="flex justify-center"></div>
+            </div>
+
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-muted"></div>
+              </div>
+              <div className="relative flex justify-center text-xs">
+                <span className="bg-card px-2 text-muted-foreground">
+                  Or continue with
+                </span>
+              </div>
+            </div>
             <div className="flex justify-center">
               <div className="relative">
                 <Avatar className="h-20 w-20 border-2 border-primary shadow-md">

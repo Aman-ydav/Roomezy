@@ -34,32 +34,38 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => response,
   async (error) => {
-    const status = error.response?.status;
+    const original = error.config;
 
-    console.log("Interceptor caught an error:", status);
+    // If access token expired → try refresh once
+    if (error.response?.status === 401 && !original._retry) {
+      original._retry = true;
 
-    // FORCE LOGOUT CONDITIONS
-    const shouldForceLogout =
-      error?.response?.data?.message === "Invalid access token" ||
-      error?.response?.data?.error === "Invalid access token" ||
-      error?.response?.data?.message?.includes("Invalid access token");
+      try {
+        const res = await api.post("/users/refresh-token", {}, {
+          withCredentials: true
+        });
 
-    if (shouldForceLogout) {
-      store.dispatch(forceLogout());
-      toast.error("Session expired. Please log in again.");
-    }
+        const { accessToken, refreshToken } = res.data.data;
 
-    // simple behaviour: if 401 => force logout
-    if (
-      status === 401 &&
-      !error.response?.data?.message == "Old password is incorrect"
-    ) {
-      store.dispatch(forceLogout());
-      toast.error("Session expired. Please log in again.");
+        // Store new tokens
+        localStorage.setItem(
+          "roomezy_tokens",
+          JSON.stringify({ accessToken, refreshToken })
+        );
+
+        // Retry original request
+        original.headers.Authorization = `Bearer ${accessToken}`;
+        return api(original);
+
+      } catch (err) {
+        store.dispatch(forceLogout());
+        toast.error("Session expired, please log in again.");
+      }
     }
 
     return Promise.reject(error);
   }
 );
+
 
 export default api;
