@@ -393,6 +393,74 @@ const deleteAccount = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, {}, "Account deleted successfully"));
 });
 
+const sendVerificationCode = asyncHandler(async (req, res) => {
+  const { email } = req.body;
+
+  if (!email) throw new ApiError(400, "Email is required");
+
+  const user = await User.findOne({ email });
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (user.isVerified) {
+    return res.status(200).json(new ApiResponse(200, {}, "Already verified"));
+  }
+
+  // Generate 6-digit code
+  const verificationCode = Math.floor(100000 + Math.random() * 900000).toString();
+
+  user.verificationCode = verificationCode;
+  user.verificationCodeExpire = Date.now() + 10 * 60 * 1000; // 10 minutes
+
+  await user.save({ validateBeforeSave: false });
+
+  const html = `
+    <div style="font-family:Arial;padding:20px;">
+      <h3>Roomezy Email Verification</h3>
+      <p>Your verification code:</p>
+      <h2 style="letter-spacing:6px">${verificationCode}</h2>
+      <p>This code expires in 10 minutes.</p>
+    </div>
+  `;
+
+  await sendEmail(email, "Verify your Roomezy Account", html);
+
+  return res.status(200).json(
+    new ApiResponse(200, {}, "Verification code sent successfully")
+  );
+});
+
+const verifyEmailCode = asyncHandler(async (req, res) => {
+  const { email, code } = req.body;
+
+  if (!email || !code) throw new ApiError(400, "Email & code required");
+
+  const user = await User.findOne({ email });
+  if (!user) throw new ApiError(404, "User not found");
+
+  if (user.isVerified) {
+    return res.status(200).json(new ApiResponse(200, {}, "Already verified"));
+  }
+
+  if (user.verificationCode !== code) {
+    throw new ApiError(400, "Invalid verification code");
+  }
+
+  if (user.verificationCodeExpire < Date.now()) {
+    throw new ApiError(400, "Verification code expired");
+  }
+
+  user.isVerified = true;
+  user.verificationCode = undefined;
+  user.verificationCodeExpire = undefined;
+
+  await user.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, user, "Email verified successfully"));
+});
+
+
 export {
     registerUser,
     loginUser,
@@ -407,4 +475,6 @@ export {
     resetPassword,
     getUserProfileById,
     deleteAccount,
+    sendVerificationCode,
+    verifyEmailCode,
 };

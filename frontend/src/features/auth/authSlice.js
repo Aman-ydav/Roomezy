@@ -127,9 +127,13 @@ export const googleLogin = createAsyncThunk(
   "auth/googleLogin",
   async (id_token, thunkAPI) => {
     try {
-      const res = await api.post("/users/google", { id_token }, {
-        withCredentials: true,
-      });
+      const res = await api.post(
+        "/users/google",
+        { id_token },
+        {
+          withCredentials: true,
+        }
+      );
 
       const payload = res.data?.data;
       const user = payload?.user;
@@ -151,7 +155,6 @@ export const googleLogin = createAsyncThunk(
   }
 );
 
-
 export const updateUserData = (userData) => (dispatch) => {
   dispatch(updateUser(userData));
 
@@ -161,6 +164,32 @@ export const updateUserData = (userData) => (dispatch) => {
     localStorage.removeItem("user");
   }
 };
+
+export const sendVerificationCode = createAsyncThunk(
+  "auth/sendVerificationCode",
+  async (email, thunkAPI) => {
+    try {
+      const res = await api.post("/users/send-verification-code", { email });
+      return res.data;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message);
+    }
+  }
+);
+
+export const verifyEmailCode = createAsyncThunk(
+  "auth/verifyEmailCode",
+  async ({ email, code }, thunkAPI) => {
+    try {
+      const res = await api.post("/users/verify-email", { email, code });
+      const updatedUser = res.data?.data;
+      localStorage.setItem("user", JSON.stringify(updatedUser));
+      return updatedUser;
+    } catch (err) {
+      return thunkAPI.rejectWithValue(err.response?.data?.message);
+    }
+  }
+);
 
 const savedUser = localStorage.getItem("user");
 
@@ -238,6 +267,10 @@ const authSlice = createSlice({
       .addCase(registerUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload;
+      })
+
+      .addCase(verifyEmailCode.fulfilled, (state, action) => {
+        state.user = action.payload;
       })
 
       // LOGIN

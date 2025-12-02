@@ -9,6 +9,8 @@ import { registerUser,loginUser,
   resetPassword,
   getUserProfileById,
   updateAccountType,
+  verifyEmailCode,
+  sendVerificationCode,
   deleteAccount} from "../controllers/user.controller.js"; 
 import { upload } from "../middlewares/multer.middleware.js";
 import {verifyJWT}  from '../middlewares/auth.middleware.js';
@@ -39,6 +41,8 @@ router.route("/update-avatar").patch(
 
 router.post("/google", googleLogin);
 
+router.post("/send-verification-code", sendVerificationCode);
+router.post("/verify-email", verifyEmailCode);
 
 router.route("/get-current-user").get(verifyJWT, getCurrentUser);
 

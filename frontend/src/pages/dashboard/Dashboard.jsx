@@ -11,6 +11,7 @@ import {
   PlusCircle,
   Activity,
   AlertTriangle,
+  AlertCircle,
 } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
@@ -22,6 +23,7 @@ import { updateUser } from "@/features/auth/authSlice";
 import UserDetails from "@/components/Dashboard/UserDetails";
 import ProfileCard from "@/components/Dashboard/ProfileCard";
 import { getSavedPosts } from "@/features/savedPosts/savedPostSlice";
+import EmailVerificationModal from "@/components/Auth/EmailVerificationModal";
 
 export default function Dashboard() {
   const { user } = useSelector((state) => state.auth);
@@ -32,6 +34,7 @@ export default function Dashboard() {
   // Local state for account type selection
   const [selectedAccountType, setSelectedAccountType] = useState("");
   const [showAccountTypePrompt, setShowAccountTypePrompt] = useState(false);
+  const [verifyOpen, setVerifyOpen] = useState(false);
 
   useEffect(() => {
     dispatch(getAllPosts());
@@ -119,6 +122,24 @@ export default function Dashboard() {
     >
       {/* Header */}
       <div className="max-w-6xl mx-auto mb-10 text-center">
+        {user && !user.isVerified && (
+          <div className="bg-warning border border-warning-foreground p-4 rounded-lg mb-6 flex justify-between items-center">
+            <div className="flex items-center gap-2">
+              <AlertCircle className="text-warning-foreground" />
+              <p>Email not verified. Verify now!</p>
+            </div>
+
+            <Button
+              onClick={() => setVerifyOpen(true)}
+              className="bg-primary text-white"
+            >
+              Verify Email
+            </Button>
+          </div>
+        )}
+
+        <EmailVerificationModal open={verifyOpen} setOpen={setVerifyOpen} />
+
         {/* Account type prompt - Only shown for Google OAuth users without accountType */}
         {showAccountTypePrompt && (
           <div className="max-w-6xl mx-auto mb-6 px-3">

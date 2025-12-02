@@ -47,6 +47,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
       age: null,
       gender: "",
       phone: "",
+      isVerified: true,
       accountType: null,
       preferredLocations: [],
     });
