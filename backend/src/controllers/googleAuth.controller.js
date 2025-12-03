@@ -35,7 +35,6 @@ export const googleLogin = asyncHandler(async (req, res) => {
     if (!user.avatar) user.avatar = picture;
     await user.save();
   } else {
-    const randomPassword = crypto.randomBytes(16).toString("hex");
 
     user = await User.create({
       userName,
@@ -43,7 +42,7 @@ export const googleLogin = asyncHandler(async (req, res) => {
       avatar: picture,
       googleId,
       provider: "google",
-      password: randomPassword,
+      password: "",
       age: null,
       gender: "",
       phone: "",

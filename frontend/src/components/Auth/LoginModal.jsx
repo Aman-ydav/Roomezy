@@ -71,9 +71,9 @@ const LoginModal = ({ isOpen, onClose }) => {
           message = "Network error! Please check your internet connection.";
         } else if (err.toLowerCase().includes("not found")) {
           message = "No user found with this email address.";
-        }
+        } 
 
-        setFormError(message);
+        setFormError(err? err : message);
       });
   };
 

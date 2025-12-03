@@ -143,7 +143,7 @@ export default function MessageBubble({
 
                   {/* ------- THREE DOTS MENU BUTTON ------- */}
                   <button
-                    className="msg-menu-btn opacity-0 group-hover:opacity-100 transition"
+                    className="msg-menu-btn opacity-0 group-hover:opacity-100 transition bg-transparent mb-1"
                     onClick={(e) => {
                       e.stopPropagation();
                       const rect = bubbleRef.getBoundingClientRect();

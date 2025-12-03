@@ -36,28 +36,47 @@ api.interceptors.response.use(
   async (error) => {
     const original = error.config;
 
-    // If access token expired → try refresh once
-    if (error.response?.status === 401 && !original._retry) {
+    // Do NOT refresh token on login, google login, or refresh-token itself
+    const blockedUrls = [
+      "/users/login",
+      "/users/google",
+      "/users/refresh-token",
+      "/users/forgot-password",
+      "/users/reset-password",
+      "/users/change-password",
+      "/users/verify-email",
+    ];
+
+    if (
+      error.response?.status === 401 &&
+      !original._retry &&
+      !blockedUrls.some((u) => original.url.includes(u))
+    ) {
       original._retry = true;
 
       try {
-        const res = await api.post("/users/refresh-token", {}, {
-          withCredentials: true
-        });
+        const raw = localStorage.getItem("roomezy_tokens");
+        const storedRefreshToken = raw ? JSON.parse(raw)?.refreshToken : null;
+
+        const res = await api.post(
+          "/users/refresh-token",
+          { refreshToken: storedRefreshToken },
+          { withCredentials: true }
+        );
 
         const { accessToken, refreshToken } = res.data.data;
 
-        // Store new tokens
+        // Save new tokens
         localStorage.setItem(
           "roomezy_tokens",
           JSON.stringify({ accessToken, refreshToken })
         );
 
-        // Retry original request
+        // Retry request with new access token
         original.headers.Authorization = `Bearer ${accessToken}`;
         return api(original);
-
       } catch (err) {
+        // If refresh failed — force logout
         store.dispatch(forceLogout());
         toast.error("Session expired, please log in again.");
       }
@@ -66,6 +85,5 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
-
 
 export default api;

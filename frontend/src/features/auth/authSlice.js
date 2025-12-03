@@ -165,6 +165,8 @@ export const updateUserData = (userData) => (dispatch) => {
   }
 };
 
+
+
 export const sendVerificationCode = createAsyncThunk(
   "auth/sendVerificationCode",
   async (email, thunkAPI) => {
@@ -216,18 +218,6 @@ const authSlice = createSlice({
       }
     },
 
-    googleLoginSuccess: (state, action) => {
-      const { user, accessToken, refreshToken } = action.payload;
-
-      state.user = user;
-      state.isAuthenticated = true;
-
-      localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem(
-        "roomezy_tokens",
-        JSON.stringify({ accessToken, refreshToken })
-      );
-    },
 
     // Force logout (used in axios interceptor)
     forceLogout: (state) => {
