@@ -15,9 +15,9 @@ const chatSlice = createSlice({
     setConversations(state, action) {
       // Make sure conversations have proper unreadCount structure
       const conversations = action.payload || [];
-      state.conversations = conversations.map(convo => ({
+      state.conversations = conversations.map((convo) => ({
         ...convo,
-        unreadCount: convo.unreadCount || {}
+        unreadCount: convo.unreadCount || {},
       }));
     },
 
@@ -41,43 +41,38 @@ const chatSlice = createSlice({
       convo.unreadCount[state.currentUserId] = 0;
     },
 
-    // SOCKET ALERT FOR SIDE LIST
     newMessageAlert(state, action) {
-      const { conversationId, from, lastMessage } = action.payload;
-      
-      // Find conversation
-      let convo = state.conversations.find((c) => c._id === conversationId);
-      
-      if (!convo) {
-        // If conversation doesn't exist, create a basic one
-        convo = {
-          _id: conversationId,
-          participants: [],
-          lastMessage: lastMessage,
-          lastMessageSender: from,
-          unreadCount: {}
-        };
-        state.conversations.unshift(convo);
-      } else {
-        // Update existing conversation
-        convo.lastMessage = lastMessage;
-        convo.lastMessageSender = from;
-        
-        // Move to top
-        state.conversations = [
-          convo,
-          ...state.conversations.filter((x) => x._id !== conversationId),
-        ];
-      }
+      const { conversationId, from, lastMessage, lastMessageAt } =
+        action.payload;
 
-      // Initialize unreadCount if it doesn't exist
-      if (!convo.unreadCount) convo.unreadCount = {};
+      const now = lastMessageAt || new Date().toISOString();
 
-      // Increment unread only if message is from someone else
+      let existing = state.conversations.find((c) => c._id === conversationId);
+
+      let convo = {
+        ...(existing || {}), // <--- KEEP participants + all data
+        _id: conversationId,
+        participants: existing?.participants || [], // <--- FIX
+        lastMessage,
+        lastMessageSender: from,
+        lastMessageAt: now,
+        updatedAt: now,
+        unreadCount: {
+          ...(existing?.unreadCount || {}),
+        },
+      };
+
+      // increment unread
       if (state.currentUserId && from !== state.currentUserId) {
-        convo.unreadCount[state.currentUserId] = 
+        convo.unreadCount[state.currentUserId] =
           (convo.unreadCount[state.currentUserId] || 0) + 1;
       }
+
+      // Replace conversations state
+      state.conversations = [
+        convo,
+        ...state.conversations.filter((c) => c._id !== conversationId),
+      ];
     },
   },
 });

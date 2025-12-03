@@ -14,6 +14,7 @@ import Loader from "@/components/layout/Loader";
 import { socket } from "@/socket/socket";
 import { setCurrentUserId } from "@/features/chat/chatSlice";
 import { useLocation } from "react-router-dom";
+import { AnimatePresence } from "framer-motion";
 
 export default function ConversationList({
   onSelectConversation,
@@ -157,21 +158,23 @@ export default function ConversationList({
             )}
           </div>
         ) : (
-          filteredConversations
-            .sort(
-              (a, b) =>
-                new Date(b?.createdAt) -
-                new Date(a?.createdAt)
-            )
-            .map((conversation) => (
-              <ConversationItem
-                key={conversation._id}
-                conversation={conversation}
-                currentUserId={user._id}
-                isSelected={selectedConversation?._id === conversation._id}
-                onClick={() => handleConversationClick(conversation)}
-              />
-            ))
+          <AnimatePresence>
+            {filteredConversations
+              .sort(
+                (a, b) =>
+                  new Date(b?.lastMessageAt || b?.updatedAt || b?.createdAt) -
+                  new Date(a?.lastMessageAt || a?.updatedAt || a?.createdAt)
+              )
+              .map((conversation) => (
+                <ConversationItem
+                  key={conversation._id}
+                  conversation={conversation}
+                  currentUserId={user._id}
+                  isSelected={selectedConversation?._id === conversation._id}
+                  onClick={() => handleConversationClick(conversation)}
+                />
+              ))}
+          </AnimatePresence>
         )}
       </div>
     </div>

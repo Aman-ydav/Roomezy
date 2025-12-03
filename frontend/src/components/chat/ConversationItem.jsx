@@ -8,7 +8,7 @@ export default function ConversationItem({
   isSelected,
   onClick,
 }) {
-  console.log(conversation)
+  console.log(conversation);
   // partner user
   const partner = conversation.participants.find(
     (p) => p._id !== currentUserId
@@ -26,8 +26,11 @@ export default function ConversationItem({
   // online status
   const isOnline = useUserStatus(partner?._id);
 
-  // FIX: Use updatedAt for last message time
-  const lastMessageTime = conversation.createdAt;
+  // Use updatedAt (fallback to createdAt if not present)
+  const lastMessageTime =
+    conversation.lastMessageAt ||
+    conversation.updatedAt ||
+    conversation.createdAt;
 
   const formatTime = (timestamp) => {
     if (!timestamp) return "";
@@ -52,6 +55,11 @@ export default function ConversationItem({
 
   return (
     <motion.div
+      layout
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: -20 }}
+      transition={{ type: "spring", stiffness: 500, damping: 30 }}
       whileHover={{ backgroundColor: "var(--muted)" }}
       className={`
         flex items-center p-4 border-b border-border cursor-pointer transition-colors
