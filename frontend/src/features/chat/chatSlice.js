@@ -1,4 +1,4 @@
-// src/features/chat/chatSlice.js - UPDATED
+// src/features/chat/chatSlice.js
 import { createSlice } from "@reduxjs/toolkit";
 
 const chatSlice = createSlice({
@@ -13,62 +13,59 @@ const chatSlice = createSlice({
     },
 
     setConversations(state, action) {
-      // Make sure conversations have proper unreadCount structure
       const conversations = action.payload || [];
-      state.conversations = conversations.map((convo) => ({
-        ...convo,
-        unreadCount: convo.unreadCount || {},
+      state.conversations = conversations.map((c) => ({
+        ...c,
+        unreadCount: c.unreadCount || {},
       }));
     },
 
     updateConversation(state, action) {
       const updated = action.payload;
       const idx = state.conversations.findIndex((c) => c._id === updated._id);
-      if (idx >= 0) {
-        state.conversations[idx] = updated;
+
+      if (idx !== -1) {
+        state.conversations[idx] = {
+          ...state.conversations[idx],
+          ...updated,
+        };
       } else {
         state.conversations.unshift(updated);
       }
     },
 
-    // Reset unread for conversation
     resetUnreadForConversation(state, action) {
       const conversationId = action.payload;
       const convo = state.conversations.find((c) => c._id === conversationId);
       if (!convo || !state.currentUserId) return;
-
-      // Reset to 0
       convo.unreadCount[state.currentUserId] = 0;
     },
 
     newMessageAlert(state, action) {
-      const { conversationId, from, lastMessage, lastMessageAt } =
-        action.payload;
-
-      const now = lastMessageAt || new Date().toISOString();
+      const { conversationId, from, lastMessage, lastMessageAt } = action.payload;
 
       let existing = state.conversations.find((c) => c._id === conversationId);
 
-      let convo = {
-        ...(existing || {}), // <--- KEEP participants + all data
+      const convo = {
+        ...(existing || {}),
         _id: conversationId,
-        participants: existing?.participants || [], // <--- FIX
+        participants: existing?.participants || [],
         lastMessage,
+        lastMessageAt: lastMessageAt || new Date().toISOString(),
         lastMessageSender: from,
-        lastMessageAt: now,
-        updatedAt: now,
+        updatedAt: lastMessageAt || new Date().toISOString(),
+
         unreadCount: {
           ...(existing?.unreadCount || {}),
         },
       };
 
-      // increment unread
+      // increase unread if message NOT by me
       if (state.currentUserId && from !== state.currentUserId) {
         convo.unreadCount[state.currentUserId] =
           (convo.unreadCount[state.currentUserId] || 0) + 1;
       }
 
-      // Replace conversations state
       state.conversations = [
         convo,
         ...state.conversations.filter((c) => c._id !== conversationId),

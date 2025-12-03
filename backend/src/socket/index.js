@@ -8,128 +8,82 @@ export const initSocketServer = (server) => {
             origin: ["https://roomezy.vercel.app", "http://localhost:5173"],
             methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
             credentials: true,
-            allowedHeaders: [
-                "Content-Type",
-                "Authorization",
-                "X-Requested-With",
-                "Accept",
-            ],
-            exposedHeaders: ["set-cookie"],
         },
     });
 
-    console.log("Socket.IO initialized");
-
     io.on("connection", (socket) => {
-        console.log(" User connected:", socket.id);
+        console.log("User connected:", socket.id);
 
+        // USER CONNECT
         socket.on("user-connected", (userId) => {
             onlineUsers.set(userId, socket.id);
             socket.userId = userId;
             socket.broadcast.emit("user-online", userId);
-
-            console.log(`User Online: ${userId}`);
         });
 
         socket.on("check-user-status", (userId) => {
-            const isOnline = onlineUsers.has(userId);
-            socket.emit("user-status", { userId, isOnline });
+            socket.emit("user-status", {
+                userId,
+                isOnline: onlineUsers.has(userId),
+            });
         });
 
+        // JOIN ROOM
         socket.on("join-conversation", (conversationId) => {
             socket.join(conversationId);
-            console.log(
-                `User (${socket.userId}) joined room: ${conversationId}`
-            );
         });
 
+        // LEAVE ROOM
         socket.on("leave-conversation", (conversationId) => {
             socket.leave(conversationId);
-            console.log(`User (${socket.userId}) left room: ${conversationId}`);
         });
 
-        socket.on(
-            "delete-message-everyone",
-            ({ conversationId, messageId }) => {
-                io.to(conversationId).emit("message-deleted-everyone", {
-                    messageId,
-                });
-            }
-        );
-
-        socket.on("delete-message-me", ({ messageId, userId }) => {
-            // Only update UI for this client (no broadcast)
-            io.to(socket.id).emit("message-deleted-me", { messageId });
-        });
-
-        socket.on(
-            "send-message",
-            ({ conversationId, senderId, receiverId, text }) => {
-                const messagePayload = {
-                    conversationId,
-                    senderId,
-                    receiverId,
-                    text,
-                    read: false,
-                    createdAt: new Date(),
-                };
-
-                socket
-                    .to(conversationId)
-                    .emit("receive-message", messagePayload);
-
-                // Common payload
-                const eventPayload = {
-                    conversationId,
-                    from: senderId,
-                    lastMessage: text,
-                    lastMessageAt: new Date().toISOString(),
-                };
-
-                // Send to receiver
-                const receiverSocket = onlineUsers.get(receiverId);
-                if (receiverSocket) {
-                    io.to(receiverSocket).emit(
-                        "new-message-alert",
-                        eventPayload
-                    );
-                }
-
-                io.to(socket.id).emit("new-message-alert", eventPayload);
-            }
-        );
-
-        socket.on("typing", ({ conversationId, userId }) => {
-            console.log(`User ${userId} typing in ${conversationId}`);
-            // Send to everyone in conversation except the sender
-            socket.to(conversationId).emit("typing", {
+        // DELETE FOR EVERYONE
+        socket.on("delete-message-everyone", ({ conversationId, messageId }) => {
+            io.to(conversationId).emit("message-deleted-everyone", {
+                messageId,
                 conversationId,
-                userId,
             });
         });
 
-        socket.on("stop-typing", ({ conversationId, userId }) => {
-            console.log(`User ${userId} stopped typing in ${conversationId}`);
-            // Send to everyone in conversation except the sender
-            socket.to(conversationId).emit("stop-typing", {
-                conversationId,
+        // DELETE FOR ME
+        socket.on("delete-message-me", ({ messageId, userId, conversationId }) => {
+            io.to(socket.id).emit("message-deleted-me", {
+                messageId,
                 userId,
+                conversationId,
             });
         });
 
+        // SEND MESSAGE
+        socket.on("send-message", ({ conversationId, senderId, receiverId, text }) => {
+            const messagePayload = {
+                conversationId,
+                senderId,
+                receiverId,
+                text,
+                read: false,
+                createdAt: new Date(),
+            };
+
+            socket.to(conversationId).emit("receive-message", messagePayload);
+        });
+
+        // TYPING
+        socket.on("typing", (data) => {
+            socket.to(data.conversationId).emit("typing", data);
+        });
+
+        socket.on("stop-typing", (data) => {
+            socket.to(data.conversationId).emit("stop-typing", data);
+        });
+
+        // DISCONNECT
         socket.on("disconnect", () => {
             if (socket.userId) {
                 onlineUsers.delete(socket.userId);
-                // Broadcast that user went offline
                 socket.broadcast.emit("user-offline", socket.userId);
-                console.log(` User disconnected: ${socket.userId}`);
             }
-        });
-
-        socket.on("user-offline", (userId) => {
-            onlineUsers.delete(userId);
-            socket.broadcast.emit("user-offline", userId);
-            console.log(`User manually went offline: ${userId}`);
         });
     });
 

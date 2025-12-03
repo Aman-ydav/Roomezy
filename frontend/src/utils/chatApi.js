@@ -20,3 +20,11 @@ export const sendMessageApi = (data) =>
 export const markAsRead = (conversationId, userId) =>
   axios.patch(`/chat/read/${conversationId}/${userId}`);
 
+export const deleteMessageForMeApi = (data) =>
+  axios.patch("/chat/message/delete-me", data);
+
+export const deleteMessageForEveryoneApi = (data) =>
+  axios.patch("/chat/message/delete-everyone", data);
+
+export const deleteChatForMeApi = (data) =>
+  axios.patch("/chat/conversation/delete-me", data);

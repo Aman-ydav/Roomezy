@@ -4,6 +4,7 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
+// ------------------ CREATE OR GET CONVERSATION ------------------
 export const createOrGetConversation = asyncHandler(async (req, res) => {
     const { senderId, receiverId } = req.body;
 
@@ -15,12 +16,10 @@ export const createOrGetConversation = asyncHandler(async (req, res) => {
         throw new ApiError(400, "You cannot start a chat with yourself");
     }
 
-    // Try to find existing conversation between two participants (any order)
     let conversation = await Conversation.findOne({
         participants: { $all: [senderId, receiverId] },
     }).populate("participants", "userName avatar createdAt");
 
-    // Create new conversation if not exist
     if (!conversation) {
         conversation = await Conversation.create({
             participants: [senderId, receiverId],
@@ -32,7 +31,6 @@ export const createOrGetConversation = asyncHandler(async (req, res) => {
             lastMessageSender: null,
         });
 
-        // populate after creating
         conversation = await Conversation.findById(conversation._id).populate(
             "participants",
             "userName avatar createdAt"
@@ -41,14 +39,12 @@ export const createOrGetConversation = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(
-            new ApiResponse(200, conversation, "Conversation fetched/created")
-        );
+        .json(new ApiResponse(200, conversation, "Conversation fetched/created"));
 });
 
+// ------------------ GET USER CONVERSATIONS ------------------
 export const getUserConversations = asyncHandler(async (req, res) => {
     const { userId } = req.params;
-
     if (!userId) throw new ApiError(400, "userId is required");
 
     const conversations = await Conversation.find({
@@ -59,11 +55,10 @@ export const getUserConversations = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
-        .json(
-            new ApiResponse(200, conversations, "User conversations fetched")
-        );
+        .json(new ApiResponse(200, conversations, "User conversations fetched"));
 });
 
+// ------------------ GET MESSAGES ------------------
 export const getMessages = asyncHandler(async (req, res) => {
     const { conversationId } = req.params;
 
@@ -73,11 +68,33 @@ export const getMessages = asyncHandler(async (req, res) => {
         createdAt: 1,
     });
 
+    const userId = req.user?._id;
+
+    const filtered = messages
+        .filter((m) => !m.deletedFor?.includes(userId)) // deleted for me — hide
+        .map((m) => {
+            const msg = m.toObject();
+
+            // compute 1-hour expiry for delete-for-everyone option
+            const diff = Date.now() - new Date(msg.createdAt).getTime();
+            msg.canDeleteForEveryone = diff <= 60 * 60 * 1000;
+
+            if (m.deletedForEveryone) {
+                msg.text = "";
+                msg.deletedForEveryone = true;
+                msg.canDeleteForEveryone = false; // can't delete again
+            }
+
+            return msg;
+        });
+
     return res
         .status(200)
-        .json(new ApiResponse(200, messages, "Messages fetched"));
+        .json(new ApiResponse(200, filtered, "Messages fetched"));
 });
 
+
+// ------------------ SEND MESSAGE ------------------
 export const sendMessage = asyncHandler(async (req, res) => {
     const { senderId, receiverId, conversationId, text } = req.body;
 
@@ -85,11 +102,6 @@ export const sendMessage = asyncHandler(async (req, res) => {
         throw new ApiError(400, "Missing fields for sending message");
     }
 
-    if (String(senderId) === String(receiverId)) {
-        throw new ApiError(400, "You cannot send message to yourself");
-    }
-
-    // Store message
     const message = await Message.create({
         sender: senderId,
         receiver: receiverId,
@@ -97,7 +109,6 @@ export const sendMessage = asyncHandler(async (req, res) => {
         text,
     });
 
-    // Update conversation preview + unread count
     await Conversation.findByIdAndUpdate(conversationId, {
         lastMessage: text,
         lastMessageSender: senderId,
@@ -110,23 +121,15 @@ export const sendMessage = asyncHandler(async (req, res) => {
         .json(new ApiResponse(201, message, "Message sent successfully"));
 });
 
+// ------------------ MARK AS READ ------------------
 export const markMessagesAsRead = asyncHandler(async (req, res) => {
     const { conversationId, userId } = req.params;
 
-    if (!conversationId || !userId)
-        throw new ApiError(400, "conversationId and userId required");
-
-    // Update all unread messages
     await Message.updateMany(
-        {
-            conversationId,
-            receiver: userId,
-            read: false,
-        },
+        { conversationId, receiver: userId, read: false },
         { read: true }
     );
 
-    // Reset unread counter for this user
     await Conversation.findByIdAndUpdate(conversationId, {
         [`unreadCount.${userId}`]: 0,
     });
@@ -136,58 +139,65 @@ export const markMessagesAsRead = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, null, "Messages marked as read"));
 });
 
+// ------------------ DELETE FOR EVERYONE ------------------
 export const deleteMessageForEveryone = asyncHandler(async (req, res) => {
-  const { messageId, userId } = req.body;
+    const { messageId, userId } = req.body;
 
-  const msg = await Message.findById(messageId);
-  if (!msg) throw new ApiError(404, "Message not found");
+    const msg = await Message.findById(messageId);
+    if (!msg) throw new ApiError(404, "Message not found");
 
-  // Only sender can delete for everyone
-  if (String(msg.sender) !== String(userId)) {
-    throw new ApiError(403, "Only sender can delete this message");
-  }
+    if (String(msg.sender) !== String(userId)) {
+        throw new ApiError(403, "Only sender can delete for everyone");
+    }
 
-  // Check 1 hour rule
-  const diff = Date.now() - new Date(msg.createdAt).getTime();
-  if (diff > 60 * 60 * 1000) {
-    throw new ApiError(400, "Delete for everyone expired");
-  }
+    const hour = 60 * 60 * 1000;
+    if (Date.now() - msg.createdAt.getTime() > hour) {
+        throw new ApiError(400, "Delete for everyone expired");
+    }
 
-  msg.text = "";  
-  msg.deletedForEveryone = true;
-  msg.deleteForEveryoneAt = new Date();
-  await msg.save();
-
-  return res
-    .status(200)
-    .json(new ApiResponse(200, msg, "Message deleted for everyone"));
-});
-
-export const deleteMessageForMe = asyncHandler(async (req, res) => {
-  const { messageId, userId } = req.body;
-
-  const msg = await Message.findById(messageId);
-  if (!msg) throw new ApiError(404, "Message not found");
-
-  if (!msg.deletedFor.includes(userId)) {
-    msg.deletedFor.push(userId);
+    msg.text = "";
+    msg.deletedForEveryone = true;
+    msg.deleteForEveryoneAt = new Date();
     await msg.save();
-  }
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, msg, "Message deleted for user"));
+    return res.status(200).json(
+        new ApiResponse(200,
+            { message: msg, conversationId: msg.conversationId },
+            "Message deleted for everyone"
+        )
+    );
 });
 
+// ------------------ DELETE FOR ME ------------------
+export const deleteMessageForMe = asyncHandler(async (req, res) => {
+    const { messageId, userId } = req.body;
+
+    const msg = await Message.findById(messageId);
+    if (!msg) throw new ApiError(404, "Message not found");
+
+    if (!msg.deletedFor.includes(userId)) {
+        msg.deletedFor.push(userId);
+        await msg.save();
+    }
+
+    return res.status(200).json(
+        new ApiResponse(200,
+            { message: msg, conversationId: msg.conversationId },
+            "Message deleted for user"
+        )
+    );
+});
+
+// ------------------ DELETE CHAT FOR ME ------------------
 export const deleteChatForMe = asyncHandler(async (req, res) => {
-  const { conversationId, userId } = req.body;
+    const { conversationId, userId } = req.body;
 
-  await Message.updateMany(
-    { conversationId },
-    { $addToSet: { deletedFor: userId } }
-  );
+    await Message.updateMany(
+        { conversationId },
+        { $addToSet: { deletedFor: userId } }
+    );
 
-  return res
-    .status(200)
-    .json(new ApiResponse(200, null, "Chat deleted for user"));
+    return res
+        .status(200)
+        .json(new ApiResponse(200, null, "Chat deleted for user"));
 });

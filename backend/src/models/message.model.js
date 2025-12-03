@@ -25,14 +25,15 @@ const messageSchema = new mongoose.Schema(
             default: "",
         },
 
-        deletedFor: [{ type: mongoose.Schema.Types.ObjectId, ref: "User" }],
+        deletedFor: {
+            type: [mongoose.Schema.Types.ObjectId],
+            default: [],
+        },
+
         deletedForEveryone: { type: Boolean, default: false },
         deleteForEveryoneAt: { type: Date, default: null },
 
-        mediaUrl: {
-            type: String,
-            default: null,
-        },
+        mediaUrl: { type: String, default: null },
 
         messageType: {
             type: String,
@@ -40,10 +41,7 @@ const messageSchema = new mongoose.Schema(
             default: "text",
         },
 
-        read: {
-            type: Boolean,
-            default: false,
-        },
+        read: { type: Boolean, default: false },
     },
     { timestamps: true }
 );

@@ -1,12 +1,9 @@
-// src/features/chat/components/MessageBubble.jsx
 import { CheckCheck, Check, Trash2, MoreVertical } from "lucide-react";
 import { useState, useEffect } from "react";
 
 export default function MessageBubble({
   messages,
   isOwn,
-  showAvatar,
-  partner,
   currentUserId,
   onDeleteForMe,
   onDeleteForEveryone,
@@ -14,13 +11,10 @@ export default function MessageBubble({
   const [menuMessage, setMenuMessage] = useState(null);
   const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 
-  // ------- OPEN MENU (ALWAYS CLOSE OLD ONE FIRST) -------
   const openMenu = (message, x, y) => {
-    // Popup size
     const popupWidth = 180;
     const popupHeight = isOwn ? 100 : 70;
 
-    // Keep menu on screen
     const adjustedX =
       x + popupWidth > window.innerWidth
         ? window.innerWidth - popupWidth - 10
@@ -35,13 +29,11 @@ export default function MessageBubble({
     setMenuMessage(message);
   };
 
-  // Desktop right-click support
   const handleContextMenu = (e, message) => {
     e.preventDefault();
     openMenu(message, e.clientX, e.clientY);
   };
 
-  // Three-dot button click
   const handleMenuButton = (message, bubbleRef) => {
     if (!bubbleRef) return;
 
@@ -55,7 +47,7 @@ export default function MessageBubble({
   };
   const handleLongPressEnd = () => clearTimeout(longPressTimer);
 
-  // Close popup on click outside
+  // Close on click outside
   useEffect(() => {
     const handleClick = (e) => {
       if (!e.target.classList.contains("msg-menu-btn")) {
@@ -86,15 +78,10 @@ export default function MessageBubble({
   return (
     <>
       <div className={`flex gap-2 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
-        <div
-          className={`flex flex-col gap-1 ${
-            isOwn ? "items-end" : "items-start"
-          }`}
-        >
+        <div className={`flex flex-col gap-1 ${isOwn ? "items-end" : "items-start"}`}>
           {messages.map((message) => {
             if (message.deletedFor?.includes(currentUserId)) return null;
 
-            // Deleted for everyone
             if (message.deletedForEveryone) {
               return (
                 <div
@@ -111,7 +98,6 @@ export default function MessageBubble({
               ${isOwn ? "bg-primary text-white" : "bg-muted text-foreground"}
             `;
 
-            // A ref to position menu from dots button
             let bubbleRef = null;
 
             return (
@@ -123,15 +109,12 @@ export default function MessageBubble({
                 onTouchStart={() => handleLongPressStart(message)}
                 onTouchEnd={handleLongPressEnd}
               >
-                {/* ----- TEXT + TIME INLINE ----- */}
                 <div className="flex items-end w-full gap-2">
                   <p className="text-sm wrap-break-word">{message.text}</p>
 
-                  <div
-                    className={`flex items-center gap-1 ml-auto text-[9px] ${
-                      isOwn ? "text-white/80" : "text-muted-foreground"
-                    }`}
-                  >
+                  <div className={`flex items-center gap-1 ml-auto text-[9px] ${
+                    isOwn ? "text-white/80" : "text-muted-foreground"
+                  }`}>
                     {formatTime(message.createdAt)}
                     {isOwn &&
                       (message.read ? (
@@ -141,12 +124,10 @@ export default function MessageBubble({
                       ))}
                   </div>
 
-                  {/* ------- THREE DOTS MENU BUTTON ------- */}
                   <button
                     className="msg-menu-btn opacity-0 group-hover:opacity-100 transition bg-transparent mb-1"
                     onClick={(e) => {
                       e.stopPropagation();
-                      const rect = bubbleRef.getBoundingClientRect();
                       handleMenuButton(message, bubbleRef);
                     }}
                   >
@@ -159,8 +140,7 @@ export default function MessageBubble({
         </div>
       </div>
 
-     
-      {/* ------- DELETE MENU POPUP -------- */}
+      {/* MENU POPUP */}
       {menuMessage && (
         <div
           className="fixed z-50 bg-card shadow-xl rounded-lg border border-border p-2 text-sm animate-in fade-in zoom-in"
@@ -170,14 +150,12 @@ export default function MessageBubble({
             width: 180,
           }}
           onMouseEnter={() => {
-            // Cancel auto-close if user returns to popup
             if (window.closePopupTimer) {
               clearTimeout(window.closePopupTimer);
               window.closePopupTimer = null;
             }
           }}
           onMouseLeave={() => {
-            // Close popup 1 second after mouse leaves
             window.closePopupTimer = setTimeout(() => {
               setMenuMessage(null);
             }, 500);
@@ -190,7 +168,7 @@ export default function MessageBubble({
             <Trash2 size={15} /> Delete for me
           </button>
 
-          {isOwn && (
+          {isOwn && menuMessage?.canDeleteForEveryone && (
             <button
               onClick={deleteForEveryone}
               className="flex items-center gap-2 px-1 py-2 hover:bg-muted w-full rounded-md text-red-500"

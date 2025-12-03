@@ -8,106 +8,68 @@ export default function MessageList({
   getSenderId,
   partner,
   loading,
-   deleteForMe,
-  deleteForEveryone
+  deleteForMe,
+  deleteForEveryone,
 }) {
-  const listRef = useRef(null);
+  const scrollRef = useRef(null);
 
-  const scrollAnchorRef = useRef(null);
-
-  // Scroll to bottom when chat window first opens
   useEffect(() => {
     setTimeout(() => {
-      scrollAnchorRef.current?.scrollIntoView({ behavior: "auto" });
-    }, 100);
+      scrollRef.current?.scrollIntoView({ behavior: "auto" });
+    }, 50);
+  }, [messages]);
+
+  const withDates = messages.map((m, i) => ({
+    ...m,
+    showDateSeparator:
+      i === 0 ||
+      new Date(m.createdAt).toDateString() !==
+        new Date(messages[i - 1].createdAt).toDateString(),
+  }));
+
+  const grouped = withDates.reduce((acc, msg) => {
+    const sender = getSenderId(msg);
+
+    const last = acc[acc.length - 1];
+    if (
+      last &&
+      last.senderId === sender &&
+      new Date(msg.createdAt) - new Date(last.messages.at(-1).createdAt) <
+        5 * 60 * 1000
+    ) {
+      last.messages.push(msg);
+    } else {
+      acc.push({
+        senderId: sender,
+        messages: [msg],
+        isOwn: String(sender) === String(currentUserId),
+      });
+    }
+    return acc;
   }, []);
 
-  // Add date separators to messages
-  const messagesWithDateSeparators = messages.map((message, index) => {
-    const currentDate = new Date(message.createdAt).toDateString();
-    const prevDate =
-      index > 0 ? new Date(messages[index - 1].createdAt).toDateString() : null;
-
-    return {
-      ...message,
-      showDateSeparator: currentDate !== prevDate,
-    };
-  });
-
-  const groupedMessages = messagesWithDateSeparators.reduce(
-    (groups, message) => {
-      const senderId = getSenderId(message);
-      const lastGroup = groups[groups.length - 1];
-
-      if (lastGroup && lastGroup.senderId === senderId) {
-        // Check if messages are within 5 minutes of each other
-        const lastMessage = lastGroup.messages[lastGroup.messages.length - 1];
-        const timeDiff =
-          new Date(message.createdAt) - new Date(lastMessage.createdAt);
-        const minutesDiff = timeDiff / (1000 * 60);
-
-        if (minutesDiff < 5) {
-          lastGroup.messages.push(message);
-        } else {
-          // Start new group if more than 5 minutes apart
-          groups.push({
-            senderId,
-            messages: [message],
-            isOwn: String(senderId) === String(currentUserId),
-          });
-        }
-      } else {
-        groups.push({
-          senderId,
-          messages: [message],
-          isOwn: String(senderId) === String(currentUserId),
-        });
-      }
-
-      return groups;
-    },
-    []
-  );
-
   return (
-    <div ref={listRef} className="p-4 space-y-1">
+    <div className="p-4 space-y-1">
       {loading ? (
-        <div className="flex items-center justify-center h-full">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-2"></div>
-            <p className="text-sm text-muted-foreground">Loading messages...</p>
-          </div>
-        </div>
-      ) : groupedMessages.length === 0 ? (
-        <div className="flex items-center justify-center h-full text-center">
-          <div>
-            <div className="w-20 h-20 bg-muted rounded-full flex items-center justify-center mx-auto mb-4">
-              <span className="text-3xl">👋</span>
-            </div>
-            <h3 className="text-lg font-semibold mb-2">Start a conversation</h3>
-            <p className="text-sm text-muted-foreground">
-              Send a message to get the conversation started
-            </p>
-          </div>
+        <div className="flex items-center justify-center h-full">Loading...</div>
+      ) : grouped.length === 0 ? (
+        <div className="text-center text-muted-foreground mt-10">
+          Start a conversation 👋
         </div>
       ) : (
-        groupedMessages.map((group, index) => (
+        grouped.map((g, i) => (
           <MessageBubble
-            key={group.messages[0]._id || index}
-            messages={group.messages}
-            isOwn={group.isOwn}
-            partner={partner}
+            key={i}
+            messages={g.messages}
+            isOwn={g.isOwn}
             currentUserId={currentUserId}
-            showAvatar={
-              index === groupedMessages.length - 1 ||
-              groupedMessages[index + 1]?.senderId !== group.senderId
-            }
-            onDeleteForMe={(message) => deleteForMe(message)}
-            onDeleteForEveryone={(message) => deleteForEveryone(message)}
+            onDeleteForMe={deleteForMe}
+            onDeleteForEveryone={deleteForEveryone}
           />
         ))
       )}
-      <div ref={scrollAnchorRef} />
+
+      <div ref={scrollRef} />
     </div>
   );
 }

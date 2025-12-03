@@ -10,23 +10,15 @@ const conversationSchema = new mongoose.Schema(
             },
         ],
 
-        lastMessage: {
-            type: String,
-            default: "",
-        },
-
-        lastMessageAt: {
-            type: Date,
-            default: null,
-        },
-
+        lastMessage: { type: String, default: "" },
+        lastMessageAt: { type: Date, default: null },
         lastMessageSender: {
             type: mongoose.Schema.Types.ObjectId,
             ref: "User",
         },
 
         unreadCount: {
-            type: Map, // { userId: number }
+            type: Map,
             of: Number,
             default: {},
         },
