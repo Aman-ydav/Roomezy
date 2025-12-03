@@ -1,110 +1,205 @@
-import { CheckCheck, Check } from "lucide-react";
+// src/features/chat/components/MessageBubble.jsx
+import { CheckCheck, Check, Trash2, MoreVertical } from "lucide-react";
 import { useState, useEffect } from "react";
 
-export default function MessageBubble({ messages, isOwn, showAvatar, partner }) {
-  const [currentTime, setCurrentTime] = useState(new Date());
+export default function MessageBubble({
+  messages,
+  isOwn,
+  showAvatar,
+  partner,
+  currentUserId,
+  onDeleteForMe,
+  onDeleteForEveryone,
+}) {
+  const [menuMessage, setMenuMessage] = useState(null);
+  const [menuPosition, setMenuPosition] = useState({ x: 0, y: 0 });
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setCurrentTime(new Date());
-    }, 60000); // Update every minute
+  // ------- OPEN MENU (ALWAYS CLOSE OLD ONE FIRST) -------
+  const openMenu = (message, x, y) => {
+    // Popup size
+    const popupWidth = 180;
+    const popupHeight = isOwn ? 100 : 70;
 
-    return () => clearInterval(timer);
-  }, []);
+    // Keep menu on screen
+    const adjustedX =
+      x + popupWidth > window.innerWidth
+        ? window.innerWidth - popupWidth - 10
+        : x;
 
-  const formatMessageTime = (timestamp) => {
-    const messageDate = new Date(timestamp);
-    
-    // Always show time in 12-hour format (e.g., 2:30 PM)
-    return messageDate.toLocaleTimeString([], { 
-      hour: 'numeric', 
-      minute: '2-digit',
-      hour12: true 
-    }).toLowerCase();
+    const adjustedY =
+      y + popupHeight > window.innerHeight
+        ? window.innerHeight - popupHeight - 10
+        : y;
+
+    setMenuPosition({ x: adjustedX, y: adjustedY });
+    setMenuMessage(message);
   };
 
-  const formatDateSeparator = (timestamp) => {
-    const messageDate = new Date(timestamp);
-    const now = new Date();
-    
-    if (messageDate.toDateString() === now.toDateString()) {
-      return 'Today';
-    }
-    
-    const yesterday = new Date(now);
-    yesterday.setDate(yesterday.getDate() - 1);
-    if (messageDate.toDateString() === yesterday.toDateString()) {
-      return 'Yesterday';
-    }
-    
-    return messageDate.toLocaleDateString([], { 
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  // Desktop right-click support
+  const handleContextMenu = (e, message) => {
+    e.preventDefault();
+    openMenu(message, e.clientX, e.clientY);
+  };
+
+  // Three-dot button click
+  const handleMenuButton = (message, bubbleRef) => {
+    if (!bubbleRef) return;
+
+    const rect = bubbleRef.getBoundingClientRect();
+    openMenu(message, rect.right - 20, rect.top + 20);
+  };
+
+  let longPressTimer;
+  const handleLongPressStart = (message) => {
+    longPressTimer = setTimeout(() => openMenu(message, 120, 200), 500);
+  };
+  const handleLongPressEnd = () => clearTimeout(longPressTimer);
+
+  // Close popup on click outside
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (!e.target.classList.contains("msg-menu-btn")) {
+        setMenuMessage(null);
+      }
+    };
+    window.addEventListener("click", handleClick);
+    return () => window.removeEventListener("click", handleClick);
+  }, []);
+
+  const deleteForMe = () => {
+    onDeleteForMe(menuMessage);
+    setMenuMessage(null);
+  };
+
+  const deleteForEveryone = () => {
+    onDeleteForEveryone(menuMessage);
+    setMenuMessage(null);
+  };
+
+  const formatTime = (timestamp) => {
+    return new Date(timestamp).toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
     });
   };
 
-  const lastMessage = messages[messages.length - 1];
-  const firstMessage = messages[0];
-
   return (
     <>
-      {/* Date Separator - Show for first message of the day */}
-      {messages[0]?.showDateSeparator && (
-        <div className="flex justify-center my-6">
-          <div className="bg-muted/50 text-muted-foreground text-xs px-3 py-1 rounded-full">
-            {formatDateSeparator(firstMessage.createdAt)}
-          </div>
-        </div>
-      )}
-      
-      <div className={`flex gap-2 ${isOwn ? 'flex-row-reverse' : 'flex-row'}`}>
-        {/* Messages */}
-        <div className={`flex flex-col gap-1 ${isOwn ? 'items-end' : 'items-start'}`}>
-          {messages.map((message, index) => (
-            <div
-              key={message._id || index}
-              className={`
-                group relative max-w-xs lg:max-w-md px-3 py-2 rounded-2xl wrap-break-word
-                ${isOwn 
-                  ? 'bg-primary text-primary-foreground rounded-br-md' 
-                  : 'bg-muted text-foreground rounded-bl-md'
-                }
-                ${messages.length === 1 ? 'rounded-2xl' : ''}
-                ${messages.length > 1 && index === 0 ? 'rounded-t-md' : ''}
-                ${messages.length > 1 && index === messages.length - 1 ? 'rounded-b-md' : ''}
-                ${messages.length > 1 && index > 0 && index < messages.length - 1 ? 'rounded-md' : ''}
-              `}
-            >
-              <div className="flex items-end gap-2">
-                {/* Message Text */}
-                <p className="text-sm flex-1">{message.text}</p>
-                
-                {/* Timestamp and read status - always visible inline */}
-                <div className={`
-                  flex items-center gap-1 shrink-0
-                  ${isOwn ? 'text-primary-foreground/70' : 'text-muted-foreground'}
-                `}>
-                  <span className="text-xs" style={{ fontSize: '0.65rem', whiteSpace: 'nowrap' }}>
-                    {formatMessageTime(message.createdAt)}
-                  </span>
-                  {isOwn && (
-                    message.read ? (
-                      <CheckCheck size={10} className="text-current shrink-0" />
-                    ) : (
-                      <Check size={10} className="text-current shrink-0" />
-                    )
-                  )}
+      <div className={`flex gap-2 ${isOwn ? "flex-row-reverse" : "flex-row"}`}>
+        <div
+          className={`flex flex-col gap-1 ${
+            isOwn ? "items-end" : "items-start"
+          }`}
+        >
+          {messages.map((message) => {
+            if (message.deletedFor?.includes(currentUserId)) return null;
+
+            // Deleted for everyone
+            if (message.deletedForEveryone) {
+              return (
+                <div
+                  key={message._id}
+                  className="text-xs italic text-muted-foreground px-3 py-2"
+                >
+                  This message was deleted
+                </div>
+              );
+            }
+
+            const bubbleClass = `
+              group relative max-w-xs lg:max-w-md px-3 py-2 rounded-2xl
+              ${isOwn ? "bg-primary text-white" : "bg-muted text-foreground"}
+            `;
+
+            // A ref to position menu from dots button
+            let bubbleRef = null;
+
+            return (
+              <div
+                key={message._id}
+                className={bubbleClass}
+                ref={(el) => (bubbleRef = el)}
+                onContextMenu={(e) => handleContextMenu(e, message)}
+                onTouchStart={() => handleLongPressStart(message)}
+                onTouchEnd={handleLongPressEnd}
+              >
+                {/* ----- TEXT + TIME INLINE ----- */}
+                <div className="flex items-end w-full gap-2">
+                  <p className="text-sm wrap-break-word">{message.text}</p>
+
+                  <div
+                    className={`flex items-center gap-1 ml-auto text-[9px] ${
+                      isOwn ? "text-white/80" : "text-muted-foreground"
+                    }`}
+                  >
+                    {formatTime(message.createdAt)}
+                    {isOwn &&
+                      (message.read ? (
+                        <CheckCheck size={12} />
+                      ) : (
+                        <Check size={12} />
+                      ))}
+                  </div>
+
+                  {/* ------- THREE DOTS MENU BUTTON ------- */}
+                  <button
+                    className="msg-menu-btn opacity-0 group-hover:opacity-100 transition"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      const rect = bubbleRef.getBoundingClientRect();
+                      handleMenuButton(message, bubbleRef);
+                    }}
+                  >
+                    <MoreVertical size={14} />
+                  </button>
                 </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
-
-        {/* Spacer for alignment */}
-        {showAvatar && isOwn && <div className="w-8 shrink-0" />}
       </div>
+
+     
+      {/* ------- DELETE MENU POPUP -------- */}
+      {menuMessage && (
+        <div
+          className="fixed z-50 bg-card shadow-xl rounded-lg border border-border p-2 text-sm animate-in fade-in zoom-in"
+          style={{
+            top: menuPosition.y,
+            left: menuPosition.x,
+            width: 180,
+          }}
+          onMouseEnter={() => {
+            // Cancel auto-close if user returns to popup
+            if (window.closePopupTimer) {
+              clearTimeout(window.closePopupTimer);
+              window.closePopupTimer = null;
+            }
+          }}
+          onMouseLeave={() => {
+            // Close popup 1 second after mouse leaves
+            window.closePopupTimer = setTimeout(() => {
+              setMenuMessage(null);
+            }, 500);
+          }}
+        >
+          <button
+            onClick={deleteForMe}
+            className="flex items-center gap-2 px-1 py-2 hover:bg-muted w-full rounded-md"
+          >
+            <Trash2 size={15} /> Delete for me
+          </button>
+
+          {isOwn && (
+            <button
+              onClick={deleteForEveryone}
+              className="flex items-center gap-2 px-1 py-2 hover:bg-muted w-full rounded-md text-red-500"
+            >
+              <Trash2 size={15} /> Delete for everyone
+            </button>
+          )}
+        </div>
+      )}
     </>
   );
 }

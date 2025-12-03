@@ -25,7 +25,7 @@ export const initSocketServer = (server) => {
 
         socket.on("user-connected", (userId) => {
             onlineUsers.set(userId, socket.id);
-            socket.userId = userId; 
+            socket.userId = userId;
             socket.broadcast.emit("user-online", userId);
 
             console.log(`User Online: ${userId}`);
@@ -46,6 +46,20 @@ export const initSocketServer = (server) => {
         socket.on("leave-conversation", (conversationId) => {
             socket.leave(conversationId);
             console.log(`User (${socket.userId}) left room: ${conversationId}`);
+        });
+
+        socket.on(
+            "delete-message-everyone",
+            ({ conversationId, messageId }) => {
+                io.to(conversationId).emit("message-deleted-everyone", {
+                    messageId,
+                });
+            }
+        );
+
+        socket.on("delete-message-me", ({ messageId, userId }) => {
+            // Only update UI for this client (no broadcast)
+            io.to(socket.id).emit("message-deleted-me", { messageId });
         });
 
         socket.on(

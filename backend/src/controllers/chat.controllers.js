@@ -135,3 +135,59 @@ export const markMessagesAsRead = asyncHandler(async (req, res) => {
         .status(200)
         .json(new ApiResponse(200, null, "Messages marked as read"));
 });
+
+export const deleteMessageForEveryone = asyncHandler(async (req, res) => {
+  const { messageId, userId } = req.body;
+
+  const msg = await Message.findById(messageId);
+  if (!msg) throw new ApiError(404, "Message not found");
+
+  // Only sender can delete for everyone
+  if (String(msg.sender) !== String(userId)) {
+    throw new ApiError(403, "Only sender can delete this message");
+  }
+
+  // Check 1 hour rule
+  const diff = Date.now() - new Date(msg.createdAt).getTime();
+  if (diff > 60 * 60 * 1000) {
+    throw new ApiError(400, "Delete for everyone expired");
+  }
+
+  msg.text = "";  
+  msg.deletedForEveryone = true;
+  msg.deleteForEveryoneAt = new Date();
+  await msg.save();
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, msg, "Message deleted for everyone"));
+});
+
+export const deleteMessageForMe = asyncHandler(async (req, res) => {
+  const { messageId, userId } = req.body;
+
+  const msg = await Message.findById(messageId);
+  if (!msg) throw new ApiError(404, "Message not found");
+
+  if (!msg.deletedFor.includes(userId)) {
+    msg.deletedFor.push(userId);
+    await msg.save();
+  }
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, msg, "Message deleted for user"));
+});
+
+export const deleteChatForMe = asyncHandler(async (req, res) => {
+  const { conversationId, userId } = req.body;
+
+  await Message.updateMany(
+    { conversationId },
+    { $addToSet: { deletedFor: userId } }
+  );
+
+  return res
+    .status(200)
+    .json(new ApiResponse(200, null, "Chat deleted for user"));
+});

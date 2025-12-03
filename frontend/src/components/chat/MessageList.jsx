@@ -8,18 +8,19 @@ export default function MessageList({
   getSenderId,
   partner,
   loading,
+   deleteForMe,
+  deleteForEveryone
 }) {
   const listRef = useRef(null);
 
   const scrollAnchorRef = useRef(null);
 
-// Scroll to bottom when chat window first opens
-useEffect(() => {
-  setTimeout(() => {
-    scrollAnchorRef.current?.scrollIntoView({ behavior: "auto" });
-  }, 100);
-}, []);
-
+  // Scroll to bottom when chat window first opens
+  useEffect(() => {
+    setTimeout(() => {
+      scrollAnchorRef.current?.scrollIntoView({ behavior: "auto" });
+    }, 100);
+  }, []);
 
   // Add date separators to messages
   const messagesWithDateSeparators = messages.map((message, index) => {
@@ -96,10 +97,13 @@ useEffect(() => {
             messages={group.messages}
             isOwn={group.isOwn}
             partner={partner}
+            currentUserId={currentUserId}
             showAvatar={
               index === groupedMessages.length - 1 ||
               groupedMessages[index + 1]?.senderId !== group.senderId
             }
+            onDeleteForMe={(message) => deleteForMe(message)}
+            onDeleteForEveryone={(message) => deleteForEveryone(message)}
           />
         ))
       )}

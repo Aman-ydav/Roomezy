@@ -1,4 +1,3 @@
-// src/features/chat/components/ChatWindow.jsx
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, MoreVertical, Phone, Video, Info } from "lucide-react";
 import { useChat } from "../../hooks/useChat";
@@ -24,6 +23,8 @@ export default function ChatWindow({ conversation, onBack, currentUser }) {
     stopTyping,
     markRead,
     getSenderId,
+    deleteForMe,
+    deleteForEveryone,
   } = useChat(conversation._id, currentUser, partner);
 
   // Mark as read when opening
@@ -41,7 +42,6 @@ export default function ChatWindow({ conversation, onBack, currentUser }) {
   const handleSendMessage = (text) => {
     sendMessage(text);
   };
-   
 
   return (
     <div className="flex flex-col h-full bg-background">
@@ -115,6 +115,8 @@ export default function ChatWindow({ conversation, onBack, currentUser }) {
               currentUserId={currentUser._id}
               getSenderId={getSenderId}
               partner={partner}
+              deleteForMe={deleteForMe}
+              deleteForEveryone={deleteForEveryone}
             />
 
             {typing && (

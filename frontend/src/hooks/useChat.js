@@ -61,10 +61,11 @@ export function useChat(conversationId, currentUser, partner) {
     };
   }, [conversationId, currentUser?._id, dispatch, clearTypingTimeout]);
 
-  // Socket listeners
+  // Socket listeners (Messages + Typing + Deletion)
   useEffect(() => {
     if (!conversationId || !currentUser?._id) return;
 
+    // ---------- RECEIVE MESSAGE ----------
     const handleReceiveMessage = (msg) => {
       if (msg.conversationId !== conversationId) return;
 
@@ -77,19 +78,20 @@ export function useChat(conversationId, currentUser, partner) {
       };
 
       setMessages((prev) => [...prev, normalized]);
+
       dispatch(
         newMessageAlert({
           conversationId,
           from: msg.senderId,
-          lastMessage: msg,
+          lastMessage: msg.text,
         })
       );
 
-      // Hide typing when message is received
       setTyping(false);
       clearTypingTimeout();
     };
 
+    // ---------- TYPING ----------
     const handleTyping = (data) => {
       if (
         data.conversationId === conversationId &&
@@ -114,14 +116,33 @@ export function useChat(conversationId, currentUser, partner) {
       }
     };
 
+    const handleMessageDeletedForEveryone = ({ messageId }) => {
+      setMessages((prev) =>
+        prev.map((msg) =>
+          msg._id === messageId
+            ? { ...msg, text: "", deletedForEveryone: true }
+            : msg
+        )
+      );
+    };
+
+    const handleMessageDeletedForMe = ({ messageId }) => {
+      setMessages((prev) => prev.filter((msg) => msg._id !== messageId));
+    };
+
+    // ---------- REGISTER SOCKET EVENTS ----------
     socket.on("receive-message", handleReceiveMessage);
     socket.on("typing", handleTyping);
     socket.on("stop-typing", handleStopTyping);
+    socket.on("message-deleted-everyone", handleMessageDeletedForEveryone);
+    socket.on("message-deleted-me", handleMessageDeletedForMe);
 
     return () => {
       socket.off("receive-message", handleReceiveMessage);
       socket.off("typing", handleTyping);
       socket.off("stop-typing", handleStopTyping);
+      socket.off("message-deleted-everyone", handleMessageDeletedForEveryone);
+      socket.off("message-deleted-me", handleMessageDeletedForMe);
       clearTypingTimeout();
     };
   }, [conversationId, currentUser?._id, dispatch, clearTypingTimeout]);
@@ -169,16 +190,31 @@ export function useChat(conversationId, currentUser, partner) {
     socket.emit("stop-typing", { conversationId, userId: currentUser._id });
   }, [conversationId, currentUser?._id]);
 
-const markRead = useCallback(async () => {
-  if (!conversationId || !currentUser?._id) return;
-  try {
-    await markAsRead(conversationId, currentUser._id);
-    dispatch(resetUnreadForConversation(conversationId));
-  } catch (error) {
-    console.error("Failed to mark as read:", error);
-  }
-}, [conversationId, currentUser?._id, dispatch]);
+  const markRead = useCallback(async () => {
+    if (!conversationId || !currentUser?._id) return;
+    try {
+      await markAsRead(conversationId, currentUser._id);
+      dispatch(resetUnreadForConversation(conversationId));
+    } catch (error) {
+      console.error("Failed to mark as read:", error);
+    }
+  }, [conversationId, currentUser?._id, dispatch]);
 
+  const deleteForMe = async (message) => {
+    socket.emit("delete-message-me", { messageId: message._id });
+
+    setMessages((prev) => prev.filter((m) => m._id !== message._id));
+  };
+
+  const deleteForEveryone = async (message) => {
+    socket.emit("delete-message-everyone", { messageId: message._id });
+
+    setMessages((prev) =>
+      prev.map((m) =>
+        m._id === message._id ? { ...m, text: "", deletedForEveryone: true } : m
+      )
+    );
+  };
 
   return {
     messages,
@@ -189,5 +225,7 @@ const markRead = useCallback(async () => {
     stopTyping,
     markRead,
     getSenderId,
+     deleteForMe,
+  deleteForEveryone,
   };
 }
