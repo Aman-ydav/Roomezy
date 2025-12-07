@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { motion } from "framer-motion";
 import Step1Basic from "@/components/createPost/Step1Basic";
-import Step2Details from "@/components/createPost/Step2Details"; // Added import for Step2Details
+import Step2Details from "@/components/createPost/Step2Details"; 
 import Step3Images from "@/components/createPost/Step3Images";
 import StepIndicator from "@/components/createPost/StepIndicator";
 import Footer from "@/components/layout/Footer";

@@ -496,7 +496,7 @@ export default function HelpCenterPage() {
             >
               <div className="p-4 bg-accent/10 rounded-lg group-hover:bg-accent/20 transition-all">
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns="https://www.w3.org/2000/svg"
                   className="w-7 h-7 text-accent"
                   fill="none"
                   viewBox="0 0 24 24"
@@ -520,7 +520,7 @@ export default function HelpCenterPage() {
             >
               <div className="p-4 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-all">
                 <svg
-                  xmlns="http://www.w3.org/2000/svg"
+                  xmlns="httsp://www.w3.org/2000/svg"
                   className="w-7 h-7 text-primary"
                   fill="none"
                   viewBox="0 0 24 24"
