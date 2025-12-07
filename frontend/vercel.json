@@ -1,14 +1,4 @@
 {
-  "routes": [
-    {
-      "src": "/sitemap.xml",
-      "dest": "/sitemap.xml"
-    },
-    {
-      "src": "/robots.txt",
-      "dest": "/robots.txt"
-    }
-  ],
   "headers": [
     {
       "source": "/sitemap.xml",
@@ -22,7 +12,7 @@
   ],
   "rewrites": [
     {
-      "source": "/(.*)",
+      "source": "/((?!sitemap.xml|robots.txt).*)",
       "destination": "/"
     }
   ]
