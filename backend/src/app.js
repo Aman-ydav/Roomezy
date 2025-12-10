@@ -15,6 +15,7 @@ import postRoutes from "./routes/post.routes.js";
 import savedPostRoutes from "./routes/savedPost.routes.js";
 import mediaRoutes from "./routes/media.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
+import notificationRoutes from "./routes/notification.routes.js";
 
 const app = express();
 
@@ -55,11 +56,12 @@ app.use(
 
 // 3. SECURITY & PERFORMANCE MIDDLEWARES
 app.use(
-    helmet({
-        crossOriginOpenerPolicy: false, // REQUIRED for Google Login (GSI)
-        contentSecurityPolicy: false, // (optional) disables strict CSP that also blocks GSI
-    })
+  helmet({
+    crossOriginEmbedderPolicy: false,
+    contentSecurityPolicy: false
+  })
 );
+
 // secure HTTP headers
 app.use(compression()); // gzip compression
 app.use(morgan("dev")); // request logger
@@ -91,6 +93,8 @@ app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/savedposts", savedPostRoutes);
 app.use("/api/v1/media", mediaRoutes);
 app.use("/api/v1/chat", chatRoutes);
+app.use("/api/v1/notifications", notificationRoutes);
+
 
 //  8. NOT FOUND HANDLER
 

@@ -1,4 +1,6 @@
 import { Server } from "socket.io";
+import { sendNotification } from "../utils/sendNotification.js";
+import { User } from "../models/user.model.js";
 
 const onlineUsers = new Map();
 
@@ -39,35 +41,49 @@ export const initSocketServer = (server) => {
         });
 
         // DELETE FOR EVERYONE
-        socket.on("delete-message-everyone", ({ conversationId, messageId }) => {
-            io.to(conversationId).emit("message-deleted-everyone", {
-                messageId,
-                conversationId,
-            });
-        });
+        socket.on(
+            "delete-message-everyone",
+            ({ conversationId, messageId }) => {
+                io.to(conversationId).emit("message-deleted-everyone", {
+                    messageId,
+                    conversationId,
+                });
+            }
+        );
 
         // DELETE FOR ME
-        socket.on("delete-message-me", ({ messageId, userId, conversationId }) => {
-            io.to(socket.id).emit("message-deleted-me", {
-                messageId,
-                userId,
-                conversationId,
-            });
-        });
+        socket.on(
+            "delete-message-me",
+            ({ messageId, userId, conversationId }) => {
+                io.to(socket.id).emit("message-deleted-me", {
+                    messageId,
+                    userId,
+                    conversationId,
+                });
+            }
+        );
 
         // SEND MESSAGE
-        socket.on("send-message", ({ conversationId, senderId, receiverId, text }) => {
-            const messagePayload = {
-                conversationId,
-                senderId,
-                receiverId,
-                text,
-                read: false,
-                createdAt: new Date(),
-            };
+        socket.on(
+            "send-message",
+            async ({ conversationId, senderId, receiverId, text }) => {
+                socket.to(conversationId).emit("receive-message", {
+                    conversationId,
+                    senderId,
+                    receiverId,
+                    text,
+                    createdAt: new Date(),
+                });
 
-            socket.to(conversationId).emit("receive-message", messagePayload);
-        });
+                const sender = await User.findById(senderId).select("userName");
+
+                await sendNotification(receiverId, {
+                    title: `New message from ${sender.userName}`,
+                    body: text,
+                    url: `/chat/${conversationId}`,
+                });
+            }
+        );
 
         // TYPING
         socket.on("typing", (data) => {
