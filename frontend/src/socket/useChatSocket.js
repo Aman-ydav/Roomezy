@@ -8,7 +8,7 @@ import { socket } from "./socket";
 
 export default function useChatSocket() {
   const dispatch = useDispatch();
-  const isVisible = useAppVisibility();
+  const visible = useAppVisibility();
   const currentChatId = useSelector((s) => s.chat.currentChatId);
   const currentUserId = useSelector((s) => s.chat.currentUserId);
 
@@ -23,37 +23,33 @@ export default function useChatSocket() {
         createdAt,
       } = msg;
 
-      // Always update conversation list / unread
-      dispatch(
-        newMessageAlert({
-          conversationId,
-          from: senderId,
-          lastMessage: text,
-          lastMessageAt: createdAt || new Date().toISOString(),
-        })
-      );
+      // update list
+      dispatch(newMessageAlert({
+        conversationId,
+        from: senderId,
+        lastMessage: text,
+        lastMessageAt: createdAt || new Date().toISOString(),
+      }));
 
-      // Ignore my own messages
+      // my own message
       if (senderId === currentUserId) return;
 
-      // Case A: tab not visible → SW push will handle it
-      if (!isVisible) return;
+      // tab not visible → SW push
+      if (!visible) return;
 
-      // Case C: user already in that chat → no popup
+      // chat open → no popup
       if (currentChatId === conversationId) return;
 
-      // Case B: app visible & not in that chat → show in-app popup
-      dispatch(
-        showPopup({
-          senderName: senderName || "New message",
-          text,
-          avatar: senderAvatar,
-          url: "/inbox",
-          conversationId,
-        })
-      );
+      // show popup
+      dispatch(showPopup({
+        senderName,
+        text,
+        conversationId,
+        avatar: senderAvatar,
+        url: "/inbox",
+      }));
     });
 
     return () => socket.off("receive-message");
-  }, [currentChatId, currentUserId, isVisible, dispatch]);
+  }, [visible, currentChatId, currentUserId, dispatch]);
 }

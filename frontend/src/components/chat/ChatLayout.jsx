@@ -1,4 +1,3 @@
-// src/components/chat/ChatLayout.jsx
 import { useState, useEffect } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import ConversationList from "./ConversationList";
@@ -18,21 +17,39 @@ export default function ChatLayout() {
   const { state } = useLocation();
   const openChatWith = state?.openChatWith;
 
+  // Save state change in history
+  useEffect(() => {
+    if (selectedConversation) {
+      window.history.pushState({ chat: selectedConversation._id }, "");
+    }
+  }, [selectedConversation]);
+
+  // Handle back button on mobile
+  useEffect(() => {
+    const handlePopState = (event) => {
+      if (selectedConversation) {
+        setSelectedConversation(null);
+        dispatch(setCurrentChatId(null));
+      } else {
+        navigate(-1);
+      }
+    };
+
+    window.addEventListener("popstate", handlePopState);
+    return () => window.removeEventListener("popstate", handlePopState);
+  }, [selectedConversation, navigate, dispatch]);
+
   useEffect(() => {
     if (!openChatWith || conversations.length === 0) return;
 
     // 1. Try treat openChatWith as conversationId
     let target =
-      conversations.find(
-        (c) => String(c._id) === String(openChatWith)
-      ) || null;
+      conversations.find((c) => String(c._id) === String(openChatWith)) || null;
 
     // 2. If not found, treat it as userId (from PostDetails)
     if (!target) {
       target = conversations.find((c) =>
-        c.participants?.some(
-          (p) => String(p._id) === String(openChatWith)
-        )
+        c.participants?.some((p) => String(p._id) === String(openChatWith))
       );
     }
 

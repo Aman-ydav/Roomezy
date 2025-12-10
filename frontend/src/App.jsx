@@ -19,11 +19,12 @@ function App() {
 
   useChatSocket();
 
+  // For program navigation
   useEffect(() => {
     setNavigator(navigate);
   }, [navigate]);
 
-  // When SW says "OPEN_CONVERSATION", go to /inbox and open that chat
+  // Notification click → open chat
   useEffect(() => {
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.addEventListener("message", (event) => {
@@ -36,7 +37,31 @@ function App() {
     }
   }, [navigate]);
 
-  // Connect socket when user logged in
+  // Heartbeat
+  useEffect(() => {
+    if (!user?._id) return;
+    const interval = setInterval(() => {
+      socket.emit("heartbeat", user._id);
+    }, 20000);
+    return () => clearInterval(interval);
+  }, [user]);
+
+  // Sync visibility state to server for NO PUSH when visible
+  useEffect(() => {
+    if (!user?._id) return;
+
+    const handleVisibility = () => {
+      socket.emit("visibility", {
+        userId: user._id,
+        visible: document.visibilityState === "visible",
+      });
+    };
+
+    document.addEventListener("visibilitychange", handleVisibility);
+    return () => document.removeEventListener("visibilitychange", handleVisibility);
+  }, [user]);
+
+  // Connect socket
   useEffect(() => {
     if (user?._id) {
       dispatch(setCurrentUserId(user._id));
