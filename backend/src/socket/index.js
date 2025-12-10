@@ -96,6 +96,8 @@ export const initSocketServer = (server) => {
           createdAt: new Date(),
         };
 
+        
+
         // live message if online
         const receiverSocketId = onlineUsers.get(receiverId);
         if (receiverSocketId) {

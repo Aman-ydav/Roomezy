@@ -1,55 +1,85 @@
 // src/socket/useChatSocket.js
 import { useEffect } from "react";
-import { useDispatch, useSelector } from "react-redux";
+import { socket } from "./socket";
+import { store } from "@/app/store";
 import { newMessageAlert } from "@/features/chat/chatSlice";
 import { showPopup } from "@/features/ui/uiSlice";
-import useAppVisibility from "@/hooks/useAppVisibility";
-import { socket } from "./socket";
 
+/**
+ * Global socket handler that:
+ * - Always updates conversations state when a message arrives (newMessageAlert).
+ * - Shows in-app popup only when appropriate:
+ *   - Document is visible
+ *   - The user is NOT currently viewing the conversation
+ *   - The message is not from currentUser
+ *
+ * NOTE: We read current state from store.getState() inside the handler so the
+ * handler always has up-to-date values (no stale closures).
+ */
 export default function useChatSocket() {
-  const dispatch = useDispatch();
-  const visible = useAppVisibility();
-  const currentChatId = useSelector((s) => s.chat.currentChatId);
-  const currentUserId = useSelector((s) => s.chat.currentUserId);
-
   useEffect(() => {
-    socket.on("receive-message", (msg) => {
-      const {
-        conversationId,
-        senderId,
-        text,
-        senderName,
-        senderAvatar,
-        createdAt,
-      } = msg;
+    if (!socket) return;
 
-      // update list
-      dispatch(newMessageAlert({
-        conversationId,
-        from: senderId,
-        lastMessage: text,
-        lastMessageAt: createdAt || new Date().toISOString(),
-      }));
+    const handler = (msg) => {
+      try {
+        const {
+          conversationId,
+          senderId,
+          text,
+          senderName,
+          senderAvatar,
+          createdAt,
+        } = msg || {};
 
-      // my own message
-      if (senderId === currentUserId) return;
+        // Always update conversation list / unread counts
+        store.dispatch(
+          newMessageAlert({
+            conversationId,
+            from: senderId,
+            lastMessage: text,
+            lastMessageAt: createdAt || new Date().toISOString(),
+          })
+        );
 
-      // tab not visible → SW push
-      if (!visible) return;
+        // Get latest runtime values from store
+        const state = store.getState();
+        const currentUserId = state.chat?.currentUserId;
+        const currentChatId = state.chat?.currentChatId;
 
-      // chat open → no popup
-      if (currentChatId === conversationId) return;
+        // If it's my own message — nothing else to do
+        if (!senderId || String(senderId) === String(currentUserId)) {
+          return;
+        }
 
-      // show popup
-      dispatch(showPopup({
-        senderName,
-        text,
-        conversationId,
-        avatar: senderAvatar,
-        url: "/inbox",
-      }));
-    });
+        // If tab is hidden, let service worker handle system push
+        if (document.visibilityState !== "visible") {
+          return;
+        }
 
-    return () => socket.off("receive-message");
-  }, [visible, currentChatId, currentUserId, dispatch]);
+        // If user currently has this chat open — don't show popup
+        if (currentChatId && String(currentChatId) === String(conversationId)) {
+          return;
+        }
+
+        // Show in-app popup (centered top)
+        store.dispatch(
+          showPopup({
+            senderName: senderName || "New Message",
+            text: text || "",
+            avatar: senderAvatar || null,
+            url: `/inbox`,
+            conversationId,
+          })
+        );
+      } catch (err) {
+        console.error("[useChatSocket] receive-message handler error", err);
+      }
+    };
+
+    socket.on("receive-message", handler);
+
+    return () => {
+      socket.off("receive-message", handler);
+    };
+  }, []);
 }

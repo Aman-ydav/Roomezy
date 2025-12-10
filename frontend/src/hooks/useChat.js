@@ -1,22 +1,24 @@
-import { useEffect, useState, useCallback, useRef } from "react";
+// src/hooks/useChat.js
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useDispatch } from "react-redux";
 import { socket } from "@/socket/socket";
 import {
   getMessages,
   sendMessageApi,
   markAsRead,
-} from "@/utils/chatApi";
-
-import {
   deleteMessageForMeApi,
   deleteMessageForEveryoneApi,
 } from "@/utils/chatApi";
+import { newMessageAlert, resetUnreadForConversation } from "@/features/chat/chatSlice";
 
-import {
-  newMessageAlert,
-  resetUnreadForConversation,
-} from "@/features/chat/chatSlice";
-
+/**
+ * useChat - manages messages for a single conversation
+ *
+ * Ensures:
+ * - join / leave room
+ * - listens to 'receive-message' only for this conversation
+ * - keeps messages state in sync
+ */
 export function useChat(conversationId, currentUser, partner) {
   const dispatch = useDispatch();
   const [messages, setMessages] = useState([]);
@@ -36,7 +38,7 @@ export function useChat(conversationId, currentUser, partner) {
     return msg.sender?._id || msg.sender || msg.senderId;
   }, []);
 
-  // ------------------ FETCH MESSAGES ------------------
+  // Fetch messages when conversation changes
   useEffect(() => {
     if (!conversationId || !currentUser?._id) return;
 
@@ -47,28 +49,41 @@ export function useChat(conversationId, currentUser, partner) {
         setLoading(true);
         const res = await getMessages(conversationId);
         if (!cancelled) setMessages(res.data.data || []);
+        // mark read on open
         await markAsRead(conversationId, currentUser._id);
         dispatch(resetUnreadForConversation(conversationId));
+      } catch (err) {
+        console.error("useChat getMessages error:", err);
       } finally {
         if (!cancelled) setLoading(false);
       }
     })();
 
-    socket.emit("join-conversation", conversationId);
+    // Join room for typing events / server side room based emits
+    try {
+      socket.emit("join-conversation", conversationId);
+    } catch (err) {
+      // ignore if socket not connected
+    }
 
     return () => {
       cancelled = true;
-      socket.emit("leave-conversation", conversationId);
+      try {
+        socket.emit("leave-conversation", conversationId);
+      } catch (err) {}
       clearTypingTimeout();
     };
   }, [conversationId, currentUser?._id, dispatch, clearTypingTimeout]);
 
-  // ------------------ SOCKET LISTENERS ------------------
+  // Socket listeners scoped to this conversation
   useEffect(() => {
     if (!conversationId || !currentUser?._id) return;
 
     const handleReceiveMessage = (msg) => {
-      if (msg.conversationId !== conversationId) return;
+      // Only handle messages for this conversation
+      if (String(msg.conversationId) !== String(conversationId)) return;
+
+      // Ignore messages sent by me (server may forward back)
       if (String(msg.senderId) === String(currentUser._id)) return;
 
       const normalized = {
@@ -79,38 +94,37 @@ export function useChat(conversationId, currentUser, partner) {
 
       setMessages((prev) => [...prev, normalized]);
 
+      // Update unread counter in list too (safe)
       dispatch(
         newMessageAlert({
           conversationId,
           from: msg.senderId,
           lastMessage: msg.text,
+          lastMessageAt: msg.createdAt || new Date().toISOString(),
         })
       );
     };
 
     const handleTyping = (data) => {
-      if (data.conversationId !== conversationId) return;
-      if (data.userId === currentUser._id) return;
+      if (String(data.conversationId) !== String(conversationId)) return;
+      if (String(data.userId) === String(currentUser._id)) return;
 
       setTyping(true);
       clearTypingTimeout();
-
       typingTimeoutRef.current = setTimeout(() => {
         setTyping(false);
       }, 3000);
     };
 
     const handleStopTyping = (data) => {
-      if (data.conversationId !== conversationId) return;
-      if (data.userId === currentUser._id) return;
-
+      if (String(data.conversationId) !== String(conversationId)) return;
+      if (String(data.userId) === String(currentUser._id)) return;
       setTyping(false);
       clearTypingTimeout();
     };
 
     const handleMessageDeletedForEveryone = ({ messageId, conversationId: conv }) => {
-      if (conv !== conversationId) return;
-
+      if (String(conv) !== String(conversationId)) return;
       setMessages((prev) =>
         prev.map((m) =>
           m._id === messageId ? { ...m, text: "", deletedForEveryone: true } : m
@@ -119,8 +133,7 @@ export function useChat(conversationId, currentUser, partner) {
     };
 
     const handleMessageDeletedForMe = ({ messageId, conversationId: conv }) => {
-      if (conv !== conversationId) return;
-
+      if (String(conv) !== String(conversationId)) return;
       setMessages((prev) => prev.filter((m) => m._id !== messageId));
     };
 
@@ -140,69 +153,83 @@ export function useChat(conversationId, currentUser, partner) {
     };
   }, [conversationId, currentUser?._id, dispatch, clearTypingTimeout]);
 
-  // ------------------ SEND MESSAGE ------------------
+  // Send message
   const sendMessage = useCallback(
     async (text) => {
-      const trimmed = text.trim();
+      const trimmed = (text || "").trim();
       if (!trimmed) return;
 
-      const res = await sendMessageApi({
-        senderId: currentUser._id,
-        receiverId: partner._id,
-        conversationId,
-        text: trimmed,
-      });
+      try {
+        const res = await sendMessageApi({
+          senderId: currentUser._id,
+          receiverId: partner._id,
+          conversationId,
+          text: trimmed,
+        });
 
-      const saved = res.data.data;
-      setMessages((prev) => [...prev, saved]);
+        const saved = res.data.data;
+        setMessages((prev) => [...prev, saved]);
 
-      socket.emit("send-message", {
-        conversationId,
-        senderId: currentUser._id,
-        receiverId: partner._id,
-        text: trimmed,
-      });
+        // Emit to server so other clients get it
+        try {
+          socket.emit("send-message", {
+            conversationId,
+            senderId: currentUser._id,
+            receiverId: partner._id,
+            text: trimmed,
+          });
+        } catch (err) {
+          // ignore
+        }
 
-      await markAsRead(conversationId, currentUser._id);
+        // Mark read after sending
+        await markAsRead(conversationId, currentUser._id);
+      } catch (err) {
+        console.error("useChat sendMessage error:", err);
+      }
     },
     [conversationId, currentUser?._id, partner?._id]
   );
 
-  // ------------------ DELETE FOR ME ------------------
+  // Delete for me
   const deleteForMe = async (message) => {
-    await deleteMessageForMeApi({
-      messageId: message._id,
-      userId: currentUser._id,
-      conversationId,
-    });
-
-    socket.emit("delete-message-me", {
-      messageId: message._id,
-      userId: currentUser._id,
-      conversationId,
-    });
-
-    setMessages((prev) => prev.filter((m) => m._id !== message._id));
+    try {
+      await deleteMessageForMeApi({
+        messageId: message._id,
+        userId: currentUser._id,
+        conversationId,
+      });
+      socket.emit("delete-message-me", {
+        messageId: message._id,
+        userId: currentUser._id,
+        conversationId,
+      });
+      setMessages((prev) => prev.filter((m) => m._id !== message._id));
+    } catch (err) {
+      console.error("deleteForMe error", err);
+    }
   };
 
-  // ------------------ DELETE FOR EVERYONE ------------------
+  // Delete for everyone
   const deleteForEveryone = async (message) => {
-    await deleteMessageForEveryoneApi({
-      messageId: message._id,
-      userId: currentUser._id,
-      conversationId,
-    });
-
-    socket.emit("delete-message-everyone", {
-      messageId: message._id,
-      conversationId,
-    });
-
-    setMessages((prev) =>
-      prev.map((m) =>
-        m._id === message._id ? { ...m, text: "", deletedForEveryone: true } : m
-      )
-    );
+    try {
+      await deleteMessageForEveryoneApi({
+        messageId: message._id,
+        userId: currentUser._id,
+        conversationId,
+      });
+      socket.emit("delete-message-everyone", {
+        messageId: message._id,
+        conversationId,
+      });
+      setMessages((prev) =>
+        prev.map((m) =>
+          m._id === message._id ? { ...m, text: "", deletedForEveryone: true } : m
+        )
+      );
+    } catch (err) {
+      console.error("deleteForEveryone error", err);
+    }
   };
 
   return {
@@ -215,8 +242,12 @@ export function useChat(conversationId, currentUser, partner) {
     stopTyping: () =>
       socket.emit("stop-typing", { conversationId, userId: currentUser._id }),
     markRead: async () => {
-      await markAsRead(conversationId, currentUser._id);
-      dispatch(resetUnreadForConversation(conversationId));
+      try {
+        await markAsRead(conversationId, currentUser._id);
+        dispatch(resetUnreadForConversation(conversationId));
+      } catch (err) {
+        console.error("markRead error", err);
+      }
     },
     getSenderId,
     deleteForMe,
