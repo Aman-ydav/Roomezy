@@ -6,6 +6,7 @@ import postReducer from "@/features/post/postSlice";
 import chatReducer from "@/features/chat/chatSlice";
 import savedPostsReducer from "@/features/savedPosts/savedPostSlice";
 import mediaReducer from "@/features/media/mediaSlice";
+import uiReducer from "@/features/ui/uiSlice";
 
 export const store = configureStore({
   reducer: {
@@ -16,5 +17,6 @@ export const store = configureStore({
     chat: chatReducer,
     savedPosts: savedPostsReducer, 
     media: mediaReducer,
+    ui: uiReducer,
   },
 });

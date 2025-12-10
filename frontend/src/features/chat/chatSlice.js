@@ -6,10 +6,15 @@ const chatSlice = createSlice({
   initialState: {
     conversations: [],
     currentUserId: null,
+    currentChatId: null,
   },
   reducers: {
     setCurrentUserId(state, action) {
       state.currentUserId = action.payload;
+    },
+
+    setCurrentChatId(state, action) {
+      state.currentChatId = action.payload;
     },
 
     setConversations(state, action) {
@@ -42,7 +47,8 @@ const chatSlice = createSlice({
     },
 
     newMessageAlert(state, action) {
-      const { conversationId, from, lastMessage, lastMessageAt } = action.payload;
+      const { conversationId, from, lastMessage, lastMessageAt } =
+        action.payload;
 
       let existing = state.conversations.find((c) => c._id === conversationId);
 
@@ -54,7 +60,6 @@ const chatSlice = createSlice({
         lastMessageAt: lastMessageAt || new Date().toISOString(),
         lastMessageSender: from,
         updatedAt: lastMessageAt || new Date().toISOString(),
-
         unreadCount: {
           ...(existing?.unreadCount || {}),
         },
@@ -76,6 +81,7 @@ const chatSlice = createSlice({
 
 export const {
   setCurrentUserId,
+  setCurrentChatId,
   setConversations,
   updateConversation,
   resetUnreadForConversation,

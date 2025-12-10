@@ -1,33 +1,49 @@
-import { useState } from "react";
-import { useSelector } from "react-redux";
-import { motion, AnimatePresence } from "framer-motion";
+// src/components/chat/ChatLayout.jsx
+import { useState, useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import ConversationList from "./ConversationList";
 import ChatWindow from "./ChatWindow";
-import { MessageCircle, X } from "lucide-react";
-import { useLocation } from "react-router-dom";
-import { useEffect } from "react";
+import { MessageCircle } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { setCurrentChatId } from "@/features/chat/chatSlice";
 
 export default function ChatLayout() {
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
   const [selectedConversation, setSelectedConversation] = useState(null);
   const user = useSelector((s) => s.auth.user);
-
-   const { state } = useLocation();
-  const openChatWith = state?.openChatWith;
-
   const conversations = useSelector((s) => s.chat.conversations);
+
+  const { state } = useLocation();
+  const openChatWith = state?.openChatWith;
 
   useEffect(() => {
     if (!openChatWith || conversations.length === 0) return;
 
-    const target = conversations.find((c) =>
-      c.participants.some((p) => String(p._id) === String(openChatWith))
-    );
+    // 1. Try treat openChatWith as conversationId
+    let target =
+      conversations.find(
+        (c) => String(c._id) === String(openChatWith)
+      ) || null;
+
+    // 2. If not found, treat it as userId (from PostDetails)
+    if (!target) {
+      target = conversations.find((c) =>
+        c.participants?.some(
+          (p) => String(p._id) === String(openChatWith)
+        )
+      );
+    }
 
     if (target) {
       setSelectedConversation(target);
-    }
-  }, [openChatWith, conversations]);
+      dispatch(setCurrentChatId(target._id));
 
+      // Clear state so Back button doesn’t loop
+      navigate("/inbox", { replace: true });
+    }
+  }, [openChatWith, conversations, dispatch, navigate]);
 
   if (!user) {
     return (
@@ -50,56 +66,32 @@ export default function ChatLayout() {
     <div className="flex h-[calc(100dvh-4rem)] overflow-hidden bg-background">
       {/* Conversation List */}
       <div
-        className={`
-      ${selectedConversation ? "hidden lg:flex" : "flex"} 
-      w-full lg:w-96 flex-col border-r border-border overflow-y-auto
-    `}
+        className={`${
+          selectedConversation ? "hidden lg:flex" : "flex"
+        } w-full lg:w-96 flex-col border-r border-border overflow-y-auto`}
       >
         <ConversationList
-          onSelectConversation={setSelectedConversation}
+          onSelectConversation={(c) => {
+            setSelectedConversation(c);
+            dispatch(setCurrentChatId(c._id));
+          }}
           selectedConversation={selectedConversation}
         />
       </div>
 
       {/* Chat Window */}
-      <AnimatePresence mode="wait">
-        {selectedConversation ? (
-          <motion.div
-            key="chat-window"
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            exit={{ opacity: 0, x: -20 }}
-            className="flex-1 flex flex-col overflow-y-auto"
-          >
-            <ChatWindow
-              conversation={selectedConversation}
-              onBack={() => setSelectedConversation(null)}
-              currentUser={user}
-            />
-          </motion.div>
-        ) : (
-          <motion.div
-            key="empty-state"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            className="flex-1 hidden lg:flex items-center justify-center bg-muted/10 overflow-hidden"
-          >
-            <div className="text-center p-8 max-w-md">
-              <MessageCircle
-                size={50}
-                className="mx-auto text-muted-foreground mb-6"
-              />
-              <h3 className="text-2xl font-semibold mb-4">
-                Select a conversation
-              </h3>
-              <p className="text-muted-foreground text-lg">
-                Choose a chat from the sidebar to start messaging
-              </p>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
+      {selectedConversation && (
+        <div className="flex-1 flex flex-col overflow-y-auto">
+          <ChatWindow
+            conversation={selectedConversation}
+            onBack={() => {
+              setSelectedConversation(null);
+              dispatch(setCurrentChatId(null));
+            }}
+            currentUser={user}
+          />
+        </div>
+      )}
     </div>
   );
 }
