@@ -167,7 +167,6 @@ roomezy/
    ```env
    # Database
    MONGODB_URI=mongodb://localhost:27017/roomezy
-   # Or for MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net
 
    # JWT Secret
    JWT_SECRET=your_super_secret_jwt_key_here
