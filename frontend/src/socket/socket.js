@@ -7,11 +7,11 @@ export const socket = io(SOCKET_URL, {
 });
 
 socket.on("connect", () => {
-  console.log("SOCKET CONNECTED:", socket.id);
+  // console.log("SOCKET CONNECTED:", socket.id);
   window.socketStatus = "CONNECTED";
 });
 
 socket.on("connect_error", (err) => {
-  console.log("SOCKET ERROR:", err.message);
+  // console.log("SOCKET ERROR:", err.message);
   window.socketStatus = err.message;
 });

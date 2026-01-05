@@ -23,7 +23,6 @@ import FindRoom from "@/pages/About/FindRoom";
 import SavedPosts from "@/pages/saved/SavedPosts";
 import ChatLayout from "@/components/chat/ChatLayout";
 import Feed from "@/pages/feed/Feed.jsx";
-import { installRoomezy } from "@/pwaInstall";
 
 export default function AppRouter() {
   return (
@@ -60,58 +59,7 @@ export default function AppRouter() {
           </Route>
         </Route>
       </Routes>
-      {/* Install Popup */}
-      <div
-        id="installPopup"
-        className="fixed inset-0 z-99999 bg-black/50  opacity-0 pointer-events-none transition-opacity duration-300 install-popup"
-      >
-        <div
-          className="
-      popup-content
-      bg-background
-      w-[92%]
-      max-w-[380px]
-      p-6
-      rounded-2xl
-      text-center
-      shadow-xl
-      animate-slideUp
-      mx-auto
-      md:mt-[10vh]
-      md:mb-0
-      md:rounded-2xl
-     
-    "
-        >
-          <img src="/logo.png" alt="Roomezy" className="w-16 mx-auto mb-2" />
-
-          <h3 className="text-xl font-semibold text-primary">
-            Install Roomezy
-          </h3>
-
-          <p className="text-sm text-[#5c3a40] mt-1 mb-4">
-            Enjoy faster access to chat, feed, and updates.
-          </p>
-
-          <button
-            className="w-full bg-primary text-white py-3 rounded-xl text-base font-medium cursor-pointer transition"
-            onClick={installRoomezy}
-          >
-            Install App
-          </button>
-
-          <button
-            className="w-full py-3 text-sm text-gray-600 mt-1 cursor-pointer"
-            onClick={() =>
-              document
-                .getElementById("installPopup")
-                .classList.remove("show-popup")
-            }
-          >
-            Not Now
-          </button>
-        </div>
-      </div>
+      
     </>
   );
 }

@@ -1,4 +1,3 @@
-// src/pages/home/Home.jsx
 import React, { useEffect, useRef, useState, useMemo } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { motion, useAnimation, useInView } from "framer-motion";
@@ -6,24 +5,26 @@ import { getAllPosts } from "@/features/post/postSlice";
 import CreatePostBanner from "@/components/home/HeroBanner";
 import PostCard from "@/components/post/PostCard";
 import PostSkeleton from "@/components/home/PostSkeleton";
-import Filters from "@/components/home/Filters";  
+import Filters from "@/components/home/Filters";
 import { useNavigate } from "react-router-dom";
 import Footer from "@/components/layout/Footer";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 import SliderSwitch from "@/components/ui/SliderSwitch";
 
 export default function Home() {
+  const [filter, setFilter] = useState("all");
+  const [status, setStatus] = useState("all");
+  const [search, setSearch] = useState("");
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { posts, loading } = useSelector((state) => state.post);
-
-  const [filter, setFilter] = useState("all");
-  const [search, setSearch] = useState("");
 
   useEffect(() => {
     dispatch(getAllPosts());
   }, [dispatch]);
 
+  // Animation controls
   const containerRef = useRef(null);
   const controls = useAnimation();
   const inView = useInView(containerRef, { once: true, margin: "-50px" });
@@ -37,26 +38,43 @@ export default function Home() {
     visible: (i) => ({
       opacity: 1,
       y: 0,
-      transition: { duration: 0.4, delay: i * 0.08, ease: "easeOut" },
+      transition: {
+        duration: 0.4,
+        delay: i * 0.08,
+        ease: "easeOut",
+      },
     }),
   };
 
-  // Filter + Search Logic
-  const filteredPosts = useMemo(() => {
-    return posts
-      ?.filter((post) => {
+  const feedPosts = useMemo(() => {
+    if (!posts) return [];
+
+    return [...posts]
+
+      .sort((a, b) => {
+        const dateA = new Date(a.createdAt || a.updatedAt || 0);
+        const dateB = new Date(b.createdAt || b.updatedAt || 0);
+        return dateB - dateA;
+      })
+      .filter((post) => {
         if (filter === "all") return true;
         return post.badge_type === filter;
       })
       .filter((post) => {
+        if (status === "all") return true;
+        if (status === "active") return post.status_badge === "active";
+        if (status === "closed") return post.status_badge === "closed";
+        return true;
+      })
+      .filter((post) => {
         if (!search.trim()) return true;
-        const query = search.toLowerCase();
+        const q = search.toLowerCase();
         return (
-          post.title?.toLowerCase().includes(query) ||
-          post.location?.toLowerCase().includes(query)
+          post.title?.toLowerCase().includes(q) ||
+          post.location?.toLowerCase().includes(q)
         );
       });
-  }, [posts, filter, search]);
+  }, [posts, filter, status, search]);
 
   return (
     <>
@@ -65,7 +83,7 @@ export default function Home() {
           <SliderSwitch />
         </div>
 
-        <div className=" px-4 md:px-8">
+        <div className="px-4 md:px-8">
           <motion.div
             initial={{ opacity: 0, y: -30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -77,11 +95,12 @@ export default function Home() {
           <Filters
             filter={filter}
             setFilter={setFilter}
+            status={status}
+            setStatus={setStatus}
             search={search}
             setSearch={setSearch}
           />
 
-          {/* Post Grid */}
           <motion.div
             ref={containerRef}
             initial="hidden"
@@ -99,7 +118,7 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.4, delay: 0.2 }}
             >
-              Explore Rooms and Roommates
+              Latest Rooms & Roommates
             </motion.h2>
 
             {loading ? (
@@ -108,9 +127,9 @@ export default function Home() {
                   <PostSkeleton key={i} />
                 ))}
               </div>
-            ) : filteredPosts?.length > 0 ? (
+            ) : feedPosts.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {filteredPosts.map((post, i) => (
+                {feedPosts.map((post, i) => (
                   <motion.div
                     key={post._id}
                     custom={i}
@@ -124,14 +143,15 @@ export default function Home() {
               </div>
             ) : (
               <p className="text-center text-muted-foreground mt-12">
-                No posts found. Try adjusting your filters or search.
+                No posts available yet.
               </p>
             )}
           </motion.div>
         </div>
       </div>
-      
+
       <ScrollToTop />
+
       <div className="mt-16">
         <Footer />
       </div>

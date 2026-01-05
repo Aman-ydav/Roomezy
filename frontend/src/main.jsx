@@ -30,7 +30,7 @@ async function initPushAndPWA() {
     const registration = await navigator.serviceWorker.register(
       "/service-worker.js"
     );
-    console.log("SW registered:", registration);
+    // console.log("SW registered:", registration);
 
     // 2) Ask permission
     const permission = await Notification.requestPermission();
@@ -52,7 +52,7 @@ async function initPushAndPWA() {
       });
     }
 
-    console.log("Push subscription:", subscription);
+    // console.log("Push subscription:", subscription);
 
     // 4) Send subscription to backend (only if user logged in)
     const raw = localStorage.getItem("roomezy_tokens");
@@ -77,7 +77,7 @@ async function initPushAndPWA() {
       body: JSON.stringify(subscription),
     });
 
-    console.log("Subscription sent to backend");
+    // console.log("Subscription sent to backend");
   } catch (err) {
     console.error("Error in initPushAndPWA", err);
   }

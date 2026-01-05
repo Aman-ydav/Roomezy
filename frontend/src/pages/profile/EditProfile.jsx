@@ -83,6 +83,9 @@ const Section = ({ title, icon: Icon, isOpen, toggle, children, variant }) => (
 );
 
 export default function EditProfile() {
+
+  const ACCOUNT_DELETION_DISABLED = true; //  temporary system restriction
+
   const dispatch = useDispatch();
   const { user } = useSelector((state) => state.auth);
   const navigate = useNavigate();
@@ -487,61 +490,85 @@ export default function EditProfile() {
           isOpen={openSection === "delete"}
           toggle={() => toggleSection("delete")}
         >
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
+          {ACCOUNT_DELETION_DISABLED ? (
+            <div className="space-y-4 mt-2">
+              <div className="border border-destructive/40 bg-destructive/10 rounded-md p-4 text-sm text-destructive">
+                <p className="font-semibold mb-1">
+                  Account deletion is temporarily unavailable
+                </p>
+                <p className="text-xs leading-relaxed">
+                  For security and data integrity reasons, account deletion is
+                  currently disabled. Please contact support or try again later.
+                </p>
+              </div>
+
               <Button
                 variant="destructive"
-                className="w-full"
-                disabled={loadingDelete}
+                className="w-full opacity-60 cursor-not-allowed"
+                disabled
               >
-                {loadingDelete ? (
-                  <Loader text="Deleting..." />
-                ) : (
-                  "Delete Account Permanently"
-                )}
+                Delete Account Permanently
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="border border-border bg-card text-foreground">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-destructive font-bold">
-                  Are you absolutely sure?
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-muted-foreground">
-                  This action <strong>cannot be undone.</strong> It will
-                  permanently delete your account and all your data.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={async () => {
-                    setFormError("");
-                    setLoadingDelete(true);
-                    try {
-                      await dispatch(deleteAccount()).unwrap();
-                      localStorage.removeItem("user");
-                      localStorage.removeItem("roomezy_tokens");
-                      dispatch(updateUser(null));
-                      navigate("/login");
-                    } catch {
-                      setFormError(
-                        "Failed to delete account. Please try again."
-                      );
-                    } finally {
-                      setLoadingDelete(false);
-                    }
-                  }}
-                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            </div>
+          ) : (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  disabled={loadingDelete}
                 >
                   {loadingDelete ? (
                     <Loader text="Deleting..." />
                   ) : (
-                    "Yes, Delete"
+                    "Delete Account Permanently"
                   )}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                </Button>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent className="border border-border bg-card text-foreground">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-destructive font-bold">
+                    Are you absolutely sure?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-muted-foreground">
+                    This action <strong>cannot be undone.</strong> It will
+                    permanently delete your account and all your data.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={async () => {
+                      setFormError("");
+                      setLoadingDelete(true);
+                      try {
+                        await dispatch(deleteAccount()).unwrap();
+                        localStorage.removeItem("user");
+                        localStorage.removeItem("roomezy_tokens");
+                        dispatch(updateUser(null));
+                        navigate("/login");
+                      } catch {
+                        setFormError(
+                          "Failed to delete account. Please try again."
+                        );
+                      } finally {
+                        setLoadingDelete(false);
+                      }
+                    }}
+                    className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                  >
+                    {loadingDelete ? (
+                      <Loader text="Deleting..." />
+                    ) : (
+                      "Yes, Delete"
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </Section>
       </div>
     </motion.div>

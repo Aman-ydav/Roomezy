@@ -22,7 +22,7 @@ import {
   Trash2,
   ChevronUp,
   ChevronDown,
-  Loader2, // 🌀 Added spinner icon
+  Loader2,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -56,7 +56,11 @@ const Section = ({ title, icon: Icon, isOpen, toggle, variant, children }) => (
         <Icon className="w-5 h-5" />
         {title}
       </span>
-      {isOpen ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+      {isOpen ? (
+        <ChevronUp className="w-4 h-4" />
+      ) : (
+        <ChevronDown className="w-4 h-4" />
+      )}
     </button>
 
     <AnimatePresence initial={false}>
@@ -66,7 +70,9 @@ const Section = ({ title, icon: Icon, isOpen, toggle, variant, children }) => (
           animate={{ height: "auto", opacity: 1 }}
           exit={{ height: 0, opacity: 0 }}
           transition={{ duration: 0.3 }}
-          className={`px-4 pb-6 ${variant === "danger" ? "bg-destructive/5" : ""}`}
+          className={`px-4 pb-6 ${
+            variant === "danger" ? "bg-destructive/5" : ""
+          }`}
         >
           {children}
         </motion.div>
@@ -79,8 +85,13 @@ export default function EditPost() {
   const { id } = useParams();
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const { selectedPost, updatingBasic, updatingPreferences, updatingImages, deleting } =
-    useSelector((state) => state.post);
+  const {
+    selectedPost,
+    updatingBasic,
+    updatingPreferences,
+    updatingImages,
+    deleting,
+  } = useSelector((state) => state.post);
 
   const [form, setForm] = useState({
     title: "",
@@ -101,7 +112,8 @@ export default function EditPost() {
   const [mediaPreviews, setMediaPreviews] = useState([]);
 
   const [openSection, setOpenSection] = useState("basic");
-  const toggleSection = (section) => setOpenSection(openSection === section ? null : section);
+  const toggleSection = (section) =>
+    setOpenSection(openSection === section ? null : section);
 
   useEffect(() => {
     dispatch(getPostById(id));
@@ -191,7 +203,9 @@ export default function EditPost() {
     try {
       await dispatch(updatePostImages({ id, updatedData })).unwrap();
       toast.success("Images updated successfully!");
-      setMainPreview(mainImage ? URL.createObjectURL(mainImage) : selectedPost.main_image);
+      setMainPreview(
+        mainImage ? URL.createObjectURL(mainImage) : selectedPost.main_image
+      );
       setMediaPreviews(
         mediaFiles.length > 0
           ? mediaFiles.map((f) => URL.createObjectURL(f))
@@ -210,6 +224,8 @@ export default function EditPost() {
       toast.error(err || "Failed to delete post.");
     }
   };
+
+  const POST_DELETION_DISABLED = true; // Set to true to disable post deletion
 
   return (
     <motion.div
@@ -236,7 +252,13 @@ export default function EditPost() {
           <div className="space-y-4 mt-4">
             <div>
               <Label>Title</Label>
-              <Input type="text" name="title" value={form.title} onChange={handleChange} required />
+              <Input
+                type="text"
+                name="title"
+                value={form.title}
+                onChange={handleChange}
+                required
+              />
             </div>
 
             <div>
@@ -263,15 +285,29 @@ export default function EditPost() {
 
             <div>
               <Label>Rent (₹)</Label>
-              <Input type="number" name="rent" value={form.rent} onChange={handleChange} />
+              <Input
+                type="number"
+                name="rent"
+                value={form.rent}
+                onChange={handleChange}
+              />
             </div>
 
             <div>
               <Label>Room Type</Label>
-              <Input type="text" name="room_type" value={form.room_type} onChange={handleChange} />
+              <Input
+                type="text"
+                name="room_type"
+                value={form.room_type}
+                onChange={handleChange}
+              />
             </div>
 
-            <Button onClick={handleUpdateBasic} disabled={updatingBasic} className="w-full">
+            <Button
+              onClick={handleUpdateBasic}
+              disabled={updatingBasic}
+              className="w-full"
+            >
               {updatingBasic ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating...
@@ -291,8 +327,17 @@ export default function EditPost() {
           toggle={() => toggleSection("preferences")}
         >
           <div className="grid sm:grid-cols-2 gap-3 mt-4">
-            {["non_smoker", "lgbtq_friendly", "has_cat", "has_dog", "allow_pets"].map((pref) => (
-              <label key={pref} className="flex items-center gap-2 text-sm capitalize">
+            {[
+              "non_smoker",
+              "lgbtq_friendly",
+              "has_cat",
+              "has_dog",
+              "allow_pets",
+            ].map((pref) => (
+              <label
+                key={pref}
+                className="flex items-center gap-2 text-sm capitalize"
+              >
                 <input
                   type="checkbox"
                   name={pref}
@@ -306,7 +351,11 @@ export default function EditPost() {
           </div>
 
           <div className="mt-4">
-            <Button onClick={handleUpdatePreferences} disabled={updatingPreferences} className="w-full">
+            <Button
+              onClick={handleUpdatePreferences}
+              disabled={updatingPreferences}
+              className="w-full"
+            >
               {updatingPreferences ? (
                 <>
                   <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating...
@@ -335,7 +384,11 @@ export default function EditPost() {
                   className="w-full max-h-48 object-cover rounded-md mb-2"
                 />
               )}
-              <Input type="file" accept="image/*" onChange={handleMainImageChange} />
+              <Input
+                type="file"
+                accept="image/*"
+                onChange={handleMainImageChange}
+              />
             </div>
 
             <div>
@@ -352,14 +405,24 @@ export default function EditPost() {
                   ))}
                 </div>
               )}
-              <Input type="file" multiple accept="image/*" onChange={handleMediaFilesChange} />
+              <Input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleMediaFilesChange}
+              />
             </div>
 
             <div className="space-y-1">
-              <Button onClick={handleUpdateImages} disabled={updatingImages} className="w-full">
+              <Button
+                onClick={handleUpdateImages}
+                disabled={updatingImages}
+                className="w-full"
+              >
                 {updatingImages ? (
                   <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating Images...
+                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Updating
+                    Images...
                   </>
                 ) : (
                   "Update Images"
@@ -380,45 +443,75 @@ export default function EditPost() {
           isOpen={openSection === "delete"}
           toggle={() => toggleSection("delete")}
         >
-          <AlertDialog>
-            <AlertDialogTrigger asChild>
-              <Button variant="destructive" className="w-full" disabled={deleting}>
-                {deleting ? (
-                  <>
-                    <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...
-                  </>
-                ) : (
-                  "Delete Post Permanently"
-                )}
+          {POST_DELETION_DISABLED ? (
+            <div className="space-y-4 mt-2">
+              <div className="border border-destructive/40 bg-destructive/10 rounded-md p-4 text-sm text-destructive">
+                <p className="font-semibold mb-1">
+                  Post deletion is temporarily unavailable
+                </p>
+                <p className="text-xs leading-relaxed">
+                  To prevent accidental data loss, deleting posts is currently
+                  disabled. Please edit your post instead or try again later.
+                </p>
+              </div>
+
+              <Button
+                variant="destructive"
+                className="w-full opacity-60 cursor-not-allowed"
+                disabled
+              >
+                Delete Post Permanently
               </Button>
-            </AlertDialogTrigger>
-            <AlertDialogContent className="border border-border bg-card text-foreground">
-              <AlertDialogHeader>
-                <AlertDialogTitle className="text-destructive font-bold">
-                  Are you absolutely sure?
-                </AlertDialogTitle>
-                <AlertDialogDescription className="text-muted-foreground">
-                  This action <strong>cannot be undone.</strong> It will permanently delete your post
-                  and all associated data.
-                </AlertDialogDescription>
-              </AlertDialogHeader>
-              <AlertDialogFooter>
-                <AlertDialogCancel>Cancel</AlertDialogCancel>
-                <AlertDialogAction
-                  onClick={handleDeletePost}
-                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            </div>
+          ) : (
+            <AlertDialog>
+              <AlertDialogTrigger asChild>
+                <Button
+                  variant="destructive"
+                  className="w-full"
+                  disabled={deleting}
                 >
                   {deleting ? (
                     <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
+                      Deleting...
                     </>
                   ) : (
-                    "Yes, Delete"
+                    "Delete Post Permanently"
                   )}
-                </AlertDialogAction>
-              </AlertDialogFooter>
-            </AlertDialogContent>
-          </AlertDialog>
+                </Button>
+              </AlertDialogTrigger>
+
+              <AlertDialogContent className="border border-border bg-card text-foreground">
+                <AlertDialogHeader>
+                  <AlertDialogTitle className="text-destructive font-bold">
+                    Are you absolutely sure?
+                  </AlertDialogTitle>
+                  <AlertDialogDescription className="text-muted-foreground">
+                    This action <strong>cannot be undone.</strong> It will
+                    permanently delete your post and all associated data.
+                  </AlertDialogDescription>
+                </AlertDialogHeader>
+
+                <AlertDialogFooter>
+                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogAction
+                    onClick={handleDeletePost}
+                    className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                  >
+                    {deleting ? (
+                      <>
+                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />{" "}
+                        Deleting...
+                      </>
+                    ) : (
+                      "Yes, Delete"
+                    )}
+                  </AlertDialogAction>
+                </AlertDialogFooter>
+              </AlertDialogContent>
+            </AlertDialog>
+          )}
         </Section>
       </div>
     </motion.div>
