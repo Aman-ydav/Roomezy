@@ -7,6 +7,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
+import { cn } from "@/lib/utils";
 
 export default function Filters({
   filter,
@@ -31,7 +32,7 @@ export default function Filters({
         <div className="flex gap-3 w-full sm:w-auto">
           {/* Category Filter */}
           <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-full sm:w-48">
+            <SelectTrigger className="w-full sm:w-48 backdrop-blur-2xl">
               <SelectValue placeholder="Category" />
             </SelectTrigger>
 
@@ -40,16 +41,28 @@ export default function Filters({
               align="start"
               sideOffset={6}
               avoidCollisions={false}
-              className="w-(--radix-select-trigger-width)"
+              className="w-(--radix-select-trigger-width) backdrop-blur-md"
             >
-              <SelectItem value="all">All Posts</SelectItem>
-              <SelectItem value="empty-room">Room Available</SelectItem>
-              <SelectItem value="looking-for-room">
-                Looking for Room
-              </SelectItem>
-              <SelectItem value="roommate-share">
-                Roommate Wanted
-              </SelectItem>
+              {[
+                ["all", "All Posts"],
+                ["empty-room", "Room Available"],
+                ["looking-for-room", "Looking for Room"],
+                ["roommate-share", "Roommate Wanted"],
+              ].map(([value, label]) => (
+                <SelectItem
+                  key={value}
+                  value={value}
+                  className={cn(
+                    //  remove heavy selected background
+                    "data-[state=checked]:bg-transparent",
+                    // subtle text emphasis only
+                    "data-[state=checked]:font-medium",
+                    "data-[state=checked]:text-primary"
+                  )}
+                >
+                  {label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 
@@ -66,9 +79,23 @@ export default function Filters({
               avoidCollisions={false}
               className="w-(--radix-select-trigger-width)"
             >
-              <SelectItem value="all">All Status</SelectItem>
-              <SelectItem value="active">Active</SelectItem>
-              <SelectItem value="closed">Closed</SelectItem>
+              {[
+                ["all", "All Status"],
+                ["active", "Active"],
+                ["closed", "Closed"],
+              ].map(([value, label]) => (
+                <SelectItem
+                  key={value}
+                  value={value}
+                  className={cn(
+                    "data-[state=checked]:bg-transparent",
+                    "data-[state=checked]:font-medium",
+                    "data-[state=checked]:text-primary"
+                  )}
+                >
+                  {label}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
         </div>
