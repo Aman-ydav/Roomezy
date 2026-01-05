@@ -153,7 +153,7 @@ roomezy/
 ### Backend Setup
 1. **Clone the repository**:
    ```bash
-   git clone https://github.com/yourusername/roomezy.git
+   git clone https://github.com/Aman-ydav/roomezy.git
    cd roomezy/backend
    ```
 
@@ -167,7 +167,6 @@ roomezy/
    ```env
    # Database
    MONGODB_URI=mongodb://localhost:27017/roomezy
-   # Or for MongoDB Atlas: mongodb+srv://username:password@cluster.mongodb.net/roomezy
 
    # JWT Secret
    JWT_SECRET=your_super_secret_jwt_key_here
@@ -187,7 +186,7 @@ roomezy/
    EMAIL_FROM=noreply@roomezy.com
 
    # CORS Origins
-   CORS_ALLOWED_ORIGINS=http://localhost:3000,https://roomezy.vercel.app
+   CORS_ALLOWED_ORIGINS=http://localhost:3000
 
    # Server Port
    PORT=8000
