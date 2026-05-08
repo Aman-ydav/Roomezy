@@ -166,15 +166,15 @@ roomezy/
    Create a `.env` file in the `backend/` directory with the following variables:
    ```env
    # Database
-   MONGODB_URI=mongodb://localhost:27017/roomezy
+   MONGODB_URI=
 
    # JWT Secret
    JWT_SECRET=your_super_secret_jwt_key_here
    JWT_EXPIRE=7d
 
    # Google OAuth
-   GOOGLE_CLIENT_ID=your_google_client_id.apps.googleusercontent.com
-   GOOGLE_CLIENT_SECRET=your_google_client_secret
+   GOOGLE_CLIENT_ID=
+   GOOGLE_CLIENT_SECRET=
 
    # Cloudinary (for image uploads)
    CLOUDINARY_CLOUD_NAME=your_cloud_name
