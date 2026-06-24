@@ -8,7 +8,7 @@ import {
     deleteMessageForEveryone,
     deleteMessageForMe,
     deleteChatForMe,
-} from "../controllers/chat.controllers.js";
+} from "../controllers/chat.controller.js";
 
 const router = express.Router();
 
