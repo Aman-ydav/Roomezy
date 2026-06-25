@@ -2,12 +2,27 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { Post } from "../models/post.model.js";
+import { User } from "../models/user.model.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js";
 import { cleanupLocalFiles } from "../utils/fileCleanUp.js";
 import { deleteFromCloudinary } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
 
 export const createPost = asyncHandler(async (req, res) => {
+  // Post credit gate — owners get 5 free posts, then ₹49/post
+  if (req.user.accountType === "ownerLookingForRenters") {
+    const totalPosts = await Post.countDocuments({ user: req.user._id });
+    if (totalPosts >= 5) {
+      const owner = await User.findById(req.user._id).select("postCreditsBalance");
+      if (!owner || owner.postCreditsBalance < 1) {
+        cleanupLocalFiles(req.files);
+        throw new ApiError(402, "Post limit reached. Purchase post credits to continue.");
+      }
+      await User.findByIdAndUpdate(req.user._id, {
+        $inc: { postCreditsBalance: -1 },
+      });
+    }
+  }
   const {
     post_type,
     post_role,
