@@ -188,7 +188,7 @@ export default function VerifyIdentityPage() {
 
             <Button onClick={handleSubmit} disabled={loading} className="w-full">
               {loading && <Loader2 size={16} className="animate-spin mr-2" />}
-              {loading ? "Verifying..." : "Verify Face"}
+              {loading ? "Verifying..." : "Verify Identity"}
             </Button>
           </div>
         )}
@@ -199,8 +199,8 @@ export default function VerifyIdentityPage() {
             <BadgeCheck size={48} className="mx-auto text-green-500" />
             <p className="font-semibold text-green-600">
               {result?.confidence
-                ? `Face matched! (${result.confidence}% confidence)`
-                : "Face already matched — complete payment to activate."}
+                ? `Identity verified! (${result.confidence}% confidence)`
+                : "Identity verification completed — proceed with payment to activate."}
             </p>
             <p className="text-sm text-muted-foreground">
               Pay ₹99 once to activate your verified badge. Valid for life.

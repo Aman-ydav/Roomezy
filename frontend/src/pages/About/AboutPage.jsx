@@ -20,6 +20,12 @@ import {
   MessageCircle,
   MapPin,
   Calendar,
+  BadgeCheck,
+  Check,
+  Scan,
+  CreditCard,
+  ArrowRight,
+  ShieldCheck,
 } from "lucide-react";
 
 import ScrollToTop from "@/components/layout/ScrollToTop";
@@ -198,6 +204,117 @@ const AboutPage = () => {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      {/* VERIFICATION SYSTEM SECTION */}
+      <section className="py-20 px-4">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-12">
+            <div className="inline-flex items-center gap-2 bg-green-50 dark:bg-green-950/40 text-green-700 dark:text-green-400 px-4 py-2 rounded-full mb-4 border border-green-200 dark:border-green-800">
+              <ShieldCheck className="h-4 w-4" />
+              <span className="text-sm font-semibold">The Roomezy Trust System</span>
+            </div>
+            <h2 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
+              We independently verify <span className="text-green-600 dark:text-green-400">every user</span>
+            </h2>
+            <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+              Shared living is deeply personal. Before you open your home to someone, you deserve to know exactly who they are. Our verification system does that — independently, before any contact is made.
+            </p>
+          </div>
+
+          {/* 3-step flow */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
+            {[
+              {
+                step: "01",
+                icon: Mail,
+                color: "#6366f1",
+                bg: "#6366f118",
+                title: "Email Confirmation",
+                desc: "Every account must confirm their email address before posting or contacting others. Google sign-in is automatically verified.",
+                badge: { bg: null, label: "After this step" },
+              },
+              {
+                step: "02",
+                icon: Scan,
+                color: "#f59e0b",
+                bg: "#f59e0b18",
+                title: "AI Face Match",
+                desc: "Users take a live selfie and upload a government ID. Our AI (face-api) independently confirms the face matches — no human sees your photo.",
+                badge: { bg: "#f59e0b", label: "After this step" },
+              },
+              {
+                step: "03",
+                icon: CreditCard,
+                color: "#22c55e",
+                bg: "#22c55e18",
+                title: "Identity Locked (₹99)",
+                desc: "A one-time ₹99 fee confirms intent and permanently locks the verified status to your account. No recurring charges.",
+                badge: { bg: "#22c55e", label: "After this step" },
+              },
+            ].map((s) => (
+              <Card key={s.step} className="relative border shadow-sm hover:shadow-lg transition-all duration-300 overflow-hidden">
+                <div className="absolute top-3 right-3 text-4xl font-black text-muted/20 select-none">{s.step}</div>
+                <CardContent className="p-6 space-y-4">
+                  <div className="w-11 h-11 rounded-xl flex items-center justify-center" style={{ backgroundColor: s.bg }}>
+                    <s.icon size={20} style={{ color: s.color }} />
+                  </div>
+                  <div>
+                    <h3 className="font-bold text-foreground mb-1">{s.title}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
+                  </div>
+                  <div className="pt-1 border-t border-border flex items-center gap-2">
+                    <span className="text-[11px] text-muted-foreground">{s.badge.label}:</span>
+                    <span className="relative inline-flex items-center justify-center" style={{ width: 18, height: 18 }}>
+                      {s.badge.bg ? (
+                        <>
+                          <BadgeCheck size={18} style={{ color: s.badge.bg, fill: s.badge.bg }} strokeWidth={0} />
+                          <Check className="absolute" size={9} color="white" strokeWidth={3.5} />
+                        </>
+                      ) : (
+                        <BadgeCheck size={18} style={{ color: "#9ca3af" }} fill="none" strokeWidth={1.5} />
+                      )}
+                    </span>
+                    <span className="text-[11px] font-medium" style={{ color: s.badge.bg || "#9ca3af" }}>
+                      {s.badge.bg === "#22c55e" ? "Fully Verified" : s.badge.bg === "#f59e0b" ? "Mail Verified · KYC Pending" : "Not Verified"}
+                    </span>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+
+          {/* Badge legend */}
+          <Card className="border bg-muted/20">
+            <CardContent className="p-6">
+              <p className="text-sm font-semibold text-foreground mb-4 text-center">What each badge means at a glance</p>
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                {[
+                  { bg: "#22c55e", title: "Fully Verified",              sub: "Email confirmed + ID matched + payment done. Highest trust." },
+                  { bg: "#f59e0b", title: "Mail Verified · KYC Pending", sub: "Email is real. Identity check started but not yet complete." },
+                  { bg: null,      title: "Not Yet Verified",             sub: "No verification done. Approach with standard caution." },
+                ].map((b) => (
+                  <div key={b.title} className="flex items-start gap-3">
+                    <span className="relative inline-flex items-center justify-center shrink-0 mt-0.5" style={{ width: 22, height: 22 }}>
+                      {b.bg ? (
+                        <>
+                          <BadgeCheck size={22} style={{ color: b.bg, fill: b.bg }} strokeWidth={0} />
+                          <Check className="absolute" size={11} color="white" strokeWidth={3.5} />
+                        </>
+                      ) : (
+                        <BadgeCheck size={22} style={{ color: "#9ca3af" }} fill="none" strokeWidth={1.5} />
+                      )}
+                    </span>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">{b.title}</p>
+                      <p className="text-xs text-muted-foreground mt-0.5">{b.sub}</p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         </div>
       </section>
 

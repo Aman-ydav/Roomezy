@@ -25,6 +25,7 @@ import {
   Edit,
   Settings,
   Plus,
+  BadgeCheck,
 } from "lucide-react";
 import ScrollToTop from "@/components/layout/ScrollToTop";
 
@@ -391,6 +392,64 @@ export default function HelpCenterPage() {
             "Go to Dashboard → Edit Profile to update name, bio, locations, and photos.",
             "Changes to profile fields are saved immediately and reflected on new or existing posts where applicable.",
             "Remember to save changes and refresh your dashboard to confirm updates.",
+          ],
+        },
+      ],
+    },
+    {
+      id: "verification",
+      title: "Verification & Trust Badges",
+      icon: BadgeCheck,
+      color: "bg-green-600",
+      faqs: [
+        {
+          question: "What do the coloured badges on profiles and posts mean?",
+          answer: [
+            "Green filled badge (✓) — The user has completed both email verification AND government ID verification. This is the highest trust level on Roomezy.",
+            "Amber filled badge (✓) — The user's email address is confirmed, but they have not yet completed identity (KYC) verification. Their email is real, but their identity is unconfirmed.",
+            "Gray outline badge — Neither email nor identity has been verified. This is the default state for new accounts.",
+            "You can click any badge on a post or chat to open a popup showing exactly what has been verified for that user.",
+          ],
+        },
+        {
+          question: "How do I get my green Verified badge?",
+          answer: [
+            "Step 1 — Verify your email: Check your inbox after signing up and click the confirmation link. Google sign-in accounts are automatically email-verified.",
+            "Step 2 — Complete identity verification: Go to Dashboard → Verify Identity. You will be asked to take a live selfie and upload a clear photo of your government ID (Aadhaar, passport, etc.).",
+            "Step 3 — Our AI (face-api) independently compares your live face to your ID. No human reviews your photo.",
+            "Step 4 — Pay the one-time ₹99 verification fee via Razorpay. This locks your verified status permanently. There are no recurring charges.",
+          ],
+        },
+        {
+          question: "Why is there a ₹99 fee for verification?",
+          answer: [
+            "The ₹99 fee is a one-time charge that serves two purposes: it covers the cost of running our AI identity verification system, and it confirms genuine intent — making it much harder for fake or bot accounts to get verified.",
+            "This fee is NOT a subscription. Once paid, your verified status is permanent as long as your account remains in good standing.",
+            "If your verification fails (face mismatch), you can re-attempt after the 3-day cooldown period at no additional charge.",
+          ],
+        },
+        {
+          question: "Is my photo or ID stored anywhere?",
+          answer: [
+            "Your selfie and ID photo are processed entirely in-memory by our AI model and are not stored on our servers or sent to any third party.",
+            "Only your verification status (verified / pending / failed) is saved in our database — never the actual images.",
+            "The Razorpay payment is processed securely by Razorpay and we never see or store your payment card details.",
+          ],
+        },
+        {
+          question: "My face match says 'awaiting payment' — what do I do?",
+          answer: [
+            "This means your face was successfully matched to your ID, but you have not yet paid the ₹99 fee to activate the badge.",
+            "Go to Dashboard → Verify Identity. The page will skip straight to the payment step — you do not need to redo the face scan.",
+            "You have 3 days from the time of your successful face match to complete the payment. After that, the match result expires and you will need to redo the scan.",
+          ],
+        },
+        {
+          question: "Can I post on Roomezy without being verified?",
+          answer: [
+            "You must confirm your email address before you can create any post. This is the minimum requirement.",
+            "KYC (identity) verification is optional for posting, but verified users build significantly more trust with potential roommates and receive higher visibility in search results.",
+            "Owners who post more than 5 listings will need to purchase post credits (₹49 per credit) regardless of verification status.",
           ],
         },
       ],
