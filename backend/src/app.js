@@ -8,6 +8,7 @@ import morgan from "morgan";
 
 import "./config.js";
 import { ApiError } from "./utils/apiError.js";
+import { apiLimiter } from "./middlewares/rateLimiter.js";
 
 // ROUTES
 import userRoutes from "./routes/user.routes.js";
@@ -88,6 +89,7 @@ app.get("/api/v1/health", (req, res) => {
 
 // 7. API ROUTES
 
+app.use("/api/v1/", apiLimiter);
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/posts", postRoutes);
 app.use("/api/v1/savedposts", savedPostRoutes);

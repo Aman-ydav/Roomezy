@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { registerUser,loginUser, 
+import { registerUser,loginUser,
   logoutUser, refreshAccessToken,
   forgotPassword,
   updateAccountDetails,
@@ -11,21 +11,19 @@ import { registerUser,loginUser,
   updateAccountType,
   verifyEmailCode,
   sendVerificationCode,
-  deleteAccount} from "../controllers/user.controller.js"; 
+  deleteAccount} from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {verifyJWT}  from '../middlewares/auth.middleware.js';
 import { googleLogin } from "../controllers/googleAuth.controller.js";
+import { authLimiter } from "../middlewares/rateLimiter.js";
 
 
 const router = Router();
 
 // routes declaration
 
-router.route("/register").post(
-    upload.single("avatar"),
-    registerUser
-);
-router.route("/login").post(loginUser);
+router.route("/register").post(authLimiter, upload.single("avatar"), registerUser);
+router.route("/login").post(authLimiter, loginUser);
 
 // secure route
 router.route("/logout").post(verifyJWT, logoutUser);
@@ -41,8 +39,8 @@ router.route("/update-avatar").patch(
 
 router.post("/google", googleLogin);
 
-router.post("/send-verification-code", sendVerificationCode);
-router.post("/verify-email", verifyEmailCode);
+router.post("/send-verification-code", authLimiter, sendVerificationCode);
+router.post("/verify-email", authLimiter, verifyEmailCode);
 
 router.route("/get-current-user").get(verifyJWT, getCurrentUser);
 
@@ -52,9 +50,9 @@ router.route("/update-account-details").patch(verifyJWT, updateAccountDetails);
 
 router.route("/update-account-type").patch(verifyJWT, updateAccountType);
 
-router.route("/forgot-password").post(forgotPassword);
+router.route("/forgot-password").post(authLimiter, forgotPassword);
 
-router.route("/reset-password/:token").post(resetPassword);
+router.route("/reset-password/:token").post(authLimiter, resetPassword);
 
 router.route("/get-user-profile/:id").get(verifyJWT, getUserProfileById);
 

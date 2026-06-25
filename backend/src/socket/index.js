@@ -7,6 +7,10 @@ const onlineUsers = new Map();      // userId → socketId
 const lastPing = new Map();         // userId → timestamp
 const userVisibility = new Map();   // userId → boolean
 
+// Socket rate limiting
+const lastMessageSent = new Map();  // userId → timestamp
+const lastTypingEvent = new Map();  // userId → timestamp
+
 export const initSocketServer = (server) => {
   const io = new Server(server, {
     cors: {
@@ -82,11 +86,17 @@ export const initSocketServer = (server) => {
     });
 
     // SEND MESSAGE
-    socket.on("send-message", async ({ conversationId, senderId, receiverId, text }) => {
+    socket.on("send-message", async ({ conversationId, senderId, receiverId, text, _id }) => {
+      // Rate limit: max 2 messages per second per user
+      const now = Date.now();
+      const lastSent = lastMessageSent.get(socket.userId || senderId) || 0;
+      if (now - lastSent < 500) return;
+      lastMessageSent.set(socket.userId || senderId, now);
       try {
         const sender = await User.findById(senderId).select("userName avatar");
 
         const payload = {
+          _id,
           conversationId,
           senderId,
           receiverId,
@@ -122,6 +132,10 @@ export const initSocketServer = (server) => {
 
     // TYPING
     socket.on("typing", (data) => {
+      const now = Date.now();
+      const lastTyped = lastTypingEvent.get(socket.userId || data.userId) || 0;
+      if (now - lastTyped < 1000) return;
+      lastTypingEvent.set(socket.userId || data.userId, now);
       socket.to(data.conversationId).emit("typing", data);
     });
 

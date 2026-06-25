@@ -12,6 +12,7 @@ import {
 } from "../controllers/post.controller.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
+import { postCreateLimiter } from "../middlewares/rateLimiter.js";
 import { Router } from "express";
 
 const router = Router();
@@ -22,7 +23,7 @@ const postUploads = upload.fields([
   { name: "media_files", maxCount: 3 },
 ]);
 
-router.route("/create-post").post(verifyJWT, postUploads, createPost);
+router.route("/create-post").post(verifyJWT, postCreateLimiter, postUploads, createPost);
 router.route("/").get(getAllPosts);
 router.route("/:id").get(getPostById);
 router.route("/:id/archive").patch(verifyJWT, toggleArchivePost);
