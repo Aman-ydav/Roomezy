@@ -18,6 +18,7 @@ import mediaRoutes from "./routes/media.routes.js";
 import chatRoutes from "./routes/chat.routes.js";
 import notificationRoutes from "./routes/notification.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+import kycRoutes from "./routes/kyc.routes.js";
 
 const app = express();
 
@@ -98,6 +99,7 @@ app.use("/api/v1/media", mediaRoutes);
 app.use("/api/v1/chat", chatRoutes);
 app.use("/api/v1/notifications", notificationRoutes);
 app.use("/api/v1/payments", paymentRoutes);
+app.use("/api/v1/kyc",      kycRoutes);
 
 
 //  8. NOT FOUND HANDLER
