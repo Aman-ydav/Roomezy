@@ -3,8 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, IndianRupee } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
-import VerifiedBadge from "@/components/ui/VerifiedBadge";
-import UnverifiedBadge from "@/components/ui/UnverifiedBadge";
+import TrustBadge from "@/components/ui/TrustBadge";
 
 export default function PostCard({ post, index = 0 }) {
   const navigate = useNavigate();
@@ -96,20 +95,26 @@ export default function PostCard({ post, index = 0 }) {
                 ? "Room Available"
                 : post.badge_type === "roommate-share"
                 ? "Looking for Roommate"
-                : "Room Availabe"}
+                : "Room Available"}
             </Badge>
           </div>
         )}
+
+        {/* Trust badge — top right of image */}
+        <div className="absolute top-3 right-3 z-20">
+          <TrustBadge
+            kycStatus={post.user?.kycStatus}
+            isEmailVerified={post.user?.isVerified}
+            userId={post.user?._id}
+            size={26}
+          />
+        </div>
       </div>
 
       <div className="p-4 flex flex-col grow justify-between">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="flex items-center gap-1 text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300 truncate">
+          <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300 truncate">
             {post.title}
-            {post.user?.kycStatus === "verified"
-              ? <VerifiedBadge size={15} />
-              : <UnverifiedBadge size={14} />
-            }
           </h3>
           <Badge
             className={`font-semibold px-3 py-1 rounded-full border group-hover:shadow-md transition-shadow duration-300 ${

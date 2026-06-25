@@ -29,7 +29,7 @@ export const createOrGetConversation = asyncHandler(async (req, res) => {
 
     let conversation = await Conversation.findOne({
         participants: { $all: [senderId, receiverId] },
-    }).populate("participants", "userName avatar createdAt kycStatus");
+    }).populate("participants", "userName avatar createdAt kycStatus isVerified");
 
     if (!conversation) {
         conversation = await Conversation.create({
@@ -60,7 +60,7 @@ export const getUserConversations = asyncHandler(async (req, res) => {
     const conversations = await Conversation.find({
         participants: userId,
     })
-        .populate("participants", "userName avatar createdAt kycStatus")
+        .populate("participants", "userName avatar createdAt kycStatus isVerified")
         .sort({ updatedAt: -1 });
 
     return res

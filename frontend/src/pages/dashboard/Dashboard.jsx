@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import TrustBadge from "@/components/ui/TrustBadge";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import { useSelector, useDispatch } from "react-redux";
 import { Card } from "@/components/ui/card";
@@ -218,7 +219,7 @@ export default function Dashboard() {
         {/* Main Header — left aligned */}
         <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3 flex-wrap">
           Welcome, <span className="text-primary">{user?.userName}</span>
-          {user?.kycStatus === "verified" && <VerifiedBadge size={28} />}
+          <TrustBadge kycStatus={user?.kycStatus} isEmailVerified={user?.isVerified} userId={user?._id} size={28} />
         </h1>
         <p className="text-sm md:text-base text-muted-foreground mt-2">
           Manage your posts, track engagement, and personalize your experience.

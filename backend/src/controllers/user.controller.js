@@ -480,6 +480,21 @@ const verifyEmailCode = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, user, "Email verified successfully"));
 });
 
+// GET /api/v1/users/:id/verification-status
+const getVerificationStatus = asyncHandler(async (req, res) => {
+    const user = await User.findById(req.params.id).select("isVerified kycStatus provider userName avatar");
+    if (!user) throw new ApiError(404, "User not found");
+
+    res.json(new ApiResponse(200, {
+        userId:        user._id,
+        userName:      user.userName,
+        avatar:        user.avatar,
+        emailVerified: user.isVerified || user.provider === "google",
+        kycVerified:   user.kycStatus === "verified",
+        kycStatus:     user.kycStatus,
+    }, "Verification status"));
+});
+
 export {
     registerUser,
     loginUser,
@@ -496,4 +511,5 @@ export {
     deleteAccount,
     sendVerificationCode,
     verifyEmailCode,
+    getVerificationStatus,
 };

@@ -11,7 +11,8 @@ import { registerUser,loginUser,
   updateAccountType,
   verifyEmailCode,
   sendVerificationCode,
-  deleteAccount} from "../controllers/user.controller.js";
+  deleteAccount,
+  getVerificationStatus} from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multer.middleware.js";
 import {verifyJWT}  from '../middlewares/auth.middleware.js';
 import { googleLogin } from "../controllers/googleAuth.controller.js";
@@ -55,6 +56,7 @@ router.route("/forgot-password").post(authLimiter, forgotPassword);
 router.route("/reset-password/:token").post(authLimiter, resetPassword);
 
 router.route("/get-user-profile/:id").get(verifyJWT, getUserProfileById);
+router.route("/:id/verification-status").get(verifyJWT, getVerificationStatus);
 
 router.route("/delete-account").delete(verifyJWT, deleteAccount);
 

@@ -9,6 +9,12 @@ import { deleteFromCloudinary } from "../utils/cloudinary.js";
 import mongoose from "mongoose";
 
 export const createPost = asyncHandler(async (req, res) => {
+  // Email must be verified before posting
+  if (!req.user.isVerified) {
+    cleanupLocalFiles(req.files);
+    throw new ApiError(403, "Please verify your email address before creating a post.");
+  }
+
   // Post credit gate — owners get 5 free posts, then ₹49/post
   if (req.user.accountType === "ownerLookingForRenters") {
     const totalPosts = await Post.countDocuments({ user: req.user._id });
@@ -150,7 +156,7 @@ export const getAllPosts = asyncHandler(async (req, res) => {
       .sort(sortQuery)
       .skip(skip)
       .limit(Number(limit))
-      .populate("user", "userName age avatar rating kycStatus"),
+      .populate("user", "userName age avatar rating kycStatus isVerified"),
     Post.countDocuments(filter),
   ]);
 
@@ -176,7 +182,7 @@ export const getFeed = asyncHandler(async (req, res) => {
   const basePosts = await Post.find({ archived: false, status_badge: "active" })
     .sort({ createdAt: -1 })
     .limit(300)
-    .populate("user", "userName age avatar rating kycStatus");
+    .populate("user", "userName age avatar rating kycStatus isVerified");
 
   const now = Date.now();
   const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
@@ -229,7 +235,7 @@ export const getPostById = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
 
   const post = await Post.findById(postId)
-    .populate("user", "userName avatar rating age kycStatus");
+    .populate("user", "userName avatar rating age kycStatus isVerified");
 
   if (!post) throw new ApiError(404, "Post not found");
 

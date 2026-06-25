@@ -1,7 +1,7 @@
 // src/features/chat/components/ConversationItem.jsx
 import { motion } from "framer-motion";
 import { useUserStatus } from "@/hooks/useUserStatus";
-import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import TrustBadge from "@/components/ui/TrustBadge";
 
 export default function ConversationItem({
   conversation,
@@ -95,7 +95,7 @@ export default function ConversationItem({
         <div className="flex items-center justify-between mb-1">
           <h3 className="font-semibold text-sm truncate flex items-center gap-1">
             {partner?.userName || "Unknown User"}
-            {partner?.kycStatus === "verified" && <VerifiedBadge size={13} />}
+            <TrustBadge kycStatus={partner?.kycStatus} isEmailVerified={partner?.isVerified} userId={partner?._id} size={13} />
           </h3>
 
           <span className="text-xs text-muted-foreground">
