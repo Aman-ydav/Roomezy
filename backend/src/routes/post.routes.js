@@ -1,6 +1,7 @@
 import {
   createPost,
   getAllPosts,
+  getFeed,
   getPostById,
   toggleArchivePost,
   togglePostStatus,
@@ -25,6 +26,7 @@ const postUploads = upload.fields([
 
 router.route("/create-post").post(verifyJWT, postCreateLimiter, postUploads, createPost);
 router.route("/").get(getAllPosts);
+router.route("/feed").get(getFeed);
 router.route("/:id").get(getPostById);
 router.route("/:id/archive").patch(verifyJWT, toggleArchivePost);
 router.route("/:id/status").patch(verifyJWT, togglePostStatus);

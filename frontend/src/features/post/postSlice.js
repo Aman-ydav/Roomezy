@@ -29,12 +29,25 @@ export const createPost = createAsyncThunk(
 
 export const getAllPosts = createAsyncThunk(
   "post/getAllPosts",
-  async (_, { rejectWithValue }) => {
+  async (params = {}, { rejectWithValue }) => {
     try {
-      const res = await api.get("/posts");
+      const res = await api.get("/posts", { params });
       return res.data.data;
     } catch (err) {
       const message = err.response?.data?.message || "Failed to fetch posts.";
+      return rejectWithValue(message);
+    }
+  }
+);
+
+export const getFeedPosts = createAsyncThunk(
+  "post/getFeedPosts",
+  async (params = {}, { rejectWithValue }) => {
+    try {
+      const res = await api.get("/posts/feed", { params });
+      return res.data.data;
+    } catch (err) {
+      const message = err.response?.data?.message || "Failed to fetch feed.";
       return rejectWithValue(message);
     }
   }
@@ -161,18 +174,25 @@ const postSlice = createSlice({
   name: "post",
   initialState: {
     posts: [],
+    feedPosts: [],
     selectedPost: null,
     loading: false,
+    feedLoading: false,
     creating: false,
     updating: false,
     updatingBasic: false,
     updatingPreferences: false,
     updatingImages: false,
     error: null,
+    pagination: { total: 0, page: 1, pages: 1 },
+    searchParams: {},
   },
   reducers: {
     clearSelectedPost: (state) => {
       state.selectedPost = null;
+    },
+    setSearchParams: (state, action) => {
+      state.searchParams = action.payload;
     },
   },
   extraReducers: (builder) => {
@@ -196,10 +216,41 @@ const postSlice = createSlice({
       })
       .addCase(getAllPosts.fulfilled, (state, action) => {
         state.loading = false;
-        state.posts = action.payload;
+        const payload = action.payload;
+        if (payload?.posts) {
+          state.posts = payload.posts;
+          state.pagination = {
+            total: payload.total,
+            page:  payload.page,
+            pages: payload.pages,
+          };
+        } else {
+          state.posts = payload;
+        }
       })
       .addCase(getAllPosts.rejected, (state, action) => {
         state.loading = false;
+        state.error = action.payload;
+      })
+
+      /* --- GET FEED --- */
+      .addCase(getFeedPosts.pending, (state) => {
+        state.feedLoading = true;
+      })
+      .addCase(getFeedPosts.fulfilled, (state, action) => {
+        state.feedLoading = false;
+        const payload = action.payload;
+        state.feedPosts = payload?.posts ?? payload;
+        if (payload?.total != null) {
+          state.pagination = {
+            total: payload.total,
+            page:  payload.page,
+            pages: payload.pages,
+          };
+        }
+      })
+      .addCase(getFeedPosts.rejected, (state, action) => {
+        state.feedLoading = false;
         state.error = action.payload;
       })
 
@@ -300,5 +351,5 @@ const postSlice = createSlice({
   },
 });
 
-export const { clearSelectedPost } = postSlice.actions;
+export const { clearSelectedPost, setSearchParams } = postSlice.actions;
 export default postSlice.reducer;

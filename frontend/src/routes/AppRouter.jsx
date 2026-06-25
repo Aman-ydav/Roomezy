@@ -23,6 +23,7 @@ import FindRoom from "@/pages/About/FindRoom";
 import SavedPosts from "@/pages/saved/SavedPosts";
 import ChatLayout from "@/components/chat/ChatLayout";
 import Feed from "@/pages/feed/Feed.jsx";
+import VerifyIdentityPage from "@/pages/VerifyIdentityPage";
 
 export default function AppRouter() {
   return (
@@ -56,6 +57,7 @@ export default function AppRouter() {
             <Route path="/post/:id/edit" element={<EditPost />} />
             <Route path="/inbox" element={<ChatLayout />} />
             <Route path="/saved" element={<SavedPosts />} />
+            <Route path="/verify-identity" element={<VerifyIdentityPage />} />
           </Route>
         </Route>
       </Routes>

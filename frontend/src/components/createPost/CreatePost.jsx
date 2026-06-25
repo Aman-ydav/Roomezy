@@ -9,6 +9,7 @@ import Step3Images from "./Step3Images";
 import StepIndicator from "./StepIndicator";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import BuyCreditsModal from "@/components/ui/BuyCreditsModal";
 
 
 function ProfileIncompleteModal({ open, onClose, onGoDashboard }) {
@@ -92,6 +93,7 @@ export default function CreatePost() {
 
   const [step, setStep] = useState(1);
   const [error, setError] = useState("");
+  const [showBuyCredits, setShowBuyCredits] = useState(false);
 
   const [formData, setFormData] = useState({
     post_type: "room-available",
@@ -182,13 +184,26 @@ export default function CreatePost() {
 
       navigate("/dashboard");
     } catch (err) {
-      setError(err.message || "Error while creating the post.");
+      if (err.status === 402 || err.statusCode === 402) {
+        setShowBuyCredits(true);
+      } else {
+        setError(err.message || "Error while creating the post.");
+      }
     }
   };
 
 
   return (
     <>
+      <BuyCreditsModal
+        open={showBuyCredits}
+        onClose={() => setShowBuyCredits(false)}
+        onSuccess={() => {
+          setShowBuyCredits(false);
+          handleSubmit();
+        }}
+      />
+
       <ProfileIncompleteModal
         open={isProfileIncomplete}
         onClose={() => navigate("/", { replace: true })}

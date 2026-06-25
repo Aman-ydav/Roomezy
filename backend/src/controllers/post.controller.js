@@ -96,8 +96,132 @@ export const createPost = asyncHandler(async (req, res) => {
 });
 
 export const getAllPosts = asyncHandler(async (req, res) => {
-  const posts = await Post.find({ archived: false }).populate("user", "userName age avatar rating");
-  return res.status(200).json(new ApiResponse(200, posts, "Posts fetched"));
+  const {
+    q,
+    type,
+    rentMin,
+    rentMax,
+    city,
+    lat,
+    lng,
+    radius = 10,
+    page = 1,
+    limit = 20,
+    sort = "newest",
+  } = req.query;
+
+  const filter = { archived: false };
+
+  if (q) filter.$text = { $search: q };
+  if (type) filter.post_type = type;
+  if (city) filter.location = { $regex: new RegExp(city, "i") };
+  if (rentMin || rentMax) {
+    filter.rent = {};
+    if (rentMin) filter.rent.$gte = Number(rentMin);
+    if (rentMax) filter.rent.$lte = Number(rentMax);
+  }
+
+  // Geo filter — proximity search when lat/lng provided
+  if (lat && lng) {
+    filter.geoLocation = {
+      $near: {
+        $geometry: { type: "Point", coordinates: [Number(lng), Number(lat)] },
+        $maxDistance: Number(radius) * 1000,
+      },
+    };
+  }
+
+  const sortMap = {
+    newest:    { createdAt: -1 },
+    oldest:    { createdAt: 1 },
+    cheapest:  { rent: 1 },
+    expensive: { rent: -1 },
+    rating:    { averageRating: -1 },
+  };
+  const sortQuery = q
+    ? { score: { $meta: "textScore" }, ...sortMap[sort] }
+    : (sortMap[sort] || sortMap.newest);
+
+  const projection = q ? { score: { $meta: "textScore" } } : {};
+
+  const skip  = (Number(page) - 1) * Number(limit);
+  const [posts, total] = await Promise.all([
+    Post.find(filter, projection)
+      .sort(sortQuery)
+      .skip(skip)
+      .limit(Number(limit))
+      .populate("user", "userName age avatar rating kycStatus"),
+    Post.countDocuments(filter),
+  ]);
+
+  return res.status(200).json(
+    new ApiResponse(200, {
+      posts,
+      total,
+      page:  Number(page),
+      pages: Math.ceil(total / Number(limit)),
+    }, "Posts fetched")
+  );
+});
+
+export const getFeed = asyncHandler(async (req, res) => {
+  const userId = req.user?._id;
+  const { page = 1, limit = 20 } = req.query;
+  const skip = (Number(page) - 1) * Number(limit);
+
+  const user = userId
+    ? await User.findById(userId).select("budgetMin budgetMax city kycStatus")
+    : null;
+
+  const basePosts = await Post.find({ archived: false, status_badge: "active" })
+    .sort({ createdAt: -1 })
+    .limit(300)
+    .populate("user", "userName age avatar rating kycStatus");
+
+  const now = Date.now();
+  const MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
+
+  const scored = basePosts.map((post) => {
+    let score = 0;
+
+    // City match
+    if (user?.city && post.location?.toLowerCase().includes(user.city.toLowerCase())) {
+      score += 40;
+    }
+    // Budget match
+    if (user?.budgetMin != null && user?.budgetMax != null && post.rent) {
+      const inBudget = post.rent >= user.budgetMin && post.rent <= user.budgetMax;
+      if (inBudget) score += 30;
+    }
+    // Recency (max +20 for posts < 1 day, 0 for posts > 30 days)
+    const ageRatio = Math.min(1, (now - new Date(post.createdAt).getTime()) / MAX_AGE_MS);
+    score += Math.round(20 * (1 - ageRatio));
+
+    // Rating
+    if (post.averageRating >= 4) score += 10;
+    else if (post.averageRating >= 3) score += 5;
+
+    // Photos
+    const photoCount = (post.additional_images?.length || 0) + (post.main_image ? 1 : 0);
+    if (photoCount >= 3) score += 5;
+
+    // KYC verified owner
+    if (post.user?.kycStatus === "verified") score += 20;
+
+    return { post, score };
+  });
+
+  scored.sort((a, b) => b.score - a.score);
+  const paginated = scored.slice(skip, skip + Number(limit)).map((s) => s.post);
+
+  return res.status(200).json(
+    new ApiResponse(200, {
+      posts: paginated,
+      total: scored.length,
+      page:  Number(page),
+      pages: Math.ceil(scored.length / Number(limit)),
+    }, "Feed fetched")
+  );
 });
 
 export const getPostById = asyncHandler(async (req, res) => {
