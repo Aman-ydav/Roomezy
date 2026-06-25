@@ -1,6 +1,7 @@
 import { Server } from "socket.io";
 import jwt from "jsonwebtoken";
 import { sendNotification } from "../utils/sendNotification.js";
+import { createNotification } from "../utils/createNotification.js";
 import { User } from "../models/user.model.js";
 
 // Presence state
@@ -12,11 +13,21 @@ const userVisibility = new Map();   // userId → boolean
 const lastMessageSent = new Map();  // userId → timestamp
 const lastTypingEvent = new Map();  // userId → timestamp
 
+// Shared io reference so controllers can ping the bell without circular imports
+let _io = null;
+
 // Helper — get any active socketId for a user
 function getSocketId(userId) {
-  const sockets = onlineUsers.get(userId);
+  const sockets = onlineUsers.get(userId?.toString());
   if (!sockets?.size) return null;
   return sockets.values().next().value;
+}
+
+// Call from controllers after createNotification to update bell in real time
+export function notifyUser(userId) {
+  if (!_io) return;
+  const socketId = getSocketId(userId?.toString());
+  if (socketId) _io.to(socketId).emit("new-notification");
 }
 
 export const initSocketServer = (server) => {
@@ -40,6 +51,8 @@ export const initSocketServer = (server) => {
       next(new Error("Invalid token"));
     }
   });
+
+  _io = io;
 
   io.on("connection", (socket) => {
     const userId = socket.userId;
@@ -68,8 +81,9 @@ export const initSocketServer = (server) => {
 
     // CHECK USER STATUS
     socket.on("check-user-status", (targetUserId) => {
-      const isOnline = (onlineUsers.get(targetUserId)?.size || 0) > 0;
-      socket.emit("user-status", { userId: targetUserId, isOnline });
+      const uid = targetUserId?.toString();
+      const isOnline = (onlineUsers.get(uid)?.size || 0) > 0;
+      socket.emit("user-status", { userId: uid, isOnline });
     });
 
     // JOIN ROOM
@@ -123,10 +137,42 @@ export const initSocketServer = (server) => {
           io.to(receiverSocketId).emit("receive-message", payload);
         }
 
-        // Push notification if receiver tab is not visible
-        const isVisible = userVisibility.get(receiverId);
+        const rid = receiverId?.toString();
+
+        // Check if receiver is actively viewing this conversation (in the socket room)
+        const roomMembers    = io.sockets.adapter.rooms.get(conversationId);
+        const receiverSockets = onlineUsers.get(rid);
+        let receiverInConversation = false;
+        if (roomMembers && receiverSockets) {
+          for (const sid of receiverSockets) {
+            if (roomMembers.has(sid)) { receiverInConversation = true; break; }
+          }
+        }
+
+        // Skip everything — they can see the message live in the open chat
+        if (receiverInConversation) return;
+
+        // Save in-app notification and emit real-time bell update
+        const notif = await createNotification({
+          userId: rid,
+          type:   "new_message",
+          title:  sender?.userName || "New message",
+          body:   text.length > 80 ? text.slice(0, 77) + "..." : text,
+          link:   "/inbox",
+          meta:   { conversationId, senderId: userId },
+        });
+
+        if (notif) {
+          const receiverSocketId = getSocketId(rid);
+          if (receiverSocketId) {
+            io.to(receiverSocketId).emit("new-notification");
+          }
+        }
+
+        // Push only when tab is not visible (fix: use toString() for map lookup)
+        const isVisible = userVisibility.get(rid);
         if (!isVisible) {
-          await sendNotification(receiverId, {
+          sendNotification(rid, {
             title: `${sender?.userName || "New message"}`,
             body: text,
             url: "/inbox",

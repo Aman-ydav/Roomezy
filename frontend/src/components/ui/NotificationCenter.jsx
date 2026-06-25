@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Bell } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "@/utils/axiosInterceptor";
+import { socket } from "@/socket/socket";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -35,11 +36,24 @@ export default function NotificationCenter() {
     }
   }
 
+  // Initial fetch + 60s poll
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 60_000);
     return () => clearInterval(interval);
   }, []);
+
+  // Real-time: server emits "new-notification" when a notification is created
+  useEffect(() => {
+    const handler = () => fetchNotifications();
+    socket.on("new-notification", handler);
+    return () => socket.off("new-notification", handler);
+  }, []);
+
+  // Re-fetch whenever the dropdown is opened so count is always fresh
+  useEffect(() => {
+    if (open) fetchNotifications();
+  }, [open]);
 
   async function handleMarkAllRead() {
     try {

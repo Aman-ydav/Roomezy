@@ -5,6 +5,8 @@ import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { compareFaces } from "../utils/faceMatch.js";
 import { razorpay, verifyPaymentSignature } from "../utils/razorpay.js";
+import { createNotification } from "../utils/createNotification.js";
+import { notifyUser } from "../socket/index.js";
 import { v2 as cloudinary } from "cloudinary";
 
 async function uploadBufferToCloudinary(buffer, folder) {
@@ -192,6 +194,15 @@ export const verifyKycPayment = asyncHandler(async (req, res) => {
     kycMatchedAt:       null,
     kycPaymentDeadline: null,
   });
+
+  await createNotification({
+    userId: req.user._id,
+    type:   "kyc_verified",
+    title:  "Identity Verified",
+    body:   "Your identity has been verified. The verified badge is now active on your profile and posts.",
+    link:   "/dashboard",
+  });
+  notifyUser(req.user._id.toString());
 
   res.json(new ApiResponse(200, { kycStatus: "verified" }, "Identity verified. Badge activated."));
 });

@@ -4,6 +4,8 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { createNotification } from "../utils/createNotification.js";
+import { notifyUser } from "../socket/index.js";
 
 // POST /api/v1/payments/post-credits/order
 export const createPostCreditsOrder = asyncHandler(async (req, res) => {
@@ -80,6 +82,16 @@ export const verifyPostCreditsPayment = asyncHandler(async (req, res) => {
   await User.findByIdAndUpdate(payment.userId, {
     $inc: { postCreditsBalance: payment.quantity },
   });
+
+  await createNotification({
+    userId: payment.userId,
+    type:   "credits_added",
+    title:  "Post Credits Added",
+    body:   `${payment.quantity} post credit${payment.quantity > 1 ? "s" : ""} have been added to your account. You can now publish ${payment.quantity} more listing${payment.quantity > 1 ? "s" : ""}.`,
+    link:   "/dashboard",
+    meta:   { creditsAdded: payment.quantity },
+  });
+  notifyUser(payment.userId.toString());
 
   res.json(
     new ApiResponse(200, {
