@@ -17,7 +17,7 @@ function App() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((s) => s.auth.user);
-  const popup = useSelector((s) => s.ui.popup);
+  const popup = useSelector((s) => s.ui.popupQueue?.[0] ?? null);
 
   useChatSocket();
 

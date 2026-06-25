@@ -39,10 +39,9 @@ async function initPushAndPWA() {
       return;
     }
 
-    // 3) Create subscription
-    const existingSub = await registration.pushManager.getSubscription();
-    let subscription = existingSub;
-
+    // 3) Always get fresh subscription — upserts on every login so stale
+    //    endpoints on the server are replaced before they expire
+    let subscription = await registration.pushManager.getSubscription();
     if (!subscription) {
       subscription = await registration.pushManager.subscribe({
         userVisibleOnly: true,

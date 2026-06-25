@@ -20,7 +20,7 @@ export default function useChatSocket() {
   useEffect(() => {
     if (!socket) return;
 
-    const handler = (msg) => {
+    const handler = async (msg) => {
       try {
         const {
           conversationId,
@@ -41,27 +41,19 @@ export default function useChatSocket() {
           })
         );
 
-        // Get latest runtime values from store
         const state = store.getState();
         const currentUserId = state.chat?.currentUserId;
         const currentChatId = state.chat?.currentChatId;
 
-        // If it's my own message — nothing else to do
-        if (!senderId || String(senderId) === String(currentUserId)) {
-          return;
-        }
+        if (!senderId || String(senderId) === String(currentUserId)) return;
 
-        // If tab is hidden, let service worker handle system push
-        if (document.visibilityState !== "visible") {
-          return;
-        }
+        // 100ms debounce — visibilityState may not have settled on tab switch
+        await new Promise((r) => setTimeout(r, 100));
 
-        // If user currently has this chat open — don't show popup
-        if (currentChatId && String(currentChatId) === String(conversationId)) {
-          return;
-        }
+        if (document.visibilityState !== "visible") return;
 
-        // Show in-app popup (centered top)
+        if (currentChatId && String(currentChatId) === String(conversationId)) return;
+
         store.dispatch(
           showPopup({
             senderName: senderName || "New Message",
