@@ -16,19 +16,31 @@ export const createPostCreditsOrder = asyncHandler(async (req, res) => {
   const qty = Number(quantity);
   const amount = qty * 49;
 
-  const order = await razorpay.orders.create({
-    amount: amount * 100,
-    currency: "INR",
-    receipt: `credits_${req.user._id}_${Date.now()}`,
-  });
+  let order;
+  try {
+    order = await razorpay.orders.create({
+      amount: amount * 100,
+      currency: "INR",
+      receipt: `cr_${Date.now()}`,
+    });
+  } catch (rzErr) {
+    console.error("[Payment] Razorpay order create error:", rzErr);
+    const msg = rzErr?.error?.description || rzErr?.message || "Failed to create payment order";
+    throw new ApiError(502, msg);
+  }
 
-  await Payment.create({
-    userId: req.user._id,
-    type: "post_credits",
-    amount,
-    quantity: qty,
-    razorpayOrderId: order.id,
-  });
+  try {
+    await Payment.create({
+      userId: req.user._id,
+      type: "post_credits",
+      amount,
+      quantity: qty,
+      razorpayOrderId: order.id,
+    });
+  } catch (dbErr) {
+    console.error("[Payment] DB save error:", dbErr);
+    throw new ApiError(500, dbErr.message || "Failed to save order");
+  }
 
   res.status(201).json(
     new ApiResponse(201, {

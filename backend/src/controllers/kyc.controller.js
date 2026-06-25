@@ -86,7 +86,7 @@ export const submitKyc = asyncHandler(async (req, res) => {
   const newAttempts = user.kycAttempts + 1;
   await User.findByIdAndUpdate(req.user._id, {
     $inc: { kycAttempts: 1 },
-    kycStatus:      newAttempts >= 3 ? "attempts_exhausted" : "none",
+    kycStatus:      newAttempts >= 20 ? "attempts_exhausted" : "none",
     kycSelfieUrl:   selfieUpload.secure_url,
     kycDocumentUrl: docUpload.secure_url,
   });
@@ -96,8 +96,8 @@ export const submitKyc = asyncHandler(async (req, res) => {
     confidence:        result.confidence,
     attemptsUsed:      newAttempts,
     attemptsRemaining: Math.max(0, 20 - newAttempts),
-  }, newAttempts >= 3
-    ? "All attempts exhausted. Contact support."
+  }, newAttempts >= 20
+    ? "All 20 attempts exhausted. Contact support."
     : `Face did not match. ${20 - newAttempts} attempt(s) remaining.`
   ));
 });
