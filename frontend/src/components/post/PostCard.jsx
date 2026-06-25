@@ -3,6 +3,7 @@ import { Badge } from "@/components/ui/badge";
 import { MapPin, IndianRupee } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useMemo } from "react";
+import VerifiedBadge from "@/components/ui/VerifiedBadge";
 
 export default function PostCard({ post, index = 0 }) {
   const navigate = useNavigate();
@@ -102,8 +103,9 @@ export default function PostCard({ post, index = 0 }) {
 
       <div className="p-4 flex flex-col grow justify-between">
         <div className="flex justify-between items-center mb-2">
-          <h3 className="text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300 truncate">
+          <h3 className="flex items-center gap-1 text-lg font-semibold text-foreground group-hover:text-primary transition-colors duration-300 truncate">
             {post.title}
+            {post.user?.kycStatus === "verified" && <VerifiedBadge size={15} />}
           </h3>
           <Badge
             className={`font-semibold px-3 py-1 rounded-full border group-hover:shadow-md transition-shadow duration-300 ${

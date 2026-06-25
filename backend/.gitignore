@@ -118,3 +118,7 @@ dist
 .pnp.*
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Node
+
+# face-api model weight files (large binary, download separately — see face-models/README.md)
+src/face-models/*.bin
+src/face-models/*.json

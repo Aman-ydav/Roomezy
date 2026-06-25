@@ -18,7 +18,7 @@ import {
   Image,
   PanelLeftClose,
   PanelLeftOpen,
-  ImageDown,
+  BadgeCheck,
 } from "lucide-react";
 import {
   DropdownMenu,
@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useRef, useEffect } from "react";
+import NotificationCenter from "@/components/ui/NotificationCenter";
 
 export default function Navbar({
   onToggleSidebar,
@@ -162,6 +163,9 @@ export default function Navbar({
             </button>
           )}
 
+          {/* Notifications */}
+          {user && <NotificationCenter />}
+
           {/* Auth Menu */}
           {user ? (
             <DropdownMenu>
@@ -204,6 +208,9 @@ export default function Navbar({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                   <Settings className="mr-2 h-4 w-4" /> Account Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/verify-identity")}>
+                  <BadgeCheck className="mr-2 h-4 w-4" /> Verify Identity
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
@@ -267,6 +274,7 @@ export default function Navbar({
               <MessageCircle className="h-5 w-5 text-muted-foreground" />
             </button>
           )}
+          {user && <NotificationCenter />}
           <button
             ref={mobileSearchButtonRef}
             onClick={() => setShowSearch((prev) => !prev)}
@@ -310,6 +318,9 @@ export default function Navbar({
                 </DropdownMenuItem>
                 <DropdownMenuItem onClick={() => navigate("/edit-profile")}>
                   <Settings className="mr-2 h-4 w-4" /> Account Settings
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => navigate("/verify-identity")}>
+                  <BadgeCheck className="mr-2 h-4 w-4" /> Verify Identity
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={handleLogout}>
