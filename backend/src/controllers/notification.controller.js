@@ -38,3 +38,19 @@ export const markOneRead = asyncHandler(async (req, res) => {
   if (!notification) throw new ApiError(404, "Notification not found");
   res.json(new ApiResponse(200, notification, "Notification marked as read"));
 });
+
+// DELETE /api/v1/notifications/:id
+export const deleteOne = asyncHandler(async (req, res) => {
+  const notification = await Notification.findOneAndDelete({
+    _id: req.params.id,
+    userId: req.user._id,
+  });
+  if (!notification) throw new ApiError(404, "Notification not found");
+  res.json(new ApiResponse(200, null, "Notification deleted"));
+});
+
+// DELETE /api/v1/notifications
+export const deleteAll = asyncHandler(async (req, res) => {
+  await Notification.deleteMany({ userId: req.user._id });
+  res.json(new ApiResponse(200, null, "All notifications deleted"));
+});

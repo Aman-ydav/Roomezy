@@ -6,6 +6,8 @@ import {
   getNotifications,
   markAllRead,
   markOneRead,
+  deleteOne,
+  deleteAll,
 } from "../controllers/notification.controller.js";
 
 const router = express.Router();
@@ -25,5 +27,7 @@ router.post("/subscribe", verifyJWT, asyncHandler(async (req, res) => {
 router.get("/",              verifyJWT, getNotifications);
 router.patch("/read-all",    verifyJWT, markAllRead);
 router.patch("/:id/read",    verifyJWT, markOneRead);
+router.delete("/",           verifyJWT, deleteAll);
+router.delete("/:id",        verifyJWT, deleteOne);
 
 export default router;

@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Trash2, CheckCheck, X, Check } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "@/utils/axiosInterceptor";
 import { socket } from "@/socket/socket";
@@ -7,9 +7,6 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuLabel,
 } from "@/components/ui/dropdown-menu";
 
 function timeAgo(date) {
@@ -20,37 +17,38 @@ function timeAgo(date) {
   return `${Math.floor(secs / 86400)}d ago`;
 }
 
+const TYPE_COLORS = {
+  new_message:  "bg-blue-500",
+  kyc_verified: "bg-green-500",
+  credits_added:"bg-amber-500",
+};
+
 export default function NotificationCenter() {
   const navigate = useNavigate();
   const [notifications, setNotifications] = useState([]);
   const [unreadCount,   setUnreadCount]   = useState(0);
-  const [open, setOpen] = useState(false);
+  const [open,          setOpen]          = useState(false);
 
   async function fetchNotifications() {
     try {
       const { data } = await axiosInstance.get("/notifications");
       setNotifications(data.data.notifications || []);
       setUnreadCount(data.data.unreadCount || 0);
-    } catch {
-      // silently ignore
-    }
+    } catch {}
   }
 
-  // Initial fetch + 60s poll
   useEffect(() => {
     fetchNotifications();
     const interval = setInterval(fetchNotifications, 60_000);
     return () => clearInterval(interval);
   }, []);
 
-  // Real-time: server emits "new-notification" when a notification is created
   useEffect(() => {
     const handler = () => fetchNotifications();
     socket.on("new-notification", handler);
     return () => socket.off("new-notification", handler);
   }, []);
 
-  // Re-fetch whenever the dropdown is opened so count is always fresh
   useEffect(() => {
     if (open) fetchNotifications();
   }, [open]);
@@ -63,18 +61,46 @@ export default function NotificationCenter() {
     } catch {}
   }
 
-  async function handleClickNotification(notification) {
-    if (!notification.read) {
+  async function handleMarkOneRead(e, id) {
+    e.stopPropagation();
+    try {
+      await axiosInstance.patch(`/notifications/${id}/read`);
+      setNotifications((prev) =>
+        prev.map((n) => n._id === id ? { ...n, read: true } : n)
+      );
+      setUnreadCount((c) => Math.max(0, c - 1));
+    } catch {}
+  }
+
+  async function handleDeleteOne(e, id, wasUnread) {
+    e.stopPropagation();
+    try {
+      await axiosInstance.delete(`/notifications/${id}`);
+      setNotifications((prev) => prev.filter((n) => n._id !== id));
+      if (wasUnread) setUnreadCount((c) => Math.max(0, c - 1));
+    } catch {}
+  }
+
+  async function handleDeleteAll() {
+    try {
+      await axiosInstance.delete("/notifications");
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch {}
+  }
+
+  async function handleClickNotification(n) {
+    if (!n.read) {
       try {
-        await axiosInstance.patch(`/notifications/${notification._id}/read`);
+        await axiosInstance.patch(`/notifications/${n._id}/read`);
         setNotifications((prev) =>
-          prev.map((n) => n._id === notification._id ? { ...n, read: true } : n)
+          prev.map((x) => x._id === n._id ? { ...x, read: true } : x)
         );
         setUnreadCount((c) => Math.max(0, c - 1));
       } catch {}
     }
     setOpen(false);
-    if (notification.link) navigate(notification.link);
+    if (n.link) navigate(n.link);
   }
 
   return (
@@ -95,53 +121,105 @@ export default function NotificationCenter() {
 
       <DropdownMenuContent
         align="end"
-        className="w-80 bg-card border border-border/40 shadow-xl rounded-xl mt-2 max-h-[420px] overflow-y-auto"
+        className="w-80 p-0 bg-card border border-border shadow-xl rounded-xl mt-2 overflow-hidden"
       >
-        <div className="flex items-center justify-between px-3 py-2">
-          <DropdownMenuLabel className="text-sm font-semibold p-0">
-            Notifications
-          </DropdownMenuLabel>
-          {unreadCount > 0 && (
-            <button
-              onClick={handleMarkAllRead}
-              className="text-xs text-primary hover:underline"
-            >
-              Mark all read
-            </button>
+        {/* ── Pinned header ── */}
+        <div className="sticky top-0 z-10 bg-card border-b border-border px-4 py-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <span className="text-sm font-semibold text-foreground">Notifications</span>
+            {unreadCount > 0 && (
+              <span className="text-[10px] font-bold bg-primary text-primary-foreground rounded-full px-1.5 py-0.5">
+                {unreadCount}
+              </span>
+            )}
+          </div>
+          <div className="flex items-center gap-3">
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllRead}
+                className="flex items-center gap-1 text-[11px] text-primary hover:text-primary/80 font-medium transition-colors"
+                title="Mark all as read"
+              >
+                <CheckCheck size={13} />
+                Mark all read
+              </button>
+            )}
+            {notifications.length > 0 && (
+              <button
+                onClick={handleDeleteAll}
+                className="flex items-center gap-1 text-[11px] text-muted-foreground hover:text-destructive font-medium transition-colors"
+                title="Delete all"
+              >
+                <Trash2 size={13} />
+                Clear all
+              </button>
+            )}
+          </div>
+        </div>
+
+        {/* ── Scrollable list ── */}
+        <div className="overflow-y-auto max-h-[360px]">
+          {notifications.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-10 gap-2 text-muted-foreground">
+              <Bell size={28} className="opacity-20" />
+              <p className="text-xs">No notifications yet</p>
+            </div>
+          ) : (
+            <div className="py-1">
+              {notifications.map((n) => (
+                <div
+                  key={n._id}
+                  onClick={() => handleClickNotification(n)}
+                  className={`group relative flex items-start gap-3 px-4 py-3 cursor-pointer transition-colors hover:bg-muted/50 ${
+                    !n.read ? "bg-primary/5" : ""
+                  }`}
+                >
+                  {/* Unread dot / type color */}
+                  <div className="shrink-0 mt-1">
+                    {!n.read ? (
+                      <span className={`block h-2 w-2 rounded-full ${TYPE_COLORS[n.type] || "bg-primary"}`} />
+                    ) : (
+                      <span className="block h-2 w-2 rounded-full bg-transparent" />
+                    )}
+                  </div>
+
+                  {/* Content */}
+                  <div className="flex-1 min-w-0 pr-12">
+                    <p className={`text-sm leading-tight ${!n.read ? "font-semibold text-foreground" : "font-medium text-foreground/80"}`}>
+                      {n.title}
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2 leading-relaxed">
+                      {n.body}
+                    </p>
+                    <p className="text-[10px] text-muted-foreground/60 mt-1.5">
+                      {timeAgo(n.createdAt)}
+                    </p>
+                  </div>
+
+                  {/* Action buttons — shown on hover */}
+                  <div className="absolute right-3 top-3 hidden group-hover:flex items-center gap-1">
+                    {!n.read && (
+                      <button
+                        onClick={(e) => handleMarkOneRead(e, n._id)}
+                        className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-primary transition-colors"
+                        title="Mark as read"
+                      >
+                        <Check size={13} />
+                      </button>
+                    )}
+                    <button
+                      onClick={(e) => handleDeleteOne(e, n._id, !n.read)}
+                      className="p-1 rounded-md hover:bg-muted text-muted-foreground hover:text-destructive transition-colors"
+                      title="Delete"
+                    >
+                      <X size={13} />
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
           )}
         </div>
-        <DropdownMenuSeparator />
-
-        {notifications.length === 0 ? (
-          <p className="text-xs text-muted-foreground text-center py-6">
-            No notifications yet
-          </p>
-        ) : (
-          notifications.map((n) => (
-            <DropdownMenuItem
-              key={n._id}
-              onClick={() => handleClickNotification(n)}
-              className={`flex flex-col items-start px-3 py-2 cursor-pointer rounded-lg mx-1 my-0.5 ${
-                !n.read ? "bg-primary/5" : ""
-              }`}
-            >
-              <div className="flex items-start gap-2 w-full">
-                {!n.read && (
-                  <span className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-primary" />
-                )}
-                <div className={!n.read ? "" : "ml-4"}>
-                  <p className="text-sm font-medium leading-tight">{n.title}</p>
-                  <p className="text-xs text-muted-foreground mt-0.5 line-clamp-2">
-                    {n.body}
-                  </p>
-                  <p className="text-[10px] text-muted-foreground mt-1">
-                    {timeAgo(n.createdAt)}
-                  </p>
-                </div>
-              </div>
-            </DropdownMenuItem>
-          ))
-        )}
       </DropdownMenuContent>
     </DropdownMenu>
   );
