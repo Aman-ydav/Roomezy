@@ -88,6 +88,31 @@ const userSchema = new Schema(
         verificationCodeExpire: {
             type: Date,
         },
+
+        // Recommendation preferences
+        budgetMin: { type: Number, default: 0 },
+        budgetMax: { type: Number, default: 0 },
+
+        // Post credits (owners only — 5 free posts, then ₹49/post)
+        postCreditsBalance: { type: Number, default: 0, min: 0 },
+
+        // KYC verification
+        kycStatus: {
+            type: String,
+            enum: ["none", "awaiting_payment", "verified", "attempts_exhausted"],
+            default: "none",
+        },
+        kycAttempts:        { type: Number, default: 0, max: 3 },
+        kycMatchedAt:       { type: Date, default: null },
+        kycPaymentDeadline: { type: Date, default: null },
+        kycVerifiedAt:      { type: Date, default: null },
+        kycDocumentType: {
+            type: String,
+            enum: ["aadhaar", "pan", "passport"],
+            default: null,
+        },
+        kycSelfieUrl:   { type: String, default: null },
+        kycDocumentUrl: { type: String, default: null },
     },
     { timestamps: true }
 );

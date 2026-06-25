@@ -41,9 +41,20 @@ const messageSchema = new mongoose.Schema(
             default: "text",
         },
 
-        read: { type: Boolean, default: false },
+        read:        { type: Boolean, default: false },
+        deliveredAt: { type: Date, default: null },
+        readAt:      { type: Date, default: null },
+        replyTo: {
+            type: mongoose.Schema.Types.ObjectId,
+            ref: "Message",
+            default: null,
+        },
     },
     { timestamps: true }
 );
+
+messageSchema.index({ conversationId: 1, createdAt: -1 });
+messageSchema.index({ sender: 1 });
+messageSchema.index({ receiver: 1 });
 
 export const Message = mongoose.model("Message", messageSchema);

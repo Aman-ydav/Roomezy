@@ -36,6 +36,17 @@ const postSchema = new Schema({
       trim: true,
       index: true,
     },
+    geoLocation: {
+      type: {
+        type: String,
+        enum: ["Point"],
+        default: "Point",
+      },
+      coordinates: {
+        type: [Number],
+        default: [0, 0],
+      },
+    },
     rent: {
       type: Number,
       default: 0,
@@ -130,5 +141,11 @@ postSchema.pre("save", function (next) {
 
 
 
+
+postSchema.index({ geoLocation: "2dsphere" });
+postSchema.index({ title: "text", description: "text", location: "text" });
+postSchema.index({ rent: 1 });
+postSchema.index({ createdAt: -1 });
+postSchema.index({ user: 1 });
 
 export const Post = mongoose.model("Post", postSchema);
