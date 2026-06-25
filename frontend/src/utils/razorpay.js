@@ -11,14 +11,20 @@ import axiosInstance from "./axiosInterceptor";
  * @param {function} opts.onSuccess   - Called with { razorpayOrderId, razorpayPaymentId, razorpaySignature }
  * @param {function} opts.onFailure   - Called with error message
  */
-export function openRazorpay({ orderId, amount, description, userName, userEmail, onSuccess, onFailure }) {
+export function openRazorpay({ orderId, amount, keyId, description, userName, userEmail, onSuccess, onFailure }) {
   if (!window.Razorpay) {
     onFailure?.("Razorpay SDK not loaded. Please refresh the page.");
     return;
   }
 
+  const key = keyId || import.meta.env.VITE_RAZORPAY_KEY_ID;
+  if (!key) {
+    onFailure?.("Razorpay key not configured.");
+    return;
+  }
+
   const options = {
-    key: import.meta.env.VITE_RAZORPAY_KEY_ID,
+    key,
     amount,
     currency: "INR",
     name: "Roomezy",
@@ -61,6 +67,7 @@ export async function buyPostCredits(quantity) {
     openRazorpay({
       orderId:     order.orderId,
       amount:      order.amount,
+      keyId:       order.keyId,
       description: `${order.quantity} post credit(s)`,
       onSuccess: async (payload) => {
         try {
@@ -86,6 +93,7 @@ export async function payForKyc() {
     openRazorpay({
       orderId:     order.orderId,
       amount:      order.amount,
+      keyId:       order.keyId,
       description: "Roomezy Identity Verification Badge (₹99)",
       onSuccess: async (payload) => {
         try {

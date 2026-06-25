@@ -9,9 +9,10 @@ const { Canvas, Image, ImageData } = canvas;
 faceapi.env.monkeyPatch({ Canvas, Image, ImageData });
 
 let modelsLoaded = false;
+// Load from the npm package's bundled models — always present in both dev and production
 const MODELS_PATH = path.resolve(
   path.dirname(fileURLToPath(import.meta.url)),
-  "../face-models"
+  "../../node_modules/@vladmandic/face-api/model"
 );
 
 async function loadModels() {

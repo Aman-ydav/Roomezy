@@ -31,7 +31,21 @@ export const submitKyc = asyncHandler(async (req, res) => {
     throw new ApiError(400, "All 20 attempts used. Contact support.");
   }
   if (user.kycStatus === "awaiting_payment") {
-    throw new ApiError(400, "A matched verification is awaiting payment. Pay within the deadline.");
+    if (new Date() <= new Date(user.kycPaymentDeadline)) {
+      // Still within deadline — skip face match, send user straight to payment
+      return res.json(new ApiResponse(200, {
+        redirectToPayment: true,
+        paymentDeadline:   user.kycPaymentDeadline,
+      }, "Your face match is pending payment. Complete the ₹99 payment to activate your badge."));
+    }
+    // Deadline expired — reset and allow fresh verification
+    await User.findByIdAndUpdate(req.user._id, {
+      kycStatus:          "none",
+      kycMatchedAt:       null,
+      kycPaymentDeadline: null,
+    });
+    user.kycStatus          = "none";
+    user.kycPaymentDeadline = null;
   }
 
   const selfieFile   = req.files?.selfie?.[0];
