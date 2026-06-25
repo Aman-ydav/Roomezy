@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { ChevronLeft, MoreVertical, Phone, Video, Info } from "lucide-react";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import UnverifiedBadge from "@/components/ui/UnverifiedBadge";
 import { useChat } from "../../hooks/useChat";
 import { useUserStatus } from "@/hooks/useUserStatus";
 import MessageList from "./MessageList";
@@ -77,7 +78,10 @@ export default function ChatWindow({ conversation, onBack, currentUser }) {
           <div>
             <h2 className="font-semibold flex items-center gap-1">
               {partner?.userName}
-              {partner?.kycStatus === "verified" && <VerifiedBadge size={15} />}
+              {partner?.kycStatus === "verified"
+                ? <VerifiedBadge size={15} />
+                : <UnverifiedBadge size={14} />
+              }
             </h2>
             <p className="text-xs text-muted-foreground">
               {isPartnerOnline ? "Online" : "Offline"}

@@ -212,12 +212,23 @@ export default function Dashboard() {
           Manage your posts, track engagement, and personalize your experience.
         </p>
         {user?.kycStatus !== "verified" && (
-          <button
-            onClick={() => navigate("/verify-identity")}
-            className="mt-2 text-sm text-indigo-500 hover:underline flex items-center gap-1"
-          >
-            <VerifiedBadge size={14} /> Verify your identity to get a verified badge
-          </button>
+          <div className="mt-4 flex items-center gap-3 bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-200 dark:border-indigo-800 rounded-xl px-4 py-3 max-w-xl">
+            <VerifiedBadge size={22} className="shrink-0" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-indigo-700 dark:text-indigo-300">
+                Stand out — verify your identity
+              </p>
+              <p className="text-xs text-indigo-500 dark:text-indigo-400 mt-0.5">
+                Verified users build more trust and get more responses. One-time ₹99.
+              </p>
+            </div>
+            <button
+              onClick={() => navigate("/verify-identity")}
+              className="shrink-0 text-xs font-semibold bg-indigo-600 hover:bg-indigo-700 text-white px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Verify Now
+            </button>
+          </div>
         )}
       </div>
 

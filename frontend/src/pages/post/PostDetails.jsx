@@ -10,6 +10,7 @@ import {
 } from "@/features/post/postSlice";
 import { Badge } from "@/components/ui/badge";
 import VerifiedBadge from "@/components/ui/VerifiedBadge";
+import UnverifiedBadge from "@/components/ui/UnverifiedBadge";
 import { createConversation } from "@/utils/chatApi";
 import {
   IndianRupee,
@@ -560,17 +561,22 @@ export default function PostDetails() {
                 <div className="flex-1">
                   <h4 className="font-bold text-foreground text-lg flex items-center gap-1.5">
                     {post?.user?.userName || "Unknown User"}
-                    {post?.user?.kycStatus === "verified" && (
-                      <VerifiedBadge size={18} />
-                    )}
+                    {post?.user?.kycStatus === "verified"
+                      ? <VerifiedBadge size={18} />
+                      : <UnverifiedBadge size={16} />
+                    }
                   </h4>
-                  {post?.user?.kycStatus === "verified" && (
-                    <div className="flex items-center gap-1.5 mt-1">
+                  <div className="flex items-center gap-1.5 mt-1">
+                    {post?.user?.kycStatus === "verified" ? (
                       <Badge className="text-xs bg-indigo-100 text-indigo-700 border border-indigo-300 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-700">
                         Identity Verified
                       </Badge>
-                    </div>
-                  )}
+                    ) : (
+                      <Badge className="text-xs bg-muted text-muted-foreground border border-border">
+                        Identity Unconfirmed
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
 
