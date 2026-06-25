@@ -6,7 +6,7 @@ import InstallPWAPopup from "@/components/ui/InstallPWAPopup";
 import { useNavigate } from "react-router-dom";
 import { setNavigator } from "./utils/navigateHelper";
 import { useSelector, useDispatch } from "react-redux";
-import { socket } from "@/socket/socket.js";
+import { socket, connectSocket } from "@/socket/socket.js";
 import { setCurrentUserId } from "@/features/chat/chatSlice";
 import InAppMessagePopup from "@/components/ui/InAppMessagePopup";
 import { hidePopup } from "@/features/ui/uiSlice";
@@ -45,10 +45,11 @@ function App() {
 
     const interval = setInterval(() => {
       try {
-        socket.emit("heartbeat", user._id);
+        socket.emit("heartbeat");
       } catch (err) {
+        // ignore
       }
-    }, 20000); // every 20s
+    }, 20000);
 
     return () => clearInterval(interval);
   }, [user]);
@@ -56,8 +57,8 @@ function App() {
   useEffect(() => {
     if (user?._id) {
       dispatch(setCurrentUserId(user._id));
-      socket.connect();
-      socket.emit("user-connected", user._id);
+      const tokens = JSON.parse(localStorage.getItem("roomezy_tokens") || "{}");
+      connectSocket(tokens.accessToken);
     }
 
     return () => {

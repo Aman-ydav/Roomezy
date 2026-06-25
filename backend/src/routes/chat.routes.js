@@ -9,24 +9,25 @@ import {
     deleteMessageForMe,
     deleteChatForMe,
 } from "../controllers/chat.controller.js";
+import { verifyJWT } from "../middlewares/auth.middleware.js";
 
 const router = express.Router();
 
-router.post("/conversation", createOrGetConversation);
+// All chat routes require authentication
+router.post("/conversation", verifyJWT, createOrGetConversation);
 
-router.get("/conversations/:userId", getUserConversations);
+router.get("/conversations", verifyJWT, getUserConversations);
 
-router.get("/messages/:conversationId", getMessages);
+router.get("/messages/:conversationId", verifyJWT, getMessages);
 
-router.post("/message", sendMessage);
+router.post("/message", verifyJWT, sendMessage);
 
+router.patch("/read/:conversationId", verifyJWT, markMessagesAsRead);
 
-router.patch("/read/:conversationId/:userId", markMessagesAsRead);
+router.patch("/message/delete-everyone", verifyJWT, deleteMessageForEveryone);
 
-router.patch("/message/delete-everyone", deleteMessageForEveryone);
+router.patch("/message/delete-me", verifyJWT, deleteMessageForMe);
 
-router.patch("/message/delete-me", deleteMessageForMe);
-
-router.patch("/conversation/delete-me", deleteChatForMe);
+router.patch("/conversation/delete-me", verifyJWT, deleteChatForMe);
 
 export default router;
