@@ -33,6 +33,5 @@ const paymentSchema = new Schema(
 );
 
 paymentSchema.index({ userId: 1, type: 1 });
-paymentSchema.index({ razorpayOrderId: 1 });
 
 export const Payment = mongoose.model("Payment", paymentSchema);

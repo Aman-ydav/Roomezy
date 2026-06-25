@@ -1,4 +1,6 @@
-import * as faceapi from "@vladmandic/face-api";
+import * as tf from "@tensorflow/tfjs";
+import "@tensorflow/tfjs-backend-wasm";
+import faceapi from "@vladmandic/face-api/dist/face-api.node-wasm.js";
 import * as canvas from "canvas";
 import path from "path";
 import { fileURLToPath } from "url";
@@ -14,6 +16,11 @@ const MODELS_PATH = path.resolve(
 
 async function loadModels() {
   if (modelsLoaded) return;
+
+  // WASM backend must be fully initialized before any TF operations
+  await tf.setBackend("wasm");
+  await tf.ready();
+
   await faceapi.nets.ssdMobilenetv1.loadFromDisk(MODELS_PATH);
   await faceapi.nets.faceLandmark68Net.loadFromDisk(MODELS_PATH);
   await faceapi.nets.faceRecognitionNet.loadFromDisk(MODELS_PATH);

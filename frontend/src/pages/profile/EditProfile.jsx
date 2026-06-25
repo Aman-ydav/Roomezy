@@ -10,6 +10,7 @@ import { updateUser } from "@/features/auth/authSlice";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card } from "@/components/ui/card";
+import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -276,12 +277,21 @@ export default function EditProfile() {
           </div>
 
           <div className="flex-1 space-y-3 text-center md:text-left">
-            <h2 className="text-2xl font-bold text-foreground">
+            <h2 className="text-2xl font-bold text-foreground flex items-center justify-center md:justify-start gap-2">
               {user?.userName}
+              {user?.kycStatus === "verified" && <VerifiedBadge size={20} />}
             </h2>
             <p className="text-sm text-muted-foreground flex items-center justify-center md:justify-start gap-2">
               <Mail className="w-4 h-4 text-accent" /> {user?.email}
             </p>
+            {user?.kycStatus !== "verified" && (
+              <button
+                onClick={() => navigate("/verify-identity")}
+                className="text-xs text-indigo-500 hover:underline flex items-center gap-1 mt-1 justify-center md:justify-start"
+              >
+                <VerifiedBadge size={13} /> Get identity verified
+              </button>
+            )}
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-4">
               {user?.age && (

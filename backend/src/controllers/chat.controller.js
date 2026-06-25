@@ -29,7 +29,7 @@ export const createOrGetConversation = asyncHandler(async (req, res) => {
 
     let conversation = await Conversation.findOne({
         participants: { $all: [senderId, receiverId] },
-    }).populate("participants", "userName avatar createdAt");
+    }).populate("participants", "userName avatar createdAt kycStatus");
 
     if (!conversation) {
         conversation = await Conversation.create({

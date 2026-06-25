@@ -229,7 +229,7 @@ export const getPostById = asyncHandler(async (req, res) => {
   const userId = req.user?._id;
 
   const post = await Post.findById(postId)
-    .populate("user", "userName avatar rating age");
+    .populate("user", "userName avatar rating age kycStatus");
 
   if (!post) throw new ApiError(404, "Post not found");
 

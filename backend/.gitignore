@@ -119,6 +119,5 @@ dist
 
 # End of https://mrkandreev.name/snippets/gitignore-generator/#Node
 
-# face-api model weight files (large binary, download separately — see face-models/README.md)
+# face-api model weight files — large binaries, not committed (copy from node_modules/@vladmandic/face-api/model/)
 src/face-models/*.bin
-src/face-models/*.json

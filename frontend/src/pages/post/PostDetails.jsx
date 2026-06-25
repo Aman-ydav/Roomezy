@@ -9,6 +9,7 @@ import {
   togglePostStatus,
 } from "@/features/post/postSlice";
 import { Badge } from "@/components/ui/badge";
+import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import { createConversation } from "@/utils/chatApi";
 import {
   IndianRupee,
@@ -557,14 +558,19 @@ export default function PostDetails() {
                   <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-green-500 rounded-full border-2 border-card shadow-sm" />
                 </div>
                 <div className="flex-1">
-                  <h4 className="font-bold text-foreground text-lg">
+                  <h4 className="font-bold text-foreground text-lg flex items-center gap-1.5">
                     {post?.user?.userName || "Unknown User"}
+                    {post?.user?.kycStatus === "verified" && (
+                      <VerifiedBadge size={18} />
+                    )}
                   </h4>
-                  <div className="flex items-center gap-2 mt-1">
-                    <Badge className="text-xs bg-green-100 text-green-700 border border-green-300">
-                      Verified Owner
-                    </Badge>
-                  </div>
+                  {post?.user?.kycStatus === "verified" && (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Badge className="text-xs bg-indigo-100 text-indigo-700 border border-indigo-300 dark:bg-indigo-950 dark:text-indigo-300 dark:border-indigo-700">
+                        Identity Verified
+                      </Badge>
+                    </div>
+                  )}
                 </div>
               </div>
 

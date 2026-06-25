@@ -102,7 +102,7 @@ const userSchema = new Schema(
             enum: ["none", "awaiting_payment", "verified", "attempts_exhausted"],
             default: "none",
         },
-        kycAttempts:        { type: Number, default: 0, max: 3 },
+        kycAttempts:        { type: Number, default: 0, max: 20 },
         kycMatchedAt:       { type: Date, default: null },
         kycPaymentDeadline: { type: Date, default: null },
         kycVerifiedAt:      { type: Date, default: null },

@@ -1,6 +1,7 @@
 // src/features/chat/components/ConversationItem.jsx
 import { motion } from "framer-motion";
 import { useUserStatus } from "@/hooks/useUserStatus";
+import VerifiedBadge from "@/components/ui/VerifiedBadge";
 
 export default function ConversationItem({
   conversation,
@@ -92,8 +93,9 @@ export default function ConversationItem({
       <div className="flex-1 min-w-0">
         {/* Top row: Name + Time */}
         <div className="flex items-center justify-between mb-1">
-          <h3 className="font-semibold text-sm truncate">
+          <h3 className="font-semibold text-sm truncate flex items-center gap-1">
             {partner?.userName || "Unknown User"}
+            {partner?.kycStatus === "verified" && <VerifiedBadge size={13} />}
           </h3>
 
           <span className="text-xs text-muted-foreground">

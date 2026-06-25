@@ -27,8 +27,8 @@ export const submitKyc = asyncHandler(async (req, res) => {
   if (user.kycStatus === "verified") {
     throw new ApiError(400, "Already verified");
   }
-  if (user.kycAttempts >= 3) {
-    throw new ApiError(400, "All 3 attempts used. Contact support.");
+  if (user.kycAttempts >= 20) {
+    throw new ApiError(400, "All 20 attempts used. Contact support.");
   }
   if (user.kycStatus === "awaiting_payment") {
     throw new ApiError(400, "A matched verification is awaiting payment. Pay within the deadline.");
@@ -61,7 +61,7 @@ export const submitKyc = asyncHandler(async (req, res) => {
       $inc: { kycAttempts: 1 },
       kycSelfieUrl:   selfieUpload.secure_url,
       kycDocumentUrl: docUpload.secure_url,
-      kycStatus: newAttempts >= 3 ? "attempts_exhausted" : "none",
+      kycStatus: newAttempts >= 20 ? "attempts_exhausted" : "none",
     });
     throw new ApiError(422, `Face detection failed: ${err.message}`);
   }
@@ -95,10 +95,10 @@ export const submitKyc = asyncHandler(async (req, res) => {
     matched:           false,
     confidence:        result.confidence,
     attemptsUsed:      newAttempts,
-    attemptsRemaining: Math.max(0, 3 - newAttempts),
+    attemptsRemaining: Math.max(0, 20 - newAttempts),
   }, newAttempts >= 3
     ? "All attempts exhausted. Contact support."
-    : `Face did not match. ${3 - newAttempts} attempt(s) remaining.`
+    : `Face did not match. ${20 - newAttempts} attempt(s) remaining.`
   ));
 });
 

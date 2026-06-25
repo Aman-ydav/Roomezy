@@ -1,4 +1,5 @@
 import { motion } from "framer-motion";
+import VerifiedBadge from "@/components/ui/VerifiedBadge";
 import { useSelector, useDispatch } from "react-redux";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -203,12 +204,21 @@ export default function Dashboard() {
         )}
 
         {/* Main Header */}
-        <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+        <h1 className="text-3xl md:text-4xl font-bold text-foreground flex items-center gap-3 flex-wrap">
           Welcome, <span className="text-primary">{user?.userName}</span>
+          {user?.kycStatus === "verified" && <VerifiedBadge size={28} />}
         </h1>
         <p className="text-sm md:text-base text-muted-foreground mt-2">
           Manage your posts, track engagement, and personalize your experience.
         </p>
+        {user?.kycStatus !== "verified" && (
+          <button
+            onClick={() => navigate("/verify-identity")}
+            className="mt-2 text-sm text-indigo-500 hover:underline flex items-center gap-1"
+          >
+            <VerifiedBadge size={14} /> Verify your identity to get a verified badge
+          </button>
+        )}
       </div>
 
       {/* User Role Highlight */}

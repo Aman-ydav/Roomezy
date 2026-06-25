@@ -21,6 +21,8 @@
   },
   "dependencies": {
     "@getbrevo/brevo": "^3.0.1",
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-backend-wasm": "^4.22.0",
     "@vladmandic/face-api": "^1.7.15",
     "bcrypt": "^6.0.0",
     "canvas": "^3.2.3",
