@@ -54,7 +54,7 @@ export default function ConversationList({
     const loadConversations = async () => {
       try {
         setLoading(true);
-        const res = await getConversations(user._id);
+        const res = await getConversations();
         dispatch(setConversations(res.data.data || []));
       } catch (error) {
         console.error(error);
@@ -97,7 +97,7 @@ export default function ConversationList({
     const unreadCount = conversation.unreadCount?.[user._id] || 0;
     if (unreadCount > 0) {
       try {
-        await markAsRead(conversation._id, user._id);
+        await markAsRead(conversation._id);
       } catch (error) {
         console.error(error);
       }

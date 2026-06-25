@@ -5,8 +5,8 @@ export const createConversation = (data) =>
   axios.post("/chat/conversation", data);
 
 // Get user conversations
-export const getConversations = (userId) =>
-  axios.get(`/chat/conversations/${userId}`);
+export const getConversations = () =>
+  axios.get("/chat/conversations");
 
 // Get messages
 export const getMessages = (conversationId) =>
@@ -17,8 +17,8 @@ export const sendMessageApi = (data) =>
   axios.post("/chat/message", data);
 
 // Mark messages as read
-export const markAsRead = (conversationId, userId) =>
-  axios.patch(`/chat/read/${conversationId}/${userId}`);
+export const markAsRead = (conversationId) =>
+  axios.patch(`/chat/read/${conversationId}`);
 
 export const deleteMessageForMeApi = (data) =>
   axios.patch("/chat/message/delete-me", data);

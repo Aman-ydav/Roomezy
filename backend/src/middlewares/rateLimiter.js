@@ -9,12 +9,13 @@ export const authLimiter = rateLimit({
   message: { success: false, message: "Too many attempts. Try again in 15 minutes." },
 });
 
-// General API — all authenticated routes
+// General API — all authenticated routes (logout is exempt — never block sign-out)
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
   max: 150,
   standardHeaders: true,
   legacyHeaders: false,
+  skip: (req) => req.originalUrl.includes("/users/logout"),
   message: { success: false, message: "Too many requests. Slow down." },
 });
 

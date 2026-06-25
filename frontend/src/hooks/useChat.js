@@ -50,7 +50,7 @@ export function useChat(conversationId, currentUser, partner) {
         const res = await getMessages(conversationId);
         if (!cancelled) setMessages(res.data.data || []);
         // mark read on open
-        await markAsRead(conversationId, currentUser._id);
+        await markAsRead(conversationId);
         dispatch(resetUnreadForConversation(conversationId));
       } catch (err) {
         console.error("useChat getMessages error:", err);
@@ -183,7 +183,7 @@ export function useChat(conversationId, currentUser, partner) {
         }
 
         // Mark read after sending
-        await markAsRead(conversationId, currentUser._id);
+        await markAsRead(conversationId);
       } catch (err) {
         console.error("useChat sendMessage error:", err);
       }
@@ -243,7 +243,7 @@ export function useChat(conversationId, currentUser, partner) {
       socket.emit("stop-typing", { conversationId, userId: currentUser._id }),
     markRead: async () => {
       try {
-        await markAsRead(conversationId, currentUser._id);
+        await markAsRead(conversationId);
         dispatch(resetUnreadForConversation(conversationId));
       } catch (err) {
         console.error("markRead error", err);

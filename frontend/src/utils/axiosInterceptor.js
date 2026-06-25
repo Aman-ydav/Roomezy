@@ -47,6 +47,21 @@ api.interceptors.response.use(
       "/users/verify-email",
     ];
 
+    // Rate limit hit — show a calm, non-alarming message
+    if (error.response?.status === 429) {
+      toast("Too many requests. Please slow down a moment.", {
+        description: "You've made too many requests in a short time. Wait a few seconds and try again.",
+        style: {
+          background: "#fff",
+          color: "#6b7280",
+          border: "1px solid #e5e7eb",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.06)",
+        },
+        duration: 4000,
+      });
+      return Promise.reject(error);
+    }
+
     if (
       error.response?.status === 401 &&
       !original._retry &&

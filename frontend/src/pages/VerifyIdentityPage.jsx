@@ -1,4 +1,4 @@
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import axiosInstance from "@/utils/axiosInterceptor";
 import { payForKyc } from "@/utils/razorpay";
@@ -12,18 +12,37 @@ const DOC_TYPES = [
 ];
 
 export default function VerifyIdentityPage() {
-  const navigate = useNavigate();
+  const navigate    = useNavigate();
   const selfieRef   = useRef(null);
   const documentRef = useRef(null);
 
-  const [selfie,       setSelfie]       = useState(null);
-  const [document,     setDocument]     = useState(null);
-  const [docType,      setDocType]      = useState("aadhaar");
-  const [loading,      setLoading]      = useState(false);
-  const [step,         setStep]         = useState("upload"); // upload | matched | done | error
-  const [result,       setResult]       = useState(null);
-  const [error,        setError]        = useState(null);
-  const [payLoading,   setPayLoading]   = useState(false);
+  const [selfie,     setSelfie]     = useState(null);
+  const [document,   setDocument]   = useState(null);
+  const [docType,    setDocType]    = useState("aadhaar");
+  const [loading,    setLoading]    = useState(false);
+  const [step,       setStep]       = useState("upload"); // upload | matched | done | error | no_match
+  const [result,     setResult]     = useState(null);
+  const [error,      setError]      = useState(null);
+  const [payLoading, setPayLoading] = useState(false);
+
+  // On mount — if user already has a pending face match, skip to payment step
+  useEffect(() => {
+    axiosInstance.get("/kyc/status")
+      .then(({ data }) => {
+        const s = data.data;
+        if (
+          s.kycStatus === "awaiting_payment" &&
+          new Date() <= new Date(s.kycPaymentDeadline)
+        ) {
+          setResult({ paymentDeadline: s.kycPaymentDeadline });
+          setStep("matched");
+        }
+        if (s.kycStatus === "verified") {
+          setStep("done");
+        }
+      })
+      .catch(() => {});
+  }, []);
 
   function previewUrl(file) {
     return file ? URL.createObjectURL(file) : null;
@@ -45,6 +64,13 @@ export default function VerifyIdentityPage() {
       const { data } = await axiosInstance.post("/kyc/submit", form, {
         headers: { "Content-Type": "multipart/form-data" },
       });
+
+      // Backend says face already matched — go straight to payment
+      if (data.data?.redirectToPayment) {
+        setResult({ paymentDeadline: data.data.paymentDeadline });
+        setStep("matched");
+        return;
+      }
 
       setResult(data.data);
       setStep(data.data.matched ? "matched" : "no_match");
@@ -86,7 +112,6 @@ export default function VerifyIdentityPage() {
         {/* Step: upload */}
         {step === "upload" && (
           <div className="space-y-4">
-            {/* Document type */}
             <div className="space-y-1">
               <label className="text-sm font-medium">Document Type</label>
               <select
@@ -141,7 +166,9 @@ export default function VerifyIdentityPage() {
               ) : (
                 <>
                   <UploadCloud size={32} className="text-muted-foreground" />
-                  <p className="text-sm text-muted-foreground mt-1">Upload {DOC_TYPES.find(d => d.value === docType)?.label}</p>
+                  <p className="text-sm text-muted-foreground mt-1">
+                    Upload {DOC_TYPES.find(d => d.value === docType)?.label}
+                  </p>
                 </>
               )}
               <input
@@ -159,31 +186,31 @@ export default function VerifyIdentityPage() {
               </div>
             )}
 
-            <Button
-              onClick={handleSubmit}
-              disabled={loading}
-              className="w-full"
-            >
-              {loading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+            <Button onClick={handleSubmit} disabled={loading} className="w-full">
+              {loading && <Loader2 size={16} className="animate-spin mr-2" />}
               {loading ? "Verifying..." : "Verify Face"}
             </Button>
           </div>
         )}
 
-        {/* Step: matched */}
+        {/* Step: matched — face ok, pending payment */}
         {step === "matched" && (
           <div className="space-y-4 text-center">
             <BadgeCheck size={48} className="mx-auto text-green-500" />
-            <p className="font-semibold text-green-600">Face matched! ({result?.confidence}% confidence)</p>
+            <p className="font-semibold text-green-600">
+              {result?.confidence
+                ? `Face matched! (${result.confidence}% confidence)`
+                : "Face already matched — complete payment to activate."}
+            </p>
             <p className="text-sm text-muted-foreground">
               Pay ₹99 once to activate your verified badge. Valid for life.
-              Payment deadline: {result?.paymentDeadline
-                ? new Date(result.paymentDeadline).toLocaleDateString("en-IN")
-                : "3 days"}.
+              {result?.paymentDeadline && (
+                <> Payment deadline: <strong>{new Date(result.paymentDeadline).toLocaleDateString("en-IN")}</strong>.</>
+              )}
             </p>
             {error && <p className="text-red-500 text-sm">{error}</p>}
             <Button onClick={handlePay} disabled={payLoading} className="w-full">
-              {payLoading ? <Loader2 size={16} className="animate-spin mr-2" /> : null}
+              {payLoading && <Loader2 size={16} className="animate-spin mr-2" />}
               {payLoading ? "Processing..." : "Pay ₹99 & Get Verified"}
             </Button>
           </div>
@@ -200,7 +227,10 @@ export default function VerifyIdentityPage() {
                 : "All attempts used. Please contact support."}
             </p>
             {result?.attemptsRemaining > 0 && (
-              <Button onClick={() => { setStep("upload"); setResult(null); setError(null); }} className="w-full">
+              <Button
+                onClick={() => { setStep("upload"); setResult(null); setError(null); }}
+                className="w-full"
+              >
                 Try Again
               </Button>
             )}
@@ -215,8 +245,8 @@ export default function VerifyIdentityPage() {
             <p className="text-sm text-muted-foreground">
               Your identity has been confirmed. The verified badge now appears on your profile and posts.
             </p>
-            <Button onClick={() => navigate("/profile")} className="w-full">
-              Go to Profile
+            <Button onClick={() => navigate("/dashboard")} className="w-full">
+              Go to Dashboard
             </Button>
           </div>
         )}
@@ -226,7 +256,11 @@ export default function VerifyIdentityPage() {
           <div className="space-y-4 text-center">
             <AlertCircle size={40} className="mx-auto text-red-500" />
             <p className="font-semibold text-red-500">{error}</p>
-            <Button variant="outline" onClick={() => { setStep("upload"); setError(null); }} className="w-full">
+            <Button
+              variant="outline"
+              onClick={() => { setStep("upload"); setError(null); }}
+              className="w-full"
+            >
               Try Again
             </Button>
           </div>
