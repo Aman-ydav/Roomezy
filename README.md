@@ -49,35 +49,35 @@ This is not a trust score or a self-reported badge. Roomezy runs its own verific
 
 ```mermaid
 graph TD
-    User(["👤 User (Browser / PWA)"])
+    User(["User - Browser / PWA"])
 
-    subgraph Frontend ["Frontend — React + Vite"]
+    subgraph FE ["Frontend - React + Vite"]
         UI["Pages & Components"]
-        Redux["Redux Toolkit (State)"]
+        Redux["Redux Toolkit"]
         SocketClient["Socket.IO Client"]
     end
 
-    subgraph Backend ["Backend — Node.js + Express"]
+    subgraph BE ["Backend - Node.js + Express"]
         API["REST API"]
         SocketServer["Socket.IO Server"]
-        RateLimit["Rate Limiter"]
         Auth["JWT Middleware"]
         FaceMatch["Face Verification Engine"]
     end
 
-    subgraph Services ["External Services"]
+    subgraph EXT ["External Services"]
         MongoDB[("MongoDB Atlas")]
-        Cloudinary["☁️ Cloudinary\n(Images)"]
-        Razorpay["💳 Razorpay\n(Payments)"]
-        Brevo["📧 Brevo\n(Email)"]
+        Cloudinary["Cloudinary - Images"]
+        Razorpay["Razorpay - Payments"]
+        Brevo["Brevo - Email"]
     end
 
     User --> UI
     UI --> Redux
     UI --> SocketClient
     Redux --> API
-    SocketClient <--> SocketServer
-    API --> RateLimit --> Auth
+    SocketClient --> SocketServer
+    SocketServer --> SocketClient
+    API --> Auth
     Auth --> FaceMatch
     Auth --> MongoDB
     FaceMatch --> Cloudinary
