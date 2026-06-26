@@ -84,7 +84,7 @@ export default function TrustBadge({
         )}
       </span>
 
-      {open && userId && (
+      {open && (
         <VerificationPopup userId={userId} onClose={() => setOpen(false)} />
       )}
     </>

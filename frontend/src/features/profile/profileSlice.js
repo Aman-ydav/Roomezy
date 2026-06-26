@@ -90,7 +90,6 @@ export const deleteAccount = createAsyncThunk(
       dispatch(updateUser(null));
 
       toast.success("Account deleted.");
-      localStorage.removeItem("roomezy_tokens");
       return true;
     } catch (err) {
       return rejectWithValue(err.response?.data?.message);

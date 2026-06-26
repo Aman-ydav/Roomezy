@@ -3,6 +3,7 @@ import { User } from "../models/user.model.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+import { cookieOptions, accessTokenCookieOptions } from "./user.controller.js";
 import crypto from "crypto";
 
 const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
@@ -65,17 +66,12 @@ export const googleLogin = asyncHandler(async (req, res) => {
 
   return res
     .status(200)
-    .cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      secure: true,        
-      sameSite: "none",   
-      path: "/",
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-    })
+    .cookie("accessToken", accessToken, accessTokenCookieOptions)
+    .cookie("refreshToken", refreshToken, cookieOptions)
     .json(
       new ApiResponse(
         200,
-        { user: userData, accessToken, refreshToken },
+        { user: userData, accessToken },
         "Google login successful"
       )
     );

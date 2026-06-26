@@ -5,11 +5,14 @@ import { User } from "../models/user.model.js";
 
 export const verifyJWT = asyncHandler(async (req, _, next) => {
     try {
-        // Use req.header() instead of req.headers()
-        const authHeader = req.headers.authorization || "";
-        const token = authHeader.startsWith("Bearer ")
-            ? authHeader.split(" ")[1]
+        // Cookie-first: httpOnly accessToken cookie takes precedence.
+        // Authorization header is the fallback (socket handshake, Postman, etc.)
+        const cookieToken = req.cookies?.accessToken;
+        const headerToken = req.headers.authorization?.startsWith("Bearer ")
+            ? req.headers.authorization.split(" ")[1]
             : null;
+
+        const token = cookieToken || headerToken;
 
         if (!token) {
             throw new ApiError(401, "Access token is missing");
@@ -26,7 +29,6 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
         }
 
         req.user = user;
-
         next();
     } catch (error) {
         throw new ApiError(401, "Invalid access token");

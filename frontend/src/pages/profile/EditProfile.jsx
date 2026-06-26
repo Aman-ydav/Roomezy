@@ -557,7 +557,6 @@ export default function EditProfile() {
                       try {
                         await dispatch(deleteAccount()).unwrap();
                         localStorage.removeItem("user");
-                        localStorage.removeItem("roomezy_tokens");
                         dispatch(updateUser(null));
                         navigate("/login");
                       } catch {

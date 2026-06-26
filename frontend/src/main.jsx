@@ -54,16 +54,10 @@ async function initPushAndPWA() {
     // console.log("Push subscription:", subscription);
 
     // 4) Send subscription to backend (only if user logged in)
-    const raw = localStorage.getItem("roomezy_tokens");
-    let token = null;
-
-    if (raw) {
-      const parsed = JSON.parse(raw);
-      token = parsed.accessToken;
-    }
+    const token = store.getState().auth.accessToken;
 
     if (!token) {
-      console.log("No accessToken in localStorage. Login first, then refresh.");
+      console.log("No accessToken found. Login first, then refresh.");
       return;
     }
 

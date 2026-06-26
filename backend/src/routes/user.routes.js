@@ -56,7 +56,7 @@ router.route("/forgot-password").post(authLimiter, forgotPassword);
 router.route("/reset-password/:token").post(authLimiter, resetPassword);
 
 router.route("/get-user-profile/:id").get(verifyJWT, getUserProfileById);
-router.route("/:id/verification-status").get(verifyJWT, getVerificationStatus);
+router.route("/:id/verification-status").get(getVerificationStatus);
 
 router.route("/delete-account").delete(verifyJWT, deleteAccount);
 

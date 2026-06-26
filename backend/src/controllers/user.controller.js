@@ -16,12 +16,22 @@ import { sendEmail } from "../utils/sendEmail.js";
 // Detect environment
 const isProd = process.env.NODE_ENV === "production";
 
+// Refresh token: 7-day, httpOnly — JS never reads this
 export const cookieOptions = {
     httpOnly: true,
-    secure: isProd, // HTTPS only in production
-    sameSite: isProd ? "none" : "lax", // Allow cross-site cookies in prod
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
     path: "/",
     maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
+// Access token: 15-min, httpOnly — JS never reads this; auth middleware uses it directly
+export const accessTokenCookieOptions = {
+    httpOnly: true,
+    secure: isProd,
+    sameSite: isProd ? "none" : "lax",
+    path: "/",
+    maxAge: 15 * 60 * 1000,
 };
 
 const generateAccessAndRefreshToken = async (userId) => {
@@ -125,11 +135,14 @@ const loginUser = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
+        .cookie("accessToken", accessToken, accessTokenCookieOptions)
         .cookie("refreshToken", refreshToken, cookieOptions)
         .json(
             new ApiResponse(
                 200,
-                { user: loggedInUser, accessToken, refreshToken },
+                // accessToken returned in body solely for socket.io handshake auth;
+                // all HTTP API calls use the httpOnly cookie above
+                { user: loggedInUser, accessToken },
                 "User logged in successfully"
             )
         );
@@ -144,6 +157,7 @@ const logoutUser = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
+        .clearCookie("accessToken", accessTokenCookieOptions)
         .clearCookie("refreshToken", cookieOptions)
         .json(new ApiResponse(200, {}, "User logged out successfully"));
 });
@@ -155,6 +169,7 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         req.headers["x-refresh-token"];
 
     if (!incomingRefreshToken) {
+        res.clearCookie("accessToken", accessTokenCookieOptions);
         res.clearCookie("refreshToken", cookieOptions);
         throw new ApiError(401, "Refresh token missing");
     }
@@ -167,11 +182,13 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
         const user = await User.findById(decoded?._id);
 
         if (!user) {
+            res.clearCookie("accessToken", accessTokenCookieOptions);
             res.clearCookie("refreshToken", cookieOptions);
             throw new ApiError(401, "User not found");
         }
 
         if (user.refreshToken !== incomingRefreshToken) {
+            res.clearCookie("accessToken", accessTokenCookieOptions);
             res.clearCookie("refreshToken", cookieOptions);
             throw new ApiError(401, "Refresh token expired or mismatched");
         }
@@ -181,15 +198,17 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
         return res
             .status(200)
+            .cookie("accessToken", accessToken, accessTokenCookieOptions)
             .cookie("refreshToken", newRefreshToken, cookieOptions)
             .json(
                 new ApiResponse(
                     200,
-                    { accessToken, refreshToken: newRefreshToken },
+                    { accessToken },
                     "Access token refreshed"
                 )
             );
     } catch (err) {
+        res.clearCookie("accessToken", accessTokenCookieOptions);
         res.clearCookie("refreshToken", cookieOptions);
         throw new ApiError(401, "Invalid refresh token");
     }
@@ -209,6 +228,7 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
     return res
         .status(200)
+        .clearCookie("accessToken", accessTokenCookieOptions)
         .clearCookie("refreshToken", cookieOptions)
         .json(new ApiResponse(200, {}, "Password changed successfully"));
 });

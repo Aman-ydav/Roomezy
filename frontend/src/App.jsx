@@ -11,15 +11,21 @@ import { setCurrentUserId } from "@/features/chat/chatSlice";
 import InAppMessagePopup from "@/components/ui/InAppMessagePopup";
 import { hidePopup } from "@/features/ui/uiSlice";
 import useChatSocket from "@/socket/useChatSocket";
+import { bootstrapAuth } from "@/features/auth/authSlice";
 
 
 function App() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
   const user = useSelector((s) => s.auth.user);
+  const accessToken = useSelector((s) => s.auth.accessToken);
   const popup = useSelector((s) => s.ui.popupQueue?.[0] ?? null);
 
   useChatSocket();
+
+  useEffect(() => {
+    dispatch(bootstrapAuth());
+  }, []);
 
   useEffect(() => {
     setNavigator(navigate);
@@ -57,8 +63,7 @@ function App() {
   useEffect(() => {
     if (user?._id) {
       dispatch(setCurrentUserId(user._id));
-      const tokens = JSON.parse(localStorage.getItem("roomezy_tokens") || "{}");
-      connectSocket(tokens.accessToken);
+      connectSocket(accessToken);
     }
 
     return () => {
@@ -68,7 +73,7 @@ function App() {
         // ignore
       }
     };
-  }, [user, dispatch]);
+  }, [user, accessToken, dispatch]);
 
   return (
     <>

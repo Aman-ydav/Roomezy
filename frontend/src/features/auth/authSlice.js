@@ -1,5 +1,6 @@
 import { createSlice, createAsyncThunk } from "@reduxjs/toolkit";
 import api from "@/utils/axiosInterceptor";
+import { getNewAccessToken } from "@/utils/axiosInterceptor";
 import { toast } from "sonner";
 
 // ------------------------- REGISTER -------------------------
@@ -38,7 +39,6 @@ export const loginUser = createAsyncThunk(
       const payload = res.data?.data;
       const user = payload?.user;
       const accessToken = payload?.accessToken;
-      const refreshToken = payload?.refreshToken;
 
       if (!user || !accessToken) {
         throw new Error("Login response missing user or tokens");
@@ -46,14 +46,27 @@ export const loginUser = createAsyncThunk(
 
       localStorage.setItem("user", JSON.stringify(user));
 
-      localStorage.setItem(
-        "roomezy_tokens",
-        JSON.stringify({ accessToken, refreshToken })
-      );
-
-      return user;
+      return { user, accessToken };
     } catch (error) {
       return rejectWithValue(error.response?.data?.message || "Login failed");
+    }
+  }
+);
+
+// Called once on app load.
+// Uses the shared getNewAccessToken() singleton so it de-duplicates with
+// any concurrent 401 retries — only one /refresh-token HTTP request fires.
+// Fulfilled  → access token in Redux (socket auth) + isAuthenticated confirmed.
+// Rejected 401/403 → genuine expiry, wipe user and redirect to login.
+// Rejected other  → transient error (network down), keep optimistic state.
+export const bootstrapAuth = createAsyncThunk(
+  "auth/bootstrapAuth",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = await getNewAccessToken();
+      return token;
+    } catch (err) {
+      return rejectWithValue({ status: err.response?.status ?? 0 });
     }
   }
 );
@@ -110,9 +123,7 @@ export const logoutUser = createAsyncThunk(
     try {
       await api.post("/users/logout", {}, { withCredentials: true });
 
-      // Clear localStorage
       localStorage.removeItem("user");
-      localStorage.removeItem("roomezy_tokens");
 
       toast.success("Logged out successfully!");
 
@@ -130,23 +141,16 @@ export const googleLogin = createAsyncThunk(
       const res = await api.post(
         "/users/google",
         { id_token },
-        {
-          withCredentials: true,
-        }
+        { withCredentials: true }
       );
 
       const payload = res.data?.data;
       const user = payload?.user;
       const accessToken = payload?.accessToken;
-      const refreshToken = payload?.refreshToken;
 
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem(
-        "roomezy_tokens",
-        JSON.stringify({ accessToken, refreshToken })
-      );
 
-      return payload;
+      return { user, accessToken };
     } catch (err) {
       return thunkAPI.rejectWithValue(
         err.response?.data?.message || "Google login failed"
@@ -164,8 +168,6 @@ export const updateUserData = (userData) => (dispatch) => {
     localStorage.removeItem("user");
   }
 };
-
-
 
 export const sendVerificationCode = createAsyncThunk(
   "auth/sendVerificationCode",
@@ -197,8 +199,11 @@ const savedUser = localStorage.getItem("user");
 
 const initialState = {
   user: savedUser ? JSON.parse(savedUser) : null,
+  accessToken: null,
   loading: false,
   error: null,
+  // Optimistic: trust the localStorage cache immediately.
+  // bootstrapAuth runs in background and corrects this if the session expired.
   isAuthenticated: !!savedUser,
 };
 
@@ -207,7 +212,6 @@ const authSlice = createSlice({
   initialState,
 
   reducers: {
-    // Update user after profile/avatar updates
     updateUser: (state, action) => {
       state.user = action.payload;
 
@@ -218,33 +222,50 @@ const authSlice = createSlice({
       }
     },
 
+    setAccessToken: (state, action) => {
+      state.accessToken = action.payload;
+    },
 
-    // Force logout (used in axios interceptor)
     forceLogout: (state) => {
       state.user = null;
+      state.accessToken = null;
       state.isAuthenticated = false;
       state.error = null;
 
       localStorage.removeItem("user");
-      localStorage.removeItem("roomezy_tokens");
     },
 
     googleLoginSuccess: (state, action) => {
-      const { user, accessToken, refreshToken } = action.payload;
+      const { user, accessToken } = action.payload;
 
       state.user = user;
+      state.accessToken = accessToken;
       state.isAuthenticated = true;
 
       localStorage.setItem("user", JSON.stringify(user));
-      localStorage.setItem(
-        "roomezy_tokens",
-        JSON.stringify({ accessToken, refreshToken })
-      );
     },
   },
 
   extraReducers: (builder) => {
     builder
+      // BOOTSTRAP
+      .addCase(bootstrapAuth.fulfilled, (state, action) => {
+        state.accessToken = action.payload;
+        state.isAuthenticated = true;
+      })
+      .addCase(bootstrapAuth.rejected, (state, action) => {
+        const status = action.payload?.status;
+        // Only wipe on genuine auth failure (expired / revoked token).
+        // Network errors (status 0) keep the optimistic state so the user
+        // isn't bounced to login on a momentary connectivity blip.
+        if (status === 401 || status === 403) {
+          state.user = null;
+          state.accessToken = null;
+          state.isAuthenticated = false;
+          localStorage.removeItem("user");
+        }
+      })
+
       // REGISTER
       .addCase(registerUser.pending, (state) => {
         state.loading = true;
@@ -269,7 +290,8 @@ const authSlice = createSlice({
       })
       .addCase(loginUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.user = action.payload;
+        state.user = action.payload.user;
+        state.accessToken = action.payload.accessToken;
         state.isAuthenticated = true;
       })
       .addCase(loginUser.rejected, (state, action) => {
@@ -284,6 +306,7 @@ const authSlice = createSlice({
       .addCase(logoutUser.fulfilled, (state) => {
         state.loading = false;
         state.user = null;
+        state.accessToken = null;
         state.isAuthenticated = false;
       })
       .addCase(logoutUser.rejected, (state, action) => {
@@ -302,8 +325,8 @@ const authSlice = createSlice({
       })
       .addCase(fetchCurrentUser.rejected, (state) => {
         state.loading = false;
-        state.user = null;
-        state.isAuthenticated = false;
+        // Don't wipe user on network errors — only on real 401s handled
+        // by the interceptor (which dispatches forceLogout directly).
       })
 
       // FORGOT / RESET
@@ -330,6 +353,6 @@ const authSlice = createSlice({
   },
 });
 
-export const { updateUser, forceLogout, googleLoginSuccess } =
+export const { updateUser, setAccessToken, forceLogout, googleLoginSuccess } =
   authSlice.actions;
 export default authSlice.reducer;
