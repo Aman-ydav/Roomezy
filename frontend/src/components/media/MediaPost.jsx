@@ -1,7 +1,7 @@
 // src/components/media/MediaPost.jsx - Update the handleLike function and like logic
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { addComment, getAllComments, deleteMediaPost, getAllMediaPosts } from "@/features/media/mediaSlice";
+import { addComment, getAllComments, deleteMediaPost } from "@/features/media/mediaSlice";
 import { useAuth } from "@/hooks/useAuth";
 import { Heart, MessageCircle, Share, MoreHorizontal, Trash2, LogIn, Bookmark, Loader2 } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -30,7 +30,7 @@ export default function MediaPost({ post, onLike, currentUser }) {
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const { isAuthenticated } = useAuth();
-  const { userLikes, posts: allPosts } = useSelector((state) => state.media);
+  const { posts: allPosts } = useSelector((state) => state.media);
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [postingComment, setPostingComment] = useState(false);
@@ -48,27 +48,16 @@ export default function MediaPost({ post, onLike, currentUser }) {
       return;
     }
     
-    // Method 2: Check if we have userLikes array in Redux store
-    if (userLikes && Array.isArray(userLikes) && currentUser) {
-      const isLiked = userLikes.some(like => 
-        like.media === post._id || like._id === post._id
-      );
-      setLocalIsLiked(isLiked);
-      return;
-    }
-    
-    // Method 3: Check if post.likes array contains current user
+    // Fallback for responses that include the likes list instead of isLiked.
     if (post.likes && Array.isArray(post.likes) && currentUser) {
       const userLiked = post.likes.some(like => {
-        // Handle both populated and non-populated like objects
         const likeUserId = like.user?._id || like.user;
-        return likeUserId === currentUser._id;
+        return String(likeUserId) === String(currentUser._id);
       });
       setLocalIsLiked(userLiked);
       return;
     }
-    
-    // Method 4: Check if current post in Redux store has updated like info
+
     if (allPosts && Array.isArray(allPosts) && currentUser) {
       const updatedPost = allPosts.find(p => p._id === post._id);
       if (updatedPost) {
@@ -79,7 +68,7 @@ export default function MediaPost({ post, onLike, currentUser }) {
         if (updatedPost.likes && Array.isArray(updatedPost.likes)) {
           const userLiked = updatedPost.likes.some(like => {
             const likeUserId = like.user?._id || like.user;
-            return likeUserId === currentUser._id;
+            return String(likeUserId) === String(currentUser._id);
           });
           setLocalIsLiked(userLiked);
           return;
@@ -89,7 +78,7 @@ export default function MediaPost({ post, onLike, currentUser }) {
     
     // Default to false
     setLocalIsLiked(false);
-  }, [post, currentUser, userLikes, allPosts]);
+  }, [post, currentUser, allPosts]);
 
   // Safe date formatting
   const formatPostDate = (dateString) => {
@@ -154,13 +143,10 @@ export default function MediaPost({ post, onLike, currentUser }) {
     setLocalIsLiked(!previousLikeState);
     
     try {
-      await onLike(post._id);
-      
-      // After successful like, refresh the posts to get updated like state
-      // This ensures we have the correct isLiked status from backend
-      setTimeout(() => {
-        dispatch(getAllMediaPosts());
-      }, 300);
+      const response = await onLike(post._id);
+      if (typeof response?.data?.isLiked === "boolean") {
+        setLocalIsLiked(response.data.isLiked);
+      }
       
     } catch (error) {
       // Revert optimistic update on error
@@ -287,8 +273,15 @@ export default function MediaPost({ post, onLike, currentUser }) {
                 variant="ghost"
                 size="sm"
                 className="p-0 h-9 w-9 rounded-full text-muted-foreground hover:text-foreground hover:bg-accent/50 transition-all duration-200"
+                aria-label="Share story"
+                title="Coming soon"
               >
-                <Share className="h-5 w-5" />
+                <span className="relative group">
+                  <Share className="h-5 w-5" />
+                  <span className="pointer-events-none absolute left-1/2 top-full z-10 mt-2 -translate-x-1/2 whitespace-nowrap rounded-md bg-foreground px-2 py-1 text-xs text-background opacity-0 transition-opacity group-hover:opacity-100">
+                    Coming soon
+                  </span>
+                </span>
               </Button>
             </div>
 

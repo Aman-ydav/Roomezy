@@ -35,7 +35,7 @@ export default function MediaFeed() {
     };
     
     loadPosts();
-  }, [dispatch]);
+  }, [dispatch, user?._id]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -48,7 +48,7 @@ export default function MediaFeed() {
       setLoginDialogOpen(true);
       return;
     }
-    await dispatch(toggleLikeMedia(postId));
+    return dispatch(toggleLikeMedia(postId)).unwrap();
   };
 
   const handleLogin = () => {
