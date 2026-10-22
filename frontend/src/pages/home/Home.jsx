@@ -13,8 +13,6 @@ import ScrollToTop from "@/components/layout/ScrollToTop";
 import SliderSwitch from "@/components/ui/SliderSwitch";
 import { ShieldCheck } from "lucide-react";
 
-const TRUST_KEY = "rz_trust_shown";
-
 export default function Home() {
   const [filter, setFilter] = useState("all");
   const [status, setStatus] = useState("all");
@@ -23,20 +21,6 @@ export default function Home() {
 
   const dispatch = useDispatch();
   const { posts, loading } = useSelector((state) => state.post);
-
-  // First-visit auto-show
-  useEffect(() => {
-    if (!localStorage.getItem(TRUST_KEY)) {
-      const t = setTimeout(() => setTrustOpen(true), 1200);
-      return () => clearTimeout(t);
-    }
-  }, []);
-
-  // Mark shown so it doesn't auto-open again
-  const handleTrustClose = () => {
-    localStorage.setItem(TRUST_KEY, "1");
-    setTrustOpen(false);
-  };
 
   useEffect(() => {
     dispatch(getAllPosts());
@@ -150,7 +134,7 @@ export default function Home() {
         Why trust us?
       </button>
 
-      {trustOpen && <TrustModal onClose={handleTrustClose} />}
+      {trustOpen && <TrustModal onClose={() => setTrustOpen(false)} />}
 
       <ScrollToTop />
       <div className="mt-16">
