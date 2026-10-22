@@ -8,10 +8,10 @@ import {
   getAllCommentsForMedia,
   deleteMediaPost,
 } from "../controllers/media.controller.js";
-import { verifyJWT } from "../middlewares/auth.middleware.js";
+import { attachUserIfPresent, verifyJWT } from "../middlewares/auth.middleware.js";
 const router = Router();
 
-router.route("/").get(getAllMediaPosts);
+router.route("/").get(attachUserIfPresent, getAllMediaPosts);
 
 router.route("/").post(verifyJWT,
     upload.fields([

@@ -34,3 +34,31 @@ export const verifyJWT = asyncHandler(async (req, _, next) => {
         throw new ApiError(401, "Invalid access token");
     }
 });
+
+export const attachUserIfPresent = asyncHandler(async (req, _, next) => {
+    const token = req.cookies?.accessToken ||
+        (req.headers.authorization?.startsWith("Bearer ")
+            ? req.headers.authorization.split(" ")[1]
+            : null);
+
+    if (!token) {
+        return next();
+    }
+
+    try {
+        const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
+        req.user = await User.findById(decoded._id).select(
+            "-password -refreshToken"
+        );
+    } catch (error) {
+        if (
+            error.name !== "JsonWebTokenError" &&
+            error.name !== "TokenExpiredError" &&
+            error.name !== "NotBeforeError"
+        ) {
+            throw error;
+        }
+    }
+
+    next();
+});
