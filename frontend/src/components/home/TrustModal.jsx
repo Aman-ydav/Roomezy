@@ -48,11 +48,11 @@ function FilledBadge({ bg, size = 24 }) {
 export default function TrustModal({ onClose }) {
   return (
     <div
-      className="fixed top-16 inset-x-0 bottom-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
+      className="fixed inset-0 z-100 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4"
       onClick={onClose}
     >
       <div
-        className="relative w-full max-w-2xl bg-card border border-border rounded-2xl shadow-2xl flex flex-col max-h-[calc(100vh-5rem)]"
+        className="relative w-[90vw] md:w-[70vw] max-w-4xl max-h-[75vh] bg-card border border-border rounded-2xl shadow-2xl flex flex-col"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header — pinned */}

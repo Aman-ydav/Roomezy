@@ -18,6 +18,7 @@ export default function Home() {
   const [status, setStatus] = useState("all");
   const [search, setSearch] = useState("");
   const [trustOpen, setTrustOpen] = useState(false);
+  const [showTrustLabel, setShowTrustLabel] = useState(true);
 
   const dispatch = useDispatch();
   const { posts, loading } = useSelector((state) => state.post);
@@ -25,6 +26,11 @@ export default function Home() {
   useEffect(() => {
     dispatch(getAllPosts());
   }, [dispatch]);
+
+  useEffect(() => {
+    const collapseTimer = setTimeout(() => setShowTrustLabel(false), 4000);
+    return () => clearTimeout(collapseTimer);
+  }, []);
 
   const containerRef = useRef(null);
   const controls = useAnimation();
@@ -128,10 +134,20 @@ export default function Home() {
       {/* Floating "Why trust us?" pill */}
       <button
         onClick={() => setTrustOpen(true)}
-        className="fixed bottom-6 left-6 z-40 flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white text-sm font-semibold px-4 py-2.5 rounded-full shadow-lg shadow-green-600/30 transition-all hover:scale-105 hover:shadow-xl hover:shadow-green-600/40"
+        aria-label="Why trust us?"
+        title="Why trust us?"
+        className={`fixed bottom-6 left-6 z-40 flex h-11 items-center rounded-full bg-green-600 text-white text-sm font-semibold shadow-lg shadow-green-600/30 transition-all duration-500 hover:scale-105 hover:bg-green-700 hover:shadow-xl hover:shadow-green-600/40 ${
+          showTrustLabel ? "gap-2 px-4" : "px-3"
+        }`}
       >
         <ShieldCheck size={15} />
-        Why trust us?
+        <span
+          className={`overflow-hidden whitespace-nowrap transition-all duration-500 ${
+            showTrustLabel ? "max-w-32 opacity-100" : "max-w-0 opacity-0"
+          }`}
+        >
+          Why trust us?
+        </span>
       </button>
 
       {trustOpen && <TrustModal onClose={() => setTrustOpen(false)} />}
